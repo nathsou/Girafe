@@ -1,0 +1,67 @@
+
+If(True, a, b) -> Inst(a)
+If(False, a, b) -> Inst(b)
+
+And(False, b) -> False
+And(a, False) -> False
+And(True, b) -> b
+And(a, True) -> a
+
+Or(False, b) -> b
+Or(a, False) -> a
+Or(True, b) -> True
+Or(a, True) -> True
+
+Not(Not(q)) -> q
+Not(True) -> False
+Not(False) -> True
+
+Simplify(#Expand(x)) -> x
+Expand(#Simplify(x)) -> x
+
+S(n) -> +(n, Nat(1))
++(a, Nat(0)) -> a
++(Nat(0), b) -> b
++(Nat(a), Nat(b)) -> Nat(@add(a, b))
+
+**(Nat(0), Nat(0)) -> Error
+**(a, Nat(0)) -> Nat(1)
+**(a, Nat(1)) -> a
+**(Nat(a), Nat(b)) -> Nat(@pow(a, b))
+Expand(**(a, Nat(n))) -> Expand(*(a, **(a, Nat(@sub(n, 1)))))
+
+*(a, Nat(0)) -> Nat(0)
+*(Nat(0), b) -> Nat(0)
+*(a, Nat(1)) -> a
+*(Nat(1), b) -> b
+*(Nat(a), Nat(b)) -> Nat(@mult(a, b))
+
+Expand(*(a, +(b, c))) -> Expand(+(*(a, b), *(a, c)))
+Expand(*(+(a, b), c)) -> Expand(+(*(a, c), *(b, c)))
+
+=(+(a, b), +(c, d)) -> Or(And(=(a, c), =(b, d)), And(=(a, d), =(b, c)))
+=(*(a, b), *(c, d)) -> Or(And(=(a, c), =(b, d)), And(=(a, d), =(b, c)))
+=(a, b) -> @equ(a, b)
+
+Simplify(+(a, b)) -> If(=(a, b), Simplify(*(a, Nat(2))), +(Simplify(a), Simplify(b)))
+Simplify(*(**(a, n), **(b, m))) -> If(=(a, b), Simplify(**(a, +(n, m))), *(Simplify(**(a, n)), Simplify(**(b, m))))
+Simplify(*(a, **(b, n))) -> If(=(a, b), Simplify(**(a, S(n))), *(Simplify(a), **(Simplify(b), Simplify(n))))
+Simplify(*(**(a, n), b)) -> If(=(a, b), Simplify(**(a, S(n))), *(Simplify(**(a, n)), Simplify(b))) 
+Simplify(*(a, *(b, c))) -> If(=(a, b), Simplify(*(**(Simplify(a), Nat(2)), Simplify(c))), *(Simplify(a), *(Simplify(b), Simplify(c))))
+Simplify(*(a, b)) -> If(=(a, b), Simplify(**(a, Nat(2))), *(Simplify(a), Simplify(b)))
+Simplify(**(**(a, n), m)) -> Simplify(**(a, +(n, m)))
+Simplify(**(a, b)) -> **(Simplify(a), Simplify(b))
+
+Expand(*(a, b)) -> *(Expand(a), Expand(b))
+Expand(+(a, b)) -> +(Expand(a), Expand(b))
+Expand(-(a, b)) -> -(Expand(a), Expand(b))
+Expand(**(a, b)) -> **(Expand(a), Expand(b))
+
+Expand(x) -> Inst(x)
+Simplify(x) -> Inst(x)
+
+Inst(#Expand(x)) -> Expand(x)
+Inst(#Simplify(x)) -> Simplify(x)
+Inst(a) -> a
+
+T -> Expand(**(+(a, b), Nat(2)))

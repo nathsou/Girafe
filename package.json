@@ -1,0 +1,43 @@
+{
+  "name": "giraffe",
+  "version": "1.0.0",
+  "description": "Term Rewriting System infrastructure",
+  "main": "dist/grf.js",
+  "module": "lib/js/lib.js",
+  "types": "lib/types/lib.d.ts",
+  "dependencies": {
+    "css-loader": "^3.5.3",
+    "file-loader": "^6.0.0",
+    "jison": "^0.4.18",
+    "monaco-editor": "^0.20.0",
+    "monaco-editor-webpack-plugin": "^1.9.0",
+    "style-loader": "^1.2.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^25.2.1",
+    "html-webpack-plugin": "^4.3.0",
+    "jest": "^25.4.0",
+    "raw-loader": "^4.0.1",
+    "ts-jest": "^25.4.0",
+    "ts-loader": "^7.0.2",
+    "typescript": "^3.9.2",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "scripts": {
+    "start": "webpack-dev-server --mode development -d",
+    "build": "tsc && webpack --mode production",
+    "debug": "webpack --mode development",
+    "watch": "webpack -w",
+    "test": "jest"
+  },
+  "keywords": [
+    "Girafe",
+    "TRS",
+    "MTRS",
+    "VM"
+  ],
+  "author": "Nathan Soufflet",
+  "license": "MIT"
+}

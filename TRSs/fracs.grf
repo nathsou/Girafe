@@ -1,0 +1,246 @@
+If(True, a, b) -> Inst(a)
+If(False, a, b) -> Inst(b)
+F(F(F(If, cond), a), b) -> If(cond, a, b)
+Arity(If) -> 3
+
+And(False, b) -> False
+And(a, False) -> False
+And(True, b) -> b
+And(a, True) -> a
+F(F(And, a), b) -> And(a, b)
+Arity(And) -> 2
+
+Or(False, b) -> b
+Or(a, False) -> a
+Or(True, b) -> True
+Or(a, True) -> True
+F(F(Or, a), b) -> Or(a, b)
+Arity(Or) -> 2
+
+Not(Not(q)) -> q
+Not(True) -> False
+Not(False) -> True
+F(Not, q) -> Not(q)
+Arity(Not) -> 1
+
+IsNat(n) -> @isnat(n)
+AreNat(a, b) -> And(IsNat(a), IsNat(b))
+
++(a, 0) -> a
++(0, b) -> b
++(a, S(b)) -> S(+(a, b))
++(S(a), b) -> S(+(a, b))
+
++(Float(na, fla), Float(nb, flb)) -> +.(Float(na, fla), Float(nb, flb))
+-(Float(na, fla), Float(nb, flb)) -> -.(Float(na, fla), Float(nb, flb))
+
++(Frac(a, b), Frac(c, d)) -> +Frac(Lcm(b, d), a, b, c, d)
++Frac(lcm, a, b, c, d) -> Frac(+(*(a, /(lcm, b)), *(c, /(lcm, d))), lcm)
+
+-(Frac(a, b), Frac(c, d)) -> -Frac(Lcm(b, d), a, b, c, d)
+-Frac(lcm, a, b, c, d) -> Frac(-(*(a, /(lcm, b)), *(c, /(lcm, d))), lcm)
+
+*(Frac(a, b), Frac(c, d)) -> Frac(*(a, c), *(b, d))
+*(Float(na, fla), Float(nb, flb)) -> *(FracOfFloat(Float(na, fla)), FracOfFloat(Float(nb, flb)))
+
+/(Frac(a, b), Frac(c, d)) -> /.(Frac(a, b), Frac(c, d))
+/(Float(na, fla), Float(nb, flb)) -> /(FracOfFloat(Float(na, fla)), FracOfFloat(Float(nb, flb)))
+
++(a, b) -> If(AreNat(a, b), @add(a, b), .)
+Add(a, b) -> @add(a, b)
+Arity(+) -> 1
+
+*(a, b) -> If(AreNat(a, b), @mult(a, b), .)
+Mult(a, b) -> @mult(a, b)
+/(a, b) -> If(AreNat(a, b), @div(a, b), .)
+NatDiv(a, b) -> @div(a, b)
+-(a, b) -> If(AreNat(a, b), @sub(a, b), .)
+Sub(a, b) -> @sub(a, b)
+%(a, b) -> If(AreNat(a, b), @mod(a, b), .)
+Mod(a, b) -> @mod(a, b)
+**(a, b) -> If(AreNat(a, b), @pow(a, b), .)
+Pow(a, b) -> @pow(a, b)
+\(a, b) -> If(AreNat(a, b), Pair(@div(a, b), @mod(a, b)), .)
+Div(a, b) -> Pair(@div(a, b), @mod(a, b))
+
+Eq(a, b) -> @equ(a, b)
+=(a, b) -> If(AreNat(a, b), @equ(a, b), .)
+Neq(a, b) -> Not(=(a, b))
+>(a, b) -> @gtr(a, b)
+>=(a, b) -> @geq(a, b)
+<(a, b) -> @lss(a, b)
+<=(a, b) -> @leq(a, b)
+
+F(F(+, a), b) -> +(a, b)
+F(F(-, a), b) -> -(a, b)
+F(F(*, a), b) -> *(a, b)
+F(F(/, a), b) -> /(a, b)
+F(F(%, a), b) -> %(a, b)
+F(F(**, a), b) -> **(a, b)
+
+F(F(Eq, a), b) -> Eq(a, b)
+F(F(Neq, a), b) -> Neq(a, b)
+F(F(=, a), b) -> =(a, b)
+F(F(a, =), b) -> =(a, b)
+F(F(>, a), b) -> >(a, b)
+F(F(a, >), b) -> >(a, b)
+F(F(>=, a), b) -> >=(a, b)
+F(F(a, >=), b) -> >=(a, b)
+F(F(<, a), b) -> <(a, b)
+F(F(a, <), b) -> <(a, b)
+F(F(<=, a), b) -> <=(a, b)
+F(F(a, <=), b) -> <=(a, b)
+
+Map(f, lst) -> MapAux(f, lst, Nil)
+MapAux(f, Nil, acc) -> Reverse(acc)
+MapAux(f, :(h, tl), acc) -> MapAux(f, tl, :(F(f, h), acc))
+
+Filter(pred, lst) -> FilterAux(pred, lst, Nil)
+FilterAux(pred, Nil, acc) -> Reverse(acc)
+FilterAux(pred, :(h, tl), acc) -> 
+    FilterAux(
+        pred,
+        tl,
+        If(F(pred, h), :(h, acc), acc)
+    )
+
+Partition(f, lst) -> PartitionAux(f, lst, Nil, Nil)
+PartitionAux(f, Nil, p1, p2) -> Pair(Reverse(p1), Reverse(p2))
+PartitionAux(f, :(h, tl), p1, p2) ->
+    If(F(f, h),
+        #PartitionAux(f, tl, :(h, p1), p2),
+        #PartitionAux(f, tl, p1, :(h, p2))
+    )
+Inst(#PartitionAux(f, lst, p1, p2)) -> PartitionAux(f, lst, p1, p2)
+
+Reverse(lst) -> ReverseAux(lst, Nil)
+ReverseAux(Nil, rev) -> rev
+ReverseAux(:(h, tl), rev) -> ReverseAux(tl, :(h, rev))
+
+Divisible(a, b) -> =(%(a, b), 0)
+F(F(Divisible, a), b) -> Divisible(a, b)
+
+Range(n) -> If(IsNat(n), #Range(n), .)
+Inst(#Range(n)) -> RangeAux(n, Nil)
+RangeAux(0, rng) -> :(0, rng)
+RangeAux(n, rng) -> RangeAux(@sub(n, 1), :(n, rng))
+
+IsPrime(n) -> If(IsNat(n), #IsPrimeNat(n), .)
+Inst(#IsPrimeNat(n)) -> IsPrimeNat(n)
+IsPrimeNat(2) -> True
+IsPrimeNat(n) -> If(Or(<(n, 2), Divisible(n, 2)), False, #IsPrimeAux(n, 3))
+Inst(#IsPrimeAux(n, i)) -> IsPrimeAux(n, i)
+
+IsPrimeAux(n, i) -> 
+    If(>(*(i, i), n),
+        True,
+        If(Divisible(n, i),
+            False,
+            #IsPrimeAux(n, @add(i, 2))
+        )
+    )
+
+F(IsPrime, n) -> IsPrime(n)
+
+Len(Nil) -> 0
+Len(:(h, tl)) -> +(Len(tl), 1)
+F(Len, lst) -> Len(lst)
+
+Append(l1, l2) -> AppendAux(l2, Reverse(l1))
+AppendAux(Nil, acc) -> Reverse(acc)
+AppendAux(:(h, tl), acc) -> AppendAux(tl, :(h, acc))
+Prepend(l1, l2) -> Append(l2, l1)
+
+Sort(Nil) -> Nil
+Sort(:(h, tl)) -> SortAux(Partition(F(h, >), tl), h)
+SortAux(Pair(lss, gtr), h) -> Append(Sort(lss), :(h, Sort(gtr)))
+
+Foldl(f, acc, Nil) -> acc
+Foldl(f, acc, :(h, tl)) -> Foldl(f, F(F(f, h), acc), tl)
+
+Foldr(f, base, Nil) -> base
+Foldr(f, base, :(h, tl)) -> F(F(f, h), Foldr(f, base, tl))
+
+Sum(lst) -> Foldr(+, 0, lst)
+Prod(lst) -> Foldr(*, 1, lst)
+
+Fact(n) -> If(IsNat(n), #Fact(n), .)
+Inst(#Fact(n)) -> FactNat(n)
+FactNat(0) -> 1
+FactNat(n) -> *(n, FactNat(-(n, 1)))
+F(Fact, n) -> Fact(n)
+
+Zip'(Nil, l2, z) -> Reverse(z)
+Zip'(l1, Nil, z) -> Reverse(z)
+Zip'(:(h1, tl1), :(h2, tl2), z) -> Zip'(tl1, tl2, :(Pair(h1, h2), z))
+
+Zip(l1, l2) -> Zip'(l1, l2, Nil)
+
+Fst(Pair(a, b)) -> a
+Snd(Pair(a, b)) -> b
+
+Compose(f, g, x) -> F(f, F(g, x))
+Bin(f, a, b) -> F(F(f, a), b)
+Terc(f, a, b, c) -> F(F(F(f, a), b), c)
+
+Call(f, args) -> CallAux(f, Reverse(args))
+CallAux(f, Nil) -> F(f)
+CallAux(f,:(a, Nil)) -> F(f, a)
+CallAux(f,:(a, tl)) -> F(CallAux(f, tl), a)
+
+MapBin(f, as, bs) -> MapBinAux(f, Zip(as, bs), Nil)
+MapBinAux(f, Nil, acc) -> Reverse(acc)
+MapBinAux(f, :(Pair(a, b), tl), acc) -> 
+    MapBinAux(f, tl, :(F(F(f, a), b), acc))
+
+Min(a, b) -> If(>(a, b), b, a)
+
+Simplify(Frac(a, b)) -> SimplifyFrac(a, b, Gcd(a, b))
+SimplifyFrac(a, b, gcd) -> Frac(/(a, gcd), /(b, gcd))
+
++.(a, b) -> +(FracOfFloat(a), FracOfFloat(b))
+-.(a, b) -> -(FracOfFloat(a), FracOfFloat(b))
+*.(a, b) -> *(FracOfFloat(a), FracOfFloat(b))
+
+FloatOfNat(n) -> Float(n, 0)
+FracOfNat(n) -> Frac(n, 1)
+F(FloatOfNat, n) -> FloatOfNat(n)
+F(FracOfNat, n) -> FracOfNat(n)
+
+Log2(n) -> Log(n, 2)
+Log10(n) -> Log(n, 10)
+Log(0, base) -> -Infinity
+Log(n, base) -> Log'(n, 1, base, -1)
+Log'(n, p, base, i) -> If(=(/(n, p), 0), i, #Log'(n, *(p, base), base, +(i, 1)))
+Inst(#Log'(n, p, base, i)) -> Log'(n, p, base, i)
+
+FracOfFloat(Float(n, fl)) -> If(=(fl, 0), #FracOfNat(n), #+(#FracOfNat(n), #Frac(fl, #**(10, #+(1, #Log10(fl))))))
+Inst(#Frac(a, b)) -> Frac(Inst(a), Inst(b))
+Inst(#FracOfNat(n)) -> FracOfNat(Inst(n))
+Inst(#+(a, b)) -> +(Inst(a), Inst(b))
+Inst(#**(a, b)) -> **(Inst(a), Inst(b))
+Inst(#Log10(n)) -> Log10(Inst(n))
+
+FloatOfFrac(Frac(a, b)) -> Float(/(a, b), %(a, b))
+
+Gcd(a, 0) -> a
+Gcd(a, b) -> Gcd(b, Mod(a, b))
+
+Neg(x) -> *(x, -1)
+Abs(x) -> If(>(x, 0), x, Neg(x))
+
+Lcm(a, b) -> /(Abs(*(a, b)), Gcd(a, b))
+
+Pi -> Frac(3141592653589793, 1000000000000000)
+
+Exp(Float(n, fl)) -> Exp(FracOfFloat(Float(n, fl)))
+
+/.(Frac(a, b), Frac(c, d)) -> Frac(*(a, d), *(b, c))
+/.(Frac(a, b), n) -> Frac(a, *(b, n))
+
+Exp(Frac(a, b)) -> Exp'(1, Frac(0, 1), Frac(1, 1), Frac(a, b), 1)
+Exp'(14, sum, xp, x, fact) -> sum
+Exp'(n, sum, xp, x, fact) -> Exp'(+(n, 1), +(sum, /.(xp, fact)), *(xp , x), x, *(n, fact))
+
+
+Inst(a) -> a

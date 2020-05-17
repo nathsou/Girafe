@@ -1,0 +1,57 @@
+import "arith.grf"
+
+Map(f, Nil) -> Nil
+Map(f, :(h, tl)) -> :(App(f, h), Map(f, tl))
+
+Reverse(Reverse(lst)?) -> lst
+Reverse(lst) -> Reverse'(lst, Nil)
+Reverse'(Nil, rev) -> rev
+Reverse'(:(h, tl), rev) -> Reverse'(tl, :(h, rev))
+
+Zip(l1, l2) -> Zip'(l1, l2, Nil)
+Zip'(Nil, l2, z) -> Reverse(z)
+Zip'(l1, Nil, z) -> Reverse(z)
+Zip'(:(h1, tl1), :(h2, tl2), z) -> Zip'(tl1, tl2, :(Pair(h1, h2), z))
+
+Range(n) -> Range'(n, Nil)
+Range'(0, rng) -> :(0, rng)
+Range'(n, rng) -> Range'(-(n, 1), :(n, rng))
+
+Filter(pred, lst) -> Filter'(pred, lst, Nil)
+Filter'(pred, Nil, acc) -> Reverse(acc)
+Filter'(pred, :(h, tl), acc) -> 
+    If(App(pred, h),
+        Filter'(pred, tl, :(h, acc)),
+        Filter'(pred, tl, acc)
+    )
+
+Partition(pred, lst) -> Partition'(pred, lst, Nil, Nil)
+Partition'(pred, Nil, trues, falses) -> Pair(trues, falses)
+Partition'(pred, :(h, tl), trues, falses) -> 
+    If(App(pred, h),
+        Partition'(pred, tl, :(h, trues), falses),
+        Partition'(pred, tl, trues, :(h, falses))
+    )
+
+Len(Nil) -> 0
+Len(lst) -> Len'(lst, 0)
+Len'(Nil, n) -> n
+Len'(:(h, tl), n) -> Len'(tl, +(n, 1))
+
+Append(l1, l2) -> AppendAux(l2, Reverse(l1))
+AppendAux(Nil, acc) -> Reverse(acc)
+AppendAux(:(h, tl), acc) -> AppendAux(tl, :(h, acc))
+Prepend(l1, l2) -> Append(l2, l1)
+
+Sort(Nil) -> Nil
+Sort(:(h, tl)) -> Sort'(Partition(App(>, h), tl), h)
+Sort'(Pair(lss, gtr), h) -> Append(Sort(lss), :(h, Sort(gtr)))
+
+Foldl(f, acc, Nil) -> acc
+Foldl(f, acc, :(h, tl)) -> Foldl(f, App(App(f, h), acc), tl)
+
+Foldr(f, base, Nil) -> base
+Foldr(f, base, :(h, tl)) -> App(App(f, h), Foldr(f, base, tl))
+
+Sum(lst) -> Foldr(+, 0, lst)
+Prod(lst) -> Foldr(*, 1, lst)

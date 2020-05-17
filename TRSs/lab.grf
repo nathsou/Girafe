@@ -1,0 +1,32 @@
+import "arith.grf"
+import "lists.grf"
+
+Divisible(a, b) -> =(%(a, b), 0)
+
+IsPrime(2) -> True
+IsPrime(n) -> If(Or(<(n, 2), Divisible(n, 2)), False, IsPrime'(n, 3))
+
+IsPrime'(n, i) -> 
+    If(>(*(i, i), n),
+        True,
+        If(Divisible(n, i),
+            False,
+            IsPrime'(n, +(i, 2))
+        )
+    )
+
+Factorize(2) -> :(2, Nil)
+Factorize(n) -> 
+        If(Divisible(n, 2),
+            :(2, Factorize(/(n, 2))),
+            Factorize'(n, 3)
+        )
+
+Factorize'(n, i) ->
+    If(<=(**(i, 2), n),
+        If(Divisible(n, i),
+            :(i, Factorize(/(n, i))),
+            Factorize'(n, +(i, 2))
+        ),
+        :(n, Nil) // n is prime
+    )

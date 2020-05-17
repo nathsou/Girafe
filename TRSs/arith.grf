@@ -1,0 +1,98 @@
+import "bools.grf"
+
+// arithmetic operators
+
+~(a) -> *(a, -1)
+
++(a, 0) -> a
++(0, b) -> b
+// +(a, ~(a)) -> 0
++(a, b) -> @add(a, b)
+
+-(a, 0) -> a
+-(0, b) -> ~(b)
+// -(a, a) -> 0
+-(a, b) -> @sub(a, b)
+
+*(a, 0) -> 0
+*(0, b) -> 0
+*(a, 1) -> a
+*(1, b) -> b
+*(a, b) -> @mult(a, b)
+
+/(a, 0) -> Error(DivisionByZero)
+/(0, b) -> 0
+/(a, 1) -> a
+// /(a, a) -> 1
+/(a, b) -> @div(a, b)
+
+%(a, 0) -> Error(ModuloZero)
+%(0, b) -> 0
+%(a, 1) -> 0
+// %(a, a) -> 0
+%(a, b) -> @mod(a, b)
+
+**(0, 0) -> Error(ZeroPowerZero)
+**(a, 0) -> 1
+**(0, n) -> 0
+**(1, n) -> 1
+**(a, 1) -> a
+**(a, b) -> @pow(a, b)
+
+// comparison operators
+
+=(a, b) -> @equ(a, b)
+Neq(a, b) -> Not(=(a, b))
+>(a, b) -> @gtr(a, b)
+>=(a, b) -> @geq(a, b)
+<(a, b) -> @lss(a, b)
+<=(a, b) -> @leq(a, b)
+
+// logarithm
+
+Log2(n) -> Log(n, 2)
+Log10(n) -> Log(n, 10)
+Log(0, base) -> -Infinity
+Log(n, base) -> Log'(n, 1, base, -1)
+Log'(n, p, base, i) -> If(=(/(n, p), 0), i, Log'(n, *(p, base), base, +(i, 1)))
+
+// gcd lcm
+
+Gcd(a, 0) -> a
+Gcd(a, b) -> Gcd(b, %(a, b))
+
+Abs(x) -> If(>(x, 0), x, ~(x))
+
+Lcm(a, b) -> /(Abs(*(a, b)), Gcd(a, b))
+
+// fractions
+
++(Float(na, fla), Float(nb, flb)) -> +.(Float(na, fla), Float(nb, flb))
+-(Float(na, fla), Float(nb, flb)) -> -.(Float(na, fla), Float(nb, flb))
+
++(Frac(a, b), Frac(c, d)) -> +Frac(Lcm(b, d), a, b, c, d)
++Frac(lcm, a, b, c, d) -> Frac(+(*(a, /(lcm, b)), *(c, /(lcm, d))), lcm)
+
+-(Frac(a, b), Frac(c, d)) -> -Frac(Lcm(b, d), a, b, c, d)
+-Frac(lcm, a, b, c, d) -> Frac(-(*(a, /(lcm, b)), *(c, /(lcm, d))), lcm)
+
+*(Frac(a, b), Frac(c, d)) -> Frac(*(a, c), *(b, d))
+*(Float(na, fla), Float(nb, flb)) -> *(FracOfFloat(Float(na, fla)), FracOfFloat(Float(nb, flb)))
+
+/(Frac(a, b), Frac(c, d)) -> /.(Frac(a, b), Frac(c, d))
+/(Float(na, fla), Float(nb, flb)) -> /(FracOfFloat(Float(na, fla)), FracOfFloat(Float(nb, flb)))
+
++.(a, b) -> +(FracOfFloat(a), FracOfFloat(b))
+-.(a, b) -> -(FracOfFloat(a), FracOfFloat(b))
+*.(a, b) -> *(FracOfFloat(a), FracOfFloat(b))
+
+FloatOfNat(n) -> Float(n, 0)
+FracOfNat(n) -> Frac(n, 1)
+
+FracOfFloat(Float(n, fl)) -> If(=(fl, 0), FracOfNat(n), +(FracOfNat(n), Frac(fl, **(10, +(1, Log10(fl))))))
+
+// binomial
+
+Binomial(n, k) -> Binomial'(n, k, 1, 1)
+Binomial'(n, 0, ns, ks) -> /(ns, ks)
+Binomial'(n, k, ns, ks) -> Binomial'(-(n, 1), -(k, 1), *(ns, n), *(ks, k))
