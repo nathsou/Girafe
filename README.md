@@ -2,14 +2,14 @@
 
  ### Term Rewriting Systems infrastructure
 
-Giraffe provides a set of tools based on a minimal [term rewriting systems](https://en.wikipedia.org/wiki/Rewriting) language that can be interpreted or even compiled to various targets.
+Girafe provides a set of tools based on a minimal [term rewriting systems](https://en.wikipedia.org/wiki/Rewriting) language that can be interpreted or even compiled to various targets.
 
-See the TRS/ folder for examples.
+See the TRSs/ folder for examples.
 
 Various preprocessors and transformations can be applied to support laziness, imports, currying, non-linearity etc.. see src/Compiler/Passes/
 
 ## Compiling
-Giraffe programs can be compiled to various targets using:
+Girafe programs can be compiled to various targets using:
 ```bash
 $ node cli/grfc.js [src.grf] [out.ext] [js/ocaml/haskell]
 ```
