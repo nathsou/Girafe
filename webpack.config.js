@@ -2,6 +2,7 @@ const path = require("path");
 const dist = path.join(__dirname, "dist");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
+const webpack = require('webpack');
 
 const unif = {
   entry: "./src/Editor/Editor.ts",
@@ -109,6 +110,9 @@ const grfc = {
   resolve: {
     extensions: [".ts", ".js"],
   },
+  plugins: [
+    new webpack.BannerPlugin({ banner: "#!/usr/bin/env node", raw: true }),
+  ],
   optimization: {
     minimize: false,
   },
@@ -119,5 +123,5 @@ const grfc = {
 };
 
 // module.exports = [unif];
-module.exports = [lib, grfc];
-// module.exports = [grfc];
+// module.exports = [lib, grfc];
+module.exports = [grfc];

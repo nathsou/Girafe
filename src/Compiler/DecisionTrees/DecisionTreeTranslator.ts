@@ -1,8 +1,9 @@
 import { collectTRSArities } from "../../Compiler/Passes/Lazify";
-import { Externals, Fun, Rule, Substitution, Symb, Targets, TRS, Var } from "../../Parser/Types";
+import { Externals, Fun, Rule, Substitution, Symb, Targets, Term, TRS, Var } from "../../Parser/Types";
+import { indexed } from "../../Parser/Utils";
 import { Translator } from "../../Translator/Translator";
 import { Arities } from "../Passes/Lazify";
-import { fst, genVars, isVar, ruleArity, substitute, unusedRuleVars, zip } from "../Utils";
+import { fst, genVars, isVar, ruleArity, substitute } from "../Utils";
 import { DecisionTree } from "./DecisionTree";
 import { clauseMatrixOf, compileClauseMatrix, occurencesOf } from "./DecisionTreeCompiler";
 
@@ -24,17 +25,29 @@ export abstract class DecisionTreeTranslator<Target extends Targets, Exts extend
 
     abstract translateDecisionTree(name: string, dt: DecisionTree, varNames: Var[]): string;
 
+    abstract accessSubterm(parent: string, childIndex: number): string;
+
     translateRules(name: string, rules: Rule[]): string {
+
+        const renameVars = (t: Term, sigma: Substitution, i = 0, j = 0, parent?: string): void => {
+            const name = parent ? this.accessSubterm(parent, j) : `v${(i + 1)}`;
+            if (isVar(t)) {
+                sigma[t] = name;
+                return;
+            }
+
+            t.args.forEach((s, idx) => {
+                renameVars(s, sigma, i + idx, idx, name);
+            });
+        };
+
         const newVars: Var[] = genVars(ruleArity(fst(rules)));
 
         const rules_: Rule[] = rules.map(([lhs, rhs]) => {
             const sigma: Substitution = {};
-            const unusedVars = unusedRuleVars([lhs, rhs]);
 
-            for (const [a, b] of zip(lhs.args, newVars)) {
-                if (isVar(a)) {
-                    sigma[a] = unusedVars.has(a) ? `_${b}` : b;
-                }
+            for (const [t, i] of indexed(lhs.args)) {
+                renameVars(t, sigma, i);
             }
 
             return [

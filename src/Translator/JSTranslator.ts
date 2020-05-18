@@ -18,6 +18,10 @@ export class JSTranslator<Exts extends string>
         super(trs, externals);
     }
 
+    accessSubterm(parent: string, childIndex: number): string {
+        return `${parent}.args[${childIndex}]`;
+    }
+
     protected init() {
         this.header.push(
             `function isFun(term) {
@@ -49,7 +53,7 @@ export class JSTranslator<Exts extends string>
     translateDecisionTree(name: string, dt: DecisionTree, varNames: string[]): string {
         const translateOccurence = (occ: Occcurence): string => {
             const val = either(occ.value, translateOccurence, showTerm);
-            if (occ.index) return `${val}[${occ.index}]`;
+            if (occ.index !== undefined) return `${val}.args[${occ.index}]`;
             return val;
         };
 

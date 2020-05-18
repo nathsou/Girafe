@@ -72,7 +72,7 @@ export class OCamlTranslator<Exts extends string>
             );
         }
 
-        const args = `${term.args.map((t) => this.callTerm(t)).join(" ")}`;
+        const args = `(${term.args.map((t) => this.callTerm(t)).join(', ')})`;
         return `(${term.name} ${args})`;
     }
 
@@ -80,7 +80,7 @@ export class OCamlTranslator<Exts extends string>
         const newVars = genVars(arity(rules));
         const res: string[] = [
             `${this.firstRule ? 'let rec' : 'and'} ${name} ${newVars.join(' ')} =
-                match ${newVars.join(', ')} with
+                match (${newVars.join(', ')}) with
             `.trim()
         ];
 
@@ -101,7 +101,7 @@ export class OCamlTranslator<Exts extends string>
                 substitute(rhs_, sigma)
             ];
 
-            const args = `${lhs.args.map(t => this.translateTerm(t)).join(', ')}`;
+            const args = `(${lhs.args.map(t => this.translateTerm(t)).join(', ')})`;
             res.push(`| ${args} -> ${this.callTerm(rhs)}`.trim());
         }
 

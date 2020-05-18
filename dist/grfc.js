@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -2411,14 +2412,14 @@ class OCamlTranslator extends Translator_1.Translator {
         if (!this.isDefined(term.name)) {
             return this.translateTerm(Utils_1.fun(term.name, ...term.args.map(t => this.callTerm(t))));
         }
-        const args = `${term.args.map((t) => this.callTerm(t)).join(" ")}`;
+        const args = `(${term.args.map((t) => this.callTerm(t)).join(', ')})`;
         return `(${term.name} ${args})`;
     }
     translateRules(name, rules) {
         const newVars = Utils_1.genVars(Utils_1.arity(rules));
         const res = [
             `${this.firstRule ? 'let rec' : 'and'} ${name} ${newVars.join(' ')} =
-                match ${newVars.join(', ')} with
+                match (${newVars.join(', ')}) with
             `.trim()
         ];
         this.firstRule = false;
@@ -2434,7 +2435,7 @@ class OCamlTranslator extends Translator_1.Translator {
                 Utils_1.substitute(lhs_, sigma),
                 Utils_1.substitute(rhs_, sigma)
             ];
-            const args = `${lhs.args.map(t => this.translateTerm(t)).join(', ')}`;
+            const args = `(${lhs.args.map(t => this.translateTerm(t)).join(', ')})`;
             res.push(`| ${args} -> ${this.callTerm(rhs)}`.trim());
         }
         if (!Utils_1.hasMostGeneralRule(rules)) {
@@ -2466,6 +2467,9 @@ class JSTranslator extends DecisionTreeTranslator_1.DecisionTreeTranslator {
     constructor(trs, externals) {
         super(trs, externals);
     }
+    accessSubterm(parent, childIndex) {
+        return `${parent}.args[${childIndex}]`;
+    }
     init() {
         this.header.push(`function isFun(term) {
                 return typeof term === "object";
@@ -2489,8 +2493,8 @@ class JSTranslator extends DecisionTreeTranslator_1.DecisionTreeTranslator {
     translateDecisionTree(name, dt, varNames) {
         const translateOccurence = (occ) => {
             const val = Types_1.either(occ.value, translateOccurence, Utils_1.showTerm);
-            if (occ.index)
-                return `${val}[${occ.index}]`;
+            if (occ.index !== undefined)
+                return `${val}.args[${occ.index}]`;
             return val;
         };
         const translate = (tree) => {
@@ -2570,8 +2574,9 @@ exports.JSTranslator = JSTranslator;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DecisionTreeTranslator = void 0;
 const Lazify_1 = __webpack_require__(26);
+const Utils_1 = __webpack_require__(2);
 const Translator_1 = __webpack_require__(4);
-const Utils_1 = __webpack_require__(0);
+const Utils_2 = __webpack_require__(0);
 const DecisionTreeCompiler_1 = __webpack_require__(27);
 class DecisionTreeTranslator extends Translator_1.Translator {
     constructor(trs, externals) {
@@ -2580,18 +2585,25 @@ class DecisionTreeTranslator extends Translator_1.Translator {
         this.signature = new Set(this.arities.keys());
     }
     translateRules(name, rules) {
-        const newVars = Utils_1.genVars(Utils_1.ruleArity(Utils_1.fst(rules)));
+        const renameVars = (t, sigma, i = 0, j = 0, parent) => {
+            const name = parent ? this.accessSubterm(parent, j) : `v${(i + 1)}`;
+            if (Utils_2.isVar(t)) {
+                sigma[t] = name;
+                return;
+            }
+            t.args.forEach((s, idx) => {
+                renameVars(s, sigma, i + idx, idx, name);
+            });
+        };
+        const newVars = Utils_2.genVars(Utils_2.ruleArity(Utils_2.fst(rules)));
         const rules_ = rules.map(([lhs, rhs]) => {
             const sigma = {};
-            const unusedVars = Utils_1.unusedRuleVars([lhs, rhs]);
-            for (const [a, b] of Utils_1.zip(lhs.args, newVars)) {
-                if (Utils_1.isVar(a)) {
-                    sigma[a] = unusedVars.has(a) ? `_${b}` : b;
-                }
+            for (const [t, i] of Utils_1.indexed(lhs.args)) {
+                renameVars(t, sigma, i);
             }
             return [
-                Utils_1.substitute(lhs, sigma),
-                Utils_1.substitute(rhs, sigma)
+                Utils_2.substitute(lhs, sigma),
+                Utils_2.substitute(rhs, sigma)
             ];
         });
         const m = DecisionTreeCompiler_1.clauseMatrixOf(rules_);

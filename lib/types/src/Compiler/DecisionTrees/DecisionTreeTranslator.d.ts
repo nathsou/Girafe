@@ -6,5 +6,6 @@ export declare abstract class DecisionTreeTranslator<Target extends Targets, Ext
     private signature;
     constructor(trs: TRS, externals: Externals<Target, Exts>);
     abstract translateDecisionTree(name: string, dt: DecisionTree, varNames: Var[]): string;
+    abstract accessSubterm(parent: string, childIndex: number): string;
     translateRules(name: string, rules: Rule[]): string;
 }
