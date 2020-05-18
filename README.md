@@ -11,7 +11,7 @@ Various preprocessors and transformations can be applied to support laziness, im
 ## Compiling
 Girafe programs can be compiled to various targets using:
 ```bash
-$ node grfc [src.grf] [out.ext] [js/ocaml/haskell]
+$ grfc [src.grf] [out.ext] [js/ocaml/haskell]
 ```
 ## Use Cases
 

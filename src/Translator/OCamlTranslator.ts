@@ -1,4 +1,4 @@
-import { arity, fun, genVars, hasMostGeneralRule, isVar, substitute, unusedRuleVars, vars, zip } from "../Compiler/Utils";
+import { arity, fun, genVars, hasMostGeneralRule, isVar, substitute, unusedRuleVars, vars, zip, isEmpty } from "../Compiler/Utils";
 import { Fun, Rule, Substitution, Symb, Term } from "../Parser/Types";
 import { SpecialCharacters, Translator } from "./Translator";
 
@@ -78,8 +78,9 @@ export class OCamlTranslator<Exts extends string>
 
     translateRules(name: string, rules: Rule[]): string {
         const newVars = genVars(arity(rules));
+        const args = `(${newVars.join(', ')})`;
         const res: string[] = [
-            `${this.firstRule ? 'let rec' : 'and'} ${name} ${newVars.join(' ')} =
+            `${this.firstRule ? 'let rec' : 'and'} ${name} ${args} =
                 match (${newVars.join(', ')}) with
             `.trim()
         ];

@@ -12,6 +12,7 @@ export declare type Substitution = StringMap<Term>;
 export declare type Rule = [Fun, Term];
 export declare type TRS = Map<Symb, Rule[]>;
 export declare type Targets = 'js' | 'haskell' | 'ocaml';
+export declare const supportedTargets: Targets[];
 export declare type JSExternals<Exts extends string> = {
     [name in Exts]: (t: Fun) => Term;
 };

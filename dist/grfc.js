@@ -604,7 +604,8 @@ exports.gen = gen;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.mapKeys = exports.mapValues = exports.mapEntries = exports.mapGet = exports.mapHas = exports.mapSet = void 0;
+exports.mapKeys = exports.mapValues = exports.mapEntries = exports.mapGet = exports.mapHas = exports.mapSet = exports.supportedTargets = void 0;
+exports.supportedTargets = ['js', 'ocaml', 'haskell'];
 function mapSet(map, key, value) {
     map[key] = value;
     return map;
@@ -948,11 +949,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __webpack_require__(10);
 const Utils_1 = __webpack_require__(0);
 const Unification_1 = __webpack_require__(13);
+const Types_1 = __webpack_require__(3);
 const Translate_1 = __webpack_require__(20);
 const src = process.argv[2];
 const outFile = process.argv[3];
 const target = process.argv[4];
-const targets = new Set(['haskell', 'ocaml', 'js']);
 const transpile = async (path, target) => {
     const source = fs_1.readFileSync(path).toString();
     const trs = await Unification_1.compileRules(source, Utils_1.defaultPasses, async (path) => {
@@ -969,9 +970,10 @@ const transpile = async (path, target) => {
     }
 };
 (async () => {
+    var _a;
     if (src) {
-        const targetName = target !== null && target !== void 0 ? target : 'js';
-        if (!targets.has(targetName)) {
+        const targetName = (_a = target) !== null && _a !== void 0 ? _a : 'js';
+        if (!Types_1.supportedTargets.includes(targetName)) {
             console.error(`invalid target: ${targetName}`);
             return;
         }
@@ -2417,8 +2419,9 @@ class OCamlTranslator extends Translator_1.Translator {
     }
     translateRules(name, rules) {
         const newVars = Utils_1.genVars(Utils_1.arity(rules));
+        const args = `(${newVars.join(', ')})`;
         const res = [
-            `${this.firstRule ? 'let rec' : 'and'} ${name} ${newVars.join(' ')} =
+            `${this.firstRule ? 'let rec' : 'and'} ${name} ${args} =
                 match (${newVars.join(', ')}) with
             `.trim()
         ];
@@ -2500,7 +2503,7 @@ class JSTranslator extends DecisionTreeTranslator_1.DecisionTreeTranslator {
         const translate = (tree) => {
             switch (tree.type) {
                 case 'fail':
-                    return 'throw new Error("Failed");';
+                    return `return ${translateTerm(Utils_1.fun(name, ...varNames))};`;
                 case 'leaf':
                     return `return ${this.callTerm(tree.action)};`;
                 case 'switch':

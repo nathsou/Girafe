@@ -1,13 +1,12 @@
 import { readFileSync, writeFileSync } from "fs";
 import { defaultPasses } from "../src/Compiler/Utils";
 import { compileRules } from "../src/Evaluator/Unification";
-import { Targets } from "../src/Parser/Types";
+import { Targets, supportedTargets } from "../src/Parser/Types";
 import { translate } from "../src/Translator/Translate";
 
 const src = process.argv[2];
 const outFile = process.argv[3];
 const target = process.argv[4];
-const targets = new Set(['haskell', 'ocaml', 'js']);
 
 const transpile = async (path: string, target: Targets): Promise<string> => {
   const source = readFileSync(path).toString();
@@ -31,12 +30,12 @@ const transpile = async (path: string, target: Targets): Promise<string> => {
 
 (async () => {
   if (src) {
-    const targetName = target ?? 'js';
-    if (!targets.has(targetName)) {
+    const targetName = (target as Targets) ?? 'js';
+    if (!supportedTargets.includes(targetName)) {
       console.error(`invalid target: ${targetName}`);
       return;
     }
-    const out = await transpile(src, targetName as Targets);
+    const out = await transpile(src, targetName);
     if (outFile) {
       writeFileSync(outFile, out);
     } else {

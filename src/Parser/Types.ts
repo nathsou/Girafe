@@ -8,6 +8,7 @@ export type Rule = [Fun, Term];
 export type TRS = Map<Symb, Rule[]>;
 
 export type Targets = 'js' | 'haskell' | 'ocaml';
+export const supportedTargets: Targets[] = ['js', 'ocaml', 'haskell'];
 
 export type JSExternals<Exts extends string> = {
     [name in Exts]: (t: Fun) => Term

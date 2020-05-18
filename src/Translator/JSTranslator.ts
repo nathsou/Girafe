@@ -60,7 +60,7 @@ export class JSTranslator<Exts extends string>
         const translate = (tree: DecisionTree): string => {
             switch (tree.type) {
                 case 'fail':
-                    return 'throw new Error("Failed");';
+                    return `return ${translateTerm(fun(name, ...varNames))};`;
                 case 'leaf':
                     return `return ${this.callTerm(tree.action)};`;
                 case 'switch':
