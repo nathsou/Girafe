@@ -1,9 +1,8 @@
 import { Fun, mapEntries, mapGet, mapHas, mapSet, Rule, StringMap, Substitution, Symb, Term, TRS, Var } from "../Parser/Types";
-import { some, traverse, traverseSymbols } from "../Parser/Utils";
+import { every, some, traverseSymbols } from "../Parser/Utils";
 import { Ok } from "../Types";
 import { check, checkArity, checkNoDuplicates, checkNoFreeVars } from "./Passes/Checks";
 import { CompilerPass } from "./Passes/CompilerPass";
-import { leftLinearize } from "./Passes/LeftLinearize";
 import { orderBySpecificity } from "./Passes/OrderBy";
 
 export type Maybe<T> = T | void;
@@ -21,7 +20,7 @@ export const defaultPasses: CompilerPass[] = [
   ),
   // currify,
   // lazify,
-  leftLinearize,
+  // leftLinearize,
   orderBySpecificity,
   // logTRS,
 ];
@@ -63,24 +62,17 @@ export function isSomething<T>(m: Maybe<T>): m is T {
   return !isNothing(m);
 }
 
-export function substitute(t: Term, sigma: Substitution): Term {
+export const substitute = (t: Term, sigma: Substitution): Term => {
   if (isVar(t)) return mapGet(sigma, t) ?? t;
-
-  return {
-    name: t.name,
-    args: t.args.map((s) => substitute(s, sigma)),
-  };
-}
+  return fun(t.name, ...t.args.map(s => substitute(s, sigma)));
+};
 
 export const termsEq = (a: Term, b: Term): boolean => {
-  if (isVar(a) && isVar(b)) {
-    return a === b;
-  }
-
+  if (isVar(a) && isVar(b)) return a === b;
   if (isFun(a) && isFun(b)) {
     return a.name === b.name &&
       a.args.length === b.args.length &&
-      a.args.every((arg, i) => termsEq(arg, b.args[i]));
+      every(zip(a.args, b.args), ([s, t]) => termsEq(s, t));
   }
 
   return false;
@@ -371,7 +363,7 @@ export const alphaEquiv = (s: Term, t: Term): boolean => (
 
 export type AlphaSubst = StringMap<Var>;
 
-export const alphaEquivAux = (
+const alphaEquivAux = (
   eqs: [Term, Term][],
   sigma: AlphaSubst = {},
 ): Maybe<AlphaSubst> => {

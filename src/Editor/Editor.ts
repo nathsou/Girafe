@@ -9,14 +9,15 @@ import {
     showTerm,
     uniq,
     vars,
-    defaultPasses,
+    defaultPasses
 } from "../Compiler/Utils";
-import { compileRules, parseTRS, reduce } from "../Evaluator/Unification";
+import { compileRules, reduce } from "../Evaluator/Unification";
 import { time } from "../Parser/Utils";
 import { JSExternals } from "../Parser/Types";
-import { arithmeticExterals } from "../Externals/Arithmetic";
+import { arithmeticExternals } from "../Externals/Arithmetic";
 import { listExternals } from "../Externals/Lists";
 import { FileReader } from "../Parser/Preprocessor/Import";
+import { parseTerm } from '../Parser/Parser';
 
 document.body.style.margin = "0px";
 document.body.style.padding = "0px";
@@ -24,7 +25,7 @@ document.body.style.overflow = "hidden";
 document.body.style.backgroundColor = "black";
 
 const externals: JSExternals<string> = {
-    ...arithmeticExterals,
+    ...arithmeticExternals,
     ...listExternals,
 };
 
@@ -99,7 +100,7 @@ const defaultFileReader: FileReader = async (path: string) => {
 
 const run = async () => {
     const querySymb = "___query";
-    const queryT = parseTRS(query.value);
+    const queryT = parseTerm(query.value);
     if (isNothing(queryT)) return;
     const queryVars = uniq(vars(queryT));
     const queryLhs = fun(querySymb, ...queryVars);

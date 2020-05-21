@@ -2,9 +2,9 @@ import { DecisionTree } from "../Compiler/DecisionTrees/DecisionTree";
 import { DecisionTreeTranslator } from "../Compiler/DecisionTrees/DecisionTreeTranslator";
 import { isVar, showTerm, fun } from "../Compiler/Utils";
 import { Externals, Term, TRS } from "../Parser/Types";
-import { SpecialCharacters } from "./Translator";
 import { either } from "../Types";
 import { Occcurence } from "../Compiler/DecisionTrees/DecisionTreeCompiler";
+import { SpecialCharacters } from "../Parser/Lexer/SpecialChars";
 
 const translateTerm = (term: Term): string => {
     if (isVar(term)) return term;

@@ -3,6 +3,12 @@ import { Term, Fun, JSExternals } from "../Parser/Types";
 import { symb } from "./Arithmetic";
 import { mapMut } from "../Parser/Utils";
 
+export const stringListOf = (elems: string[]): string => {
+    if (elems.length === 0) return 'Nil';
+    const [h, tl] = decons(elems);
+    return `:(${h}, ${stringListOf(tl)})`;
+};
+
 export const listOf = (elems: Term[]): Term => {
     if (elems.length === 0) return symb('Nil');
     const [h, tl] = decons(elems);

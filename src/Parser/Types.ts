@@ -42,3 +42,7 @@ export function mapValues<T>(map: StringMap<T>): T[] {
 export function mapKeys<T>(map: StringMap<T>): string[] {
     return Object.keys(map);
 }
+
+export const unreachable = (msg = ''): never => {
+    throw Error(`Code marked as unreachable was reached: ${msg}`);
+};

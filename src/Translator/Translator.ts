@@ -10,9 +10,6 @@ import {
   mapHas,
 } from "../Parser/Types";
 
-export type SpecialCharacters = "." | "-" | "~" | "+" | "*" | "&" | "|" | "/" | "\\"
-  | "^" | "%" | "°" | "$" | "@" | "#" | ";" | ":" | "_" | "=" | "'" | ">" | "<";
-
 export abstract class Translator<Target extends Targets, Exts extends string> {
   protected header: string[] = [];
   protected externals: Externals<Target, Exts>;

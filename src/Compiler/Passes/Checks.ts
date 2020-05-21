@@ -1,5 +1,5 @@
 import { Rule, TRS } from "../../Parser/Types";
-import { Error, Ok } from "../../Types";
+import { Err, Ok } from "../../Types";
 import { CompilationError, CompilationResult, CompilerPass } from "./CompilerPass";
 import { arity, hasDuplicatesSet, ruleArity, ruleName, rulesAlphaEquiv, showRule, vars } from "../Utils";
 
@@ -16,7 +16,7 @@ export const check = (...checkers: Checker[]): CompilerPass => {
             }
         }
 
-        return errors.length > 0 ? Error(errors) : Ok(trs);
+        return errors.length > 0 ? Err(errors) : Ok(trs);
     };
 };
 

@@ -1,7 +1,7 @@
-import { Rule, Symb, Term } from "../../Parser/Types";
+import { Rule, Symb, Term, unreachable } from "../../Parser/Types";
 import { gen, repeat } from "../../Parser/Utils";
-import { Either, Right, Left } from "../../Types";
-import { decons, fst, head, isSomething, isVar, lhs, Maybe, rhs, ruleArity, setEq, swapMut, tail, zip } from "../Utils";
+import { Either, Left, Right } from "../../Types";
+import { arity, decons, head, isSomething, isVar, lhs, Maybe, rhs, setEq, swapMut, tail, zip } from "../Utils";
 import { DecisionTree, makeFail, makeLeaf, makeSwitch, Switch } from "./DecisionTree";
 
 // Based on "Compiling Pattern Matching to Good Decision Trees" by Luc Maranget
@@ -26,23 +26,23 @@ export const patternOf = (term: Term): Pattern => {
     return { name: term.name, args: term.args.map(patternOf) };
 };
 
-// all the rules must have share the same head symbol and arity
+// all the rules must share the same head symbol and arity
 export const clauseMatrixOf = (rules: Rule[]): ClauseMatrix => {
     return {
         patterns: rules.map(rule => lhs(rule).args.map(t => patternOf(t))),
-        dims: [rules.length, ruleArity(fst(rules))], // rows * cols
+        dims: [rules.length, arity(rules)], // rows * cols
         actions: rules.map(rule => rhs(rule))
     };
 };
 
 const specializeRow = (
     row: ClauseMatrixRow,
-    c: Symb,
+    ctor: Symb,
     arity: number
 ): Maybe<ClauseMatrixRow> => {
     const [p, ps] = decons(row);
     if (p === _) return [...repeat(_, arity), ...ps];
-    if (p.name === c) return [...p.args, ...ps];
+    if (p.name === ctor) return [...p.args, ...ps];
 };
 
 export const specializeClauseMatrix = (
@@ -98,7 +98,7 @@ const selectColumn = (matrix: ClauseMatrix): number => {
         }
     }
 
-    throw new Error('No valid column found (should never happen)');
+    unreachable('No valid column found');
 };
 
 const swapColumn = (matrix: ClauseMatrix, i: number): void => {

@@ -11,4 +11,3 @@ export declare const oneStepReduce: (term: Fun, externals: JSExternals<string>, 
     changed: boolean;
 };
 export declare const reduce: (term: Term, externals: JSExternals<string>, matcher: TermMatcher) => Term;
-export declare const parseTRS: (term: string) => Maybe<Term>;

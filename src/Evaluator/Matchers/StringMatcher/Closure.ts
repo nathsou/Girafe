@@ -154,8 +154,8 @@ export const termToSymbols = (term: Term): string[] => {
 
 export const makePatterns = (...patterns: string[]): Fun[] => {
   return patterns
-    .map((s) => parseTerm(s))
-    .filter((t) => isSomething(t) && isFun(t))
+    .map(s => parseTerm(s))
+    .filter(t => isSomething(t) && isFun(t))
     .map(replaceVars) as Fun[];
 };
 
@@ -206,18 +206,6 @@ export const buildMatcher = (trs: TRS): RuleMatcher => {
   const M = new Set(patternsStr);
   const arities = collectArities(patterns);
   const M_ = closure(M, arities);
-
-  // console.log([...M_.values()].map(s => unstringify(s, arities)).map(showTerm));
-  // const termMatcher = new TermMatcher<string>();
-
-  // for (const t of M_) {
-  //     const term = unstringify(t, arities);
-  //     if (term) {
-  //         termMatcher.insert(term, t);
-  //     }
-  // }
-
-  // console.log(termMatcher);
 
   const matcher = new StringMatcher<Rule[]>();
   const symbols = [...arities.keys(), ω];

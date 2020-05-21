@@ -30,10 +30,24 @@ export function some<T>(it: IterableIterator<T>, pred: (val: T) => boolean): boo
     return false;
 }
 
+export function every<T>(it: IterableIterator<T>, pred: (val: T) => boolean): boolean {
+    for (const val of it) {
+        if (!pred(val)) return false;
+    }
+
+    return true;
+}
+
 export function* indexed<T>(vals: T[]): IterableIterator<[T, number]> {
     let i = 0;
     for (const val of vals) {
         yield [val, i++];
+    }
+}
+
+export function* range(from: number, to: number, step = 1): IterableIterator<number> {
+    for (let i = from; i < to; i += step) {
+        yield i;
     }
 }
 

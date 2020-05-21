@@ -1,6 +1,7 @@
 import { arity, fun, genVars, hasMostGeneralRule, isVar, substitute, unusedRuleVars, vars, zip, isEmpty } from "../Compiler/Utils";
 import { Fun, Rule, Substitution, Symb, Term } from "../Parser/Types";
-import { SpecialCharacters, Translator } from "./Translator";
+import { Translator } from "./Translator";
+import { SpecialCharacters } from "../Parser/Lexer/SpecialChars";
 
 export class OCamlTranslator<Exts extends string>
     extends Translator<'ocaml', Exts> {

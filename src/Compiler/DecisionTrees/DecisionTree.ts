@@ -26,16 +26,16 @@ export const makeSwitch = (occurence: Occcurence, tests: Switch['tests']): Switc
 
 const showOccurence = (occ: Occcurence): string => {
     const val = either(occ.value, showOccurence, showTerm);
-    if (occ.index) return `${val}[${occ.index}]`;
+    if (occ.index !== undefined) return `${val}[${occ.index}]`;
     return val;
 };
 
 export const showDecisionTree = (tree: DecisionTree): string => {
     switch (tree.type) {
         case 'fail':
-            return 'throw new Error("Failed");';
+            return 'fail;';
         case 'leaf':
-            return `return ${JSON.stringify(tree.action)};`;
+            return `return ${showTerm(tree.action)};`;
         case 'switch':
             const tests: string[] = [];
 

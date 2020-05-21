@@ -16,7 +16,7 @@ export function Right<L, R>(value: R): Right_<R> {
     return [value, 'right'];
 };
 
-export const Error = Right;
+export const Err = Right;
 
 export function isLeft<L, R>(value: Either<L, R>): value is Left_<L> {
     return value[1] === 'left';
@@ -38,6 +38,14 @@ export function either<L, R, T>(
     onRight: (value: R) => T
 ): T {
     return isLeft(value) ? onLeft(value[0]) : onRight(value[0]);
+}
+
+export function mapEither<L, R, T>(
+    value: Either<L, R>,
+    fn: (left: L) => T
+): Either<T, R> {
+    if (isLeft(value)) return Left(fn(unwrap(value)));
+    return value;
 }
 
 type UnwrapReturnType<E extends Either<any, any>> =

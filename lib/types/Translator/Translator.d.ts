@@ -1,5 +1,4 @@
 import { Externals, Rule, Symb, Targets, Term, TRS } from "../Parser/Types";
-export declare type SpecialCharacters = "." | "-" | "~" | "+" | "*" | "&" | "|" | "/" | "\\" | "^" | "%" | "°" | "$" | "@" | "#" | ";" | ":" | "_" | "=" | "'" | ">" | "<";
 export declare abstract class Translator<Target extends Targets, Exts extends string> {
     protected header: string[];
     protected externals: Externals<Target, Exts>;

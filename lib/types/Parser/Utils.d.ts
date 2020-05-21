@@ -4,7 +4,9 @@ export declare function join<T>(as: IterableIterator<T>, bs: IterableIterator<T>
 export declare function once<T>(val: T): IterableIterator<T>;
 export declare function iter<T>(vals: T[]): IterableIterator<T>;
 export declare function some<T>(it: IterableIterator<T>, pred: (val: T) => boolean): boolean;
+export declare function every<T>(it: IterableIterator<T>, pred: (val: T) => boolean): boolean;
 export declare function indexed<T>(vals: T[]): IterableIterator<[T, number]>;
+export declare function range(from: number, to: number, step?: number): IterableIterator<number>;
 export declare function repeat<T>(val: T, count: number): IterableIterator<T>;
 export declare function union<T>(...sets: Set<T>[]): Set<T>;
 export declare function unionMut<T>(a: Set<T>, ...sets: Set<T>[]): Set<T>;

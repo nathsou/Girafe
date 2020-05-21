@@ -39,7 +39,7 @@ export const boolbinop = (t: Fun, op: (a: bigint, b: bigint) => boolean) => {
 export type ArithmeticExternals = 'add' | 'sub' | 'mult' | 'div' |
     'mod' | 'pow' | 'equ' | 'gtr' | 'geq' | 'lss' | 'leq';
 
-export const arithmeticExterals: JSExternals<ArithmeticExternals> = {
+export const arithmeticExternals: JSExternals<ArithmeticExternals> = {
     'add': t => arithbinop(t, (a, b) => a + b),
     'sub': t => arithbinop(t, (a, b) => a - b),
     'mult': t => arithbinop(t, (a, b) => a * b),
@@ -82,7 +82,7 @@ const jsboolbinop = (op: string) => {
                 const bn = BigInt(b.name);
                 const res = an ${op} bn;
         
-                return { name: res ? 'True' : 'False', args: [] };
+                return { name: res ? 'True' : 'False', args: [] };
             }
         
             return { name: name, args: [a, b] };

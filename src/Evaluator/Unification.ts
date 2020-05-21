@@ -1,8 +1,10 @@
 import { compile } from "../Compiler/Passes/CompilerPass";
 import { defaultPasses, isSomething, isVar, Maybe, substitute } from "../Compiler/Utils";
-import { isParserError, parse, parseTerm } from "../Parser/Parser";
+import { parse } from "../Parser/Parser";
 import { FileReader, handleImports, ImportInfos } from "../Parser/Preprocessor/Import";
+import { consLists } from "../Parser/Preprocessor/Lists";
 import { removeComments } from "../Parser/Preprocessor/RemoveComments";
+import { convertStrings } from "../Parser/Preprocessor/Strings";
 import { Fun, JSExternals, mapHas, Term, TRS } from "../Parser/Types";
 import { mapMut } from "../Parser/Utils";
 import { isError, Right_, unwrap } from "../Types";
@@ -15,13 +17,7 @@ export const matches = (s: Term, t: Term): boolean => isSomething(match(s, t));
 
 function logErrors<E = string>(errors: Right_<E[]>): void {
   for (const err of unwrap(errors)) {
-    if (isParserError(err)) {
-      console.error(
-        `[Parser error on line ${err.originalLine}]: \n${err.message}`,
-      );
-    } else {
-      console.error(err);
-    }
+    console.error(err);
   }
 }
 
@@ -34,8 +30,12 @@ export async function compileRules(
     src,
     removeComments,
     handleImports(fileReader),
-    // log
+    convertStrings,
+    consLists,
+    // log^
   );
+
+  console.log(rules);
 
   if (isError(rules)) {
     logErrors(rules);
@@ -98,5 +98,3 @@ export const reduce = (
 
   return reduced.term;
 };
-
-export const parseTRS = parseTerm;

@@ -1,6 +1,7 @@
 import { isVar, fun } from "../Compiler/Utils";
 import { Externals, Rule, Symb, Term, TRS } from "../Parser/Types";
-import { SpecialCharacters, Translator } from "./Translator";
+import { Translator } from "./Translator";
+import { SpecialCharacters } from "../Parser/Lexer/SpecialChars";
 
 export class HaskellTranslator<Exts extends string>
   extends Translator<"haskell", Exts> {

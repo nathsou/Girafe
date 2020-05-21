@@ -2,30 +2,7 @@ import { isError, unwrap } from "../../Types";
 import { Source } from "../Source";
 import { PrepocessorPass, preprocess } from "./Preprocessor";
 import { Symb } from "../Types";
-import { SpecialCharacters } from "../../Translator/Translator";
-
-export const specialCharacters: SpecialCharacters[] = [
-  ".",
-  "-",
-  "~",
-  "+",
-  "*",
-  "&",
-  "|",
-  "^",
-  "%",
-  "°",
-  "$",
-  "@",
-  "#",
-  ";",
-  ":",
-  "_",
-  "=",
-  "'",
-  ">",
-  "<",
-];
+import { specialCharacters } from "../Lexer/SpecialChars";
 
 export type FileReader = (path: string) => Promise<string>;
 
@@ -60,8 +37,7 @@ export const handleImports = (
       if (matches) {
         const path = matches[2];
         if (!info.importPass.includedPaths.has(path)) {
-          const namedImports = matches[4]?.split(",").map((s) => s.trim()) ??
-            [];
+          const namedImports = matches[4]?.split(",").map((s) => s.trim()) ?? [];
           info.importPass.includedPaths.set(path, namedImports);
           const contents = await fileReader(path);
           const preprocessed = await preprocess(contents, passes, info);

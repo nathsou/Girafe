@@ -1,0 +1,16 @@
+import "arith.grf"
+
+Bug(a, b) -> If(True, a, b)
+
+// call by value lambda expression evaluator
+
+Lookup(x, Nil) -> LookupError(x) 
+Lookup(x, :(Pair(h, val), tl)) -> If(=(x, h), #val, #Lookup(x, tl))
+
+// Eval(Lambda(x, body), env) -> 
+Eval(Var(x), env) -> Lookup(x, env)
+
+
+Test -> Lookup("a", :(Pair("x", 2), :(Pair("a", 7), Nil)))
+
+Aa -> Lookup("a", :(Pair("a", 1), Nil))
