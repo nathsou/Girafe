@@ -5,7 +5,7 @@
             "ES2020",
             "DOM"
         ],
-        "target": "ES2019",
+        "target": "ES2015",
         "declaration": true,
         "declarationDir": "./lib/types",
         "outDir": "./lib/js"

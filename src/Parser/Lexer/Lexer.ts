@@ -31,9 +31,9 @@ export class Lexer {
 
     private advance(count = 1): void {
         for (let i = 0; i < count; i++) {
-            const nextChar = this.line[this.pos++];
+            const nextChar = this.source[this.pos++];
             this.col++;
-            if (nextChar === '\r') {
+            if (nextChar === '\n') {
                 this.line++;
                 this.col = 1;
             }
@@ -58,6 +58,7 @@ export class Lexer {
         const tokenizeLeftParen = this.tokenizeString('(');
         const tokenizeRightParen = this.tokenizeString(')');
         const tokenizeComma = this.tokenizeString(',');
+        const tokenizeLazy = this.tokenizeString('?');
         const tokenizeArrow = this.tokenizeString('->');
 
         while (this.pos < src.length) {
@@ -68,6 +69,7 @@ export class Lexer {
             if (this.test(tokenizeLeftParen, tokens)) continue;
             if (this.test(tokenizeRightParen, tokens)) continue;
             if (this.test(tokenizeComma, tokens)) continue;
+            if (this.test(tokenizeLazy, tokens)) continue;
 
             return Err({
                 type: 'InvalidChar' as 'InvalidChar',
@@ -156,6 +158,12 @@ export class Lexer {
                     if (this.currentChar() === ',') {
                         this.advance();
                         return { type: ',', position: pos };
+                    }
+                    break;
+                case '?':
+                    if (this.currentChar() === '?') {
+                        this.advance();
+                        return { type: '?', position: pos };
                     }
                     break;
                 case '->':

@@ -15,7 +15,7 @@ export declare function setFilter<T>(set: Set<T>, f: (val: T) => boolean): Set<T
 export declare function mapMut<U, V>(vals: U[], f: (val: U) => V): V[];
 export declare function time<T>(f: () => T): [number, T];
 export declare function traverse(term: Term): IterableIterator<Term>;
-export declare function traverseSymbols(term: Term): IterableIterator<Symb>;
+export declare function traverseNames(term: Term): IterableIterator<Symb>;
 export declare function pop<T>(elems: T[], count?: number): T[];
 export declare function randomElement<T>(elems: T[]): T;
 export declare function gen<T>(count: number, f: (idx: number) => T): IterableIterator<T>;

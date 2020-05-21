@@ -1,42 +1,46 @@
-import { Substitution, Term, mapHas, mapGet, mapSet } from "../Parser/Types";
-import { isVar, Maybe, isFun, zip, occurs, termsEq, substitute } from "../Compiler/Utils";
-import { Unificator } from "./Unificator";
+import { isFun, isVar, Maybe, occurs, substitute, termsEq, zip } from "../Compiler/Utils";
+import { mapSet, Substitution, Term } from "../Parser/Types";
 import { mapMut } from "../Parser/Utils";
+import { Unificator } from "./Unificator";
 
 export const ruleBasedUnify: Unificator = (s: Term, t: Term): Maybe<Substitution> => unify([[s, t]]);
 
+// http://moscova.inria.fr/~levy/courses/X/IF/03/pi/levy2/martelli-montanari.pdf
 const unify = (eqs: [Term, Term][], sigma: Substitution = {}): Maybe<Substitution> => {
     if (eqs.length === 0) return sigma;
-    const [a, b] = eqs.pop();
+    const [s, t] = eqs.pop();
 
-    if (isVar(a) && isVar(b) && a === b) { // Delete
+    // Delete
+    if (termsEq(s, t)) {
         return unify(eqs, sigma);
     }
 
+    // Decompose
     if (
-        isFun(a) && isFun(b) &&
-        a.name == b.name &&
-        a.args.length == b.args.length
-    ) { // Decompose
-        eqs.push(...zip(a.args, b.args));
+        isFun(s) && isFun(t) &&
+        s.name == t.name &&
+        s.args.length == t.args.length
+    ) {
+        eqs.push(...zip(s.args, t.args));
         return unify(eqs, sigma);
     }
 
-    if (isVar(a) && !occurs(a, b)) {
-        if (mapHas(sigma, a)) {
-            // handles non left-linear rules
-            if (termsEq(mapGet(sigma, a), b)) {
-                return unify(eqs, sigma);
-            }
-        } else {
-            if (isVar(b)) {
-                return unify(eqs, mapSet(sigma, b, a));
-            }
-        }
-    }
+    // We use directed unification
+    // so we don't need the orient rule
 
-    if (isFun(a) && isVar(b)) {
-        mapSet(sigma, b, a);
-        return unify(mapMut(eqs, ([s, t]) => [substitute(s, sigma), substitute(t, sigma)]), sigma);
+    // // Orient
+    // if (isVar(t) && !isVar(s)) {
+    //     eqs.push([t, s]);
+    //     return unify(eqs, sigma);
+    // }
+
+    // Eliminate
+    if (isVar(s) && !occurs(s, t)) {
+        const S_: Array<[Term, Term]> = mapMut(eqs, ([a, b]) => [
+            substitute(a, sigma),
+            substitute(b, sigma)
+        ]);
+
+        return unify(S_, mapSet(sigma, s, t));
     }
 };

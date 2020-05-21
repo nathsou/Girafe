@@ -5,6 +5,7 @@ export type Token =
     | LeftParenToken
     | RightParenToken
     | CommaToken
+    | LazyToken
     | ArrowToken;
 
 export type PositionInfo = {
@@ -36,6 +37,11 @@ export type RightParenToken = {
 
 export type CommaToken = {
     type: ',',
+    position: PositionInfo
+};
+
+export type LazyToken = {
+    type: '?',
     position: PositionInfo
 };
 

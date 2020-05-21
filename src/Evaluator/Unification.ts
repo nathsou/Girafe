@@ -32,10 +32,8 @@ export async function compileRules(
     handleImports(fileReader),
     convertStrings,
     consLists,
-    // log^
+    // log
   );
-
-  console.log(rules);
 
   if (isError(rules)) {
     logErrors(rules);
@@ -72,7 +70,7 @@ export const oneStepReduce = (
 
   if (rules) {
     for (const [lhs, rhs] of rules) {
-      const sigma = match(term, lhs);
+      const sigma = match(lhs, term);
       if (sigma) {
         return { term: substitute(rhs, sigma), changed: true };
       }

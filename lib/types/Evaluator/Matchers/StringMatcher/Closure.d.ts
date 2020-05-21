@@ -13,7 +13,7 @@ export declare const collectArities: (terms: Maybe<Term>[]) => Arities;
 export declare const collectTermSymbols: (t: Term, symbols: Set<Symb>) => void;
 export declare const collectSymbols: (terms: Maybe<Term>[]) => Set<Symb>;
 export declare function genSymbolSplitter(symbols: string[]): (str: string) => Maybe<string[]>;
-export declare const termToSymbols: (term: Term) => string[];
+export declare const termToNames: (term: Term) => string[];
 export declare const makePatterns: (...patterns: string[]) => Fun[];
 export declare const symbs: (term: string) => string[];
 export declare const unstringify: (str: string, splitter: (str: string) => Maybe<string[]>, arities: Arities) => Maybe<Term>;

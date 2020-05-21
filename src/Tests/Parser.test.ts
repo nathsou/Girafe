@@ -1,76 +1,9 @@
 import { showRule, showTerm } from '../Compiler/Utils';
 import { Lexer } from '../Parser/Lexer/Lexer';
-import { specialCharacters } from '../Parser/Lexer/SpecialChars';
 import { TRSParser } from '../Parser/TRSParser';
-import { Fun, Rule, Symb, Term, Var } from '../Parser/Types';
-import { gen, randomElement } from '../Parser/Utils';
-import { isOk, unwrap, isError } from '../Types';
-
-const digits = [...gen(10, i => `${i}`)];
-const lowerCaseLetters = [...gen(26, i => String.fromCharCode(97 + i))];
-const upperCaseLetters = [...gen(26, i => String.fromCharCode(65 + i))];
-
-const alphaNum = [
-    ...lowerCaseLetters,
-    ...upperCaseLetters,
-    ...digits
-];
-
-const symbChars = [
-    ...upperCaseLetters,
-    ...digits,
-    ...specialCharacters
-];
-
-const allowedChars = [
-    ...lowerCaseLetters,
-    ...symbChars
-];
-
-const randomSymb = (eps = 0.1): Symb => {
-    let symb = randomElement(symbChars);
-    while (Math.random() > eps) {
-        symb += randomElement(allowedChars);
-    }
-
-    if (symb.includes('->')) return randomSymb(eps);
-    return symb;
-};
-
-const randomVar = (eps = 0.1): Var => {
-    let name = randomElement(lowerCaseLetters);
-    while (Math.random() > eps) {
-        name += randomElement(alphaNum);
-    }
-
-    return name;
-};
-
-const randomFun = (eps = 0.1, varProb = 0.5, maxArgs = 5, maxDepth = 3): Fun => {
-    return {
-        name: randomSymb(eps),
-        args: [...gen(
-            Math.floor(Math.random() * maxArgs),
-            () => randomTerm(eps, varProb, maxArgs, maxDepth - 1)
-        )]
-    };
-};
-
-const randomTerm = (eps = 0.1, varProb = 0.5, maxArgs = 10, maxDepth = 3): Term => {
-    if (maxDepth === 0 || Math.random() < varProb) return randomVar(eps);
-    return randomFun(eps, varProb, maxArgs, maxDepth);
-};
-
-const randomRule = (eps = 0.1): Rule => {
-    return [randomFun(eps), randomTerm(eps)];
-};
-
-const randomTRS = (eps = 0.1): Rule[] => {
-    return [...gen(
-        Math.floor(Math.random() * 20),
-        () => randomRule(eps)
-    )];
-};
+import { gen } from '../Parser/Utils';
+import { isError, isOk, unwrap } from '../Types';
+import { randomVar, randomSymb, randomTerm, randomTRS } from './TestUtils';
 
 test('Lex vars', () => {
     const lexer = new Lexer();

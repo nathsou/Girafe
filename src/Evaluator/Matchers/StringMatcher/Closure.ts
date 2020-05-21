@@ -7,7 +7,7 @@ import {
   pop,
   reverse,
   setMap,
-  traverseSymbols,
+  traverseNames,
   unionMut,
 } from "../../../Parser/Utils";
 import { Arities, collectArity } from "../../../Compiler/Passes/Lazify";
@@ -148,8 +148,8 @@ const replaceVars = (t: Term): Term => {
   return fun(t.name, ...t.args.map((s) => replaceVars(s)));
 };
 
-export const termToSymbols = (term: Term): string[] => {
-  return [...traverseSymbols(term)];
+export const termToNames = (term: Term): string[] => {
+  return [...traverseNames(term)];
 };
 
 export const makePatterns = (...patterns: string[]): Fun[] => {
@@ -161,7 +161,7 @@ export const makePatterns = (...patterns: string[]): Fun[] => {
 
 export const symbs = (term: string): string[] => {
   const [t] = makePatterns(term);
-  return termToSymbols(t);
+  return termToNames(t);
 };
 
 export const unstringify = (

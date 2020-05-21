@@ -50,7 +50,15 @@ export async function parse<Info = {}>(
     }
 
     const rules = TRSParser.getInstance().parse(unwrap(preprocessedSource));
-    if (isError(rules)) return Err([unwrap(rules)]);
+    if (isError(rules)) return Err([unwrap(rules)].map(err => {
+        return {
+            ...err,
+            position: {
+                line: src.originalLineNumber(err.position.line),
+                col: err.position.col
+            }
+        };
+    }));
     if (rules) {
         return Ok({ trs: mapify(unwrap(rules)), info: info as Info });
     }

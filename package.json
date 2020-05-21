@@ -1,6 +1,6 @@
 {
   "name": "girafe",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Term Rewriting System infrastructure",
   "main": "dist/grf.js",
   "module": "lib/js/lib.js",

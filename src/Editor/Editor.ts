@@ -1,6 +1,6 @@
 import { editor as monacoEditor } from 'monaco-editor';
 ///@ts-ignore
-import trs from "../../TRSs/test.grf";
+import trs from "../../examples/test.grf";
 import { TermMatcher } from "../Evaluator/Matchers/TermMatcher/TermMatcher";
 import {
     fun,
@@ -94,7 +94,7 @@ const output = monacoEditor.create(outputDiv, {
 
 const defaultFileReader: FileReader = async (path: string) => {
     ///@ts-ignore
-    const dep = await import(`../../TRSs/${path}`);
+    const dep = await import(`../../examples/${path}`);
     return dep.default;
 };
 
@@ -108,11 +108,9 @@ const run = async () => {
     const source = `${editor.getValue()}\n${queryRule}`;
 
     const trs = await compileRules(source, defaultPasses, defaultFileReader);
-
     if (isNothing(trs)) return;
 
     const matcher = new TermMatcher(trs);
-    console.log(matcher);
 
     const [delta, nf] = time(() => reduce(queryLhs, externals, matcher));
 

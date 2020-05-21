@@ -6,6 +6,8 @@ import { addRules, arity, emptyTRS, fill, fun, genVars, isEmpty, isFun, isVar, r
 export type LazinessAnnotations = Map<Symb, boolean[]>;
 export type Arities = Map<Symb, number>;
 
+export const lazyAnnotationSymb = 'Lazy';
+
 const instSymb = 'inst';
 const thunkSymb = 'Θ';
 
@@ -60,7 +62,7 @@ const removeLazinessAnnotations = (trs: TRS): TRS => {
         for (const [lhs, rhs] of rules) {
             const newArgs: Term[] = [];
             for (const t of lhs.args) {
-                if (isFun(t, 'Lazy')) {
+                if (isFun(t, lazyAnnotationSymb)) {
                     newArgs.push(t.args[0]);
                 } else {
                     newArgs.push(t);
@@ -84,7 +86,7 @@ const collectLazinessAnnotations = (trs: TRS): [LazinessAnnotations, boolean] =>
 
         for (const [lhs, _] of rules) {
             lhs.args.forEach((t, i) => {
-                if (isFun(t, 'Lazy')) {
+                if (isFun(t, lazyAnnotationSymb)) {
                     ann[i] = true;
                     hasLazyTerms = true;
                 }

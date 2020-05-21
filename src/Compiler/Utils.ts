@@ -1,5 +1,5 @@
 import { Fun, mapEntries, mapGet, mapHas, mapSet, Rule, StringMap, Substitution, Symb, Term, TRS, Var } from "../Parser/Types";
-import { every, some, traverseSymbols } from "../Parser/Utils";
+import { every, some, traverseNames } from "../Parser/Utils";
 import { Ok } from "../Types";
 import { check, checkArity, checkNoDuplicates, checkNoFreeVars } from "./Passes/Checks";
 import { CompilerPass } from "./Passes/CompilerPass";
@@ -64,7 +64,7 @@ export function isSomething<T>(m: Maybe<T>): m is T {
 
 export const substitute = (t: Term, sigma: Substitution): Term => {
   if (isVar(t)) return mapGet(sigma, t) ?? t;
-  return fun(t.name, ...t.args.map(s => substitute(s, sigma)));
+  return { name: t.name, args: t.args.map(s => substitute(s, sigma)) };
 };
 
 export const termsEq = (a: Term, b: Term): boolean => {
@@ -221,7 +221,7 @@ export const hasMostGeneralRule = (rules: Rule[]): boolean => {
 
 export const isRuleRecursive = ([lhs, rhs]: Rule): boolean => {
   const name = ruleName([lhs, rhs]);
-  return some(traverseSymbols(rhs), f => f === name);
+  return some(traverseNames(rhs), f => f === name);
 };
 
 export const hasRecursiveRule = (rules: Rule[]): boolean => (

@@ -1,17 +1,14 @@
 import { Maybe } from "../Compiler/Utils";
 import { Result } from "../Types";
+import { LexerError } from "./Lexer/Lexer";
 import { PrepocessorPass } from "./Preprocessor/Preprocessor";
+import { ParserError } from "./TRSParser";
 import { Rule, Term, TRS } from "./Types";
-export declare type ParserError = {
-    message: string;
-    originalLine: number;
-};
-export declare function isParserError(obj: any): obj is ParserError;
 export declare function renameVars<T extends Term>(t: Term): T;
-export declare const parseRule: (rule: string) => Maybe<Rule>;
-export declare const parseRules: (src: string) => TRS;
-export declare const parseTerm: (term: string) => Maybe<Term>;
+export declare const parseRule: (str: string) => Maybe<Rule>;
+export declare const parseRules: (src: string) => Maybe<TRS>;
+export declare const parseTerm: (str: string) => Maybe<Term>;
 export declare function parse<Info = {}>(source: string, ...preprocessors: PrepocessorPass[]): Promise<Result<{
     trs: TRS;
     info: Info;
-}, ParserError[]>>;
+}, Array<ParserError | LexerError>>>;

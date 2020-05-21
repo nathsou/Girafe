@@ -81,7 +81,7 @@ export class Source {
             }
         }
 
-        return index + 1; // 0 indexed
+        return index;
     }
 
     public *lines(): Generator<[string, number], void> {

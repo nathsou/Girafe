@@ -1,5 +1,5 @@
 import { Symb, Term } from "../../../Parser/Types";
-import { traverseSymbols } from "../../../Parser/Utils";
+import { traverseNames } from "../../../Parser/Utils";
 import { Arities } from "../../../Compiler/Passes/Lazify";
 import { Maybe } from "../../../Compiler/Utils";
 import { ω } from './Closure';
@@ -70,7 +70,7 @@ export class StringMatcher<T> {
         let node = this.root;
         let skip = 0;
 
-        for (const symb of traverseSymbols(term)) {
+        for (const symb of traverseNames(term)) {
             if (skip > 0) {
                 skip--;
                 continue;

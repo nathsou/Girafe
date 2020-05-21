@@ -1,7 +1,5 @@
 import "arith.grf"
 
-Bug(a, b) -> If(True, a, b)
-
 // call by value lambda expression evaluator
 
 Lookup(x, Nil) -> LookupError(x) 

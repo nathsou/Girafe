@@ -25,3 +25,4 @@ export declare function mapGet<T>(map: StringMap<T>, key: string): T;
 export declare function mapEntries<T>(map: StringMap<T>): [string, T][];
 export declare function mapValues<T>(map: StringMap<T>): T[];
 export declare function mapKeys<T>(map: StringMap<T>): string[];
+export declare const unreachable: (msg?: string) => never;

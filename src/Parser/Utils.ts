@@ -106,7 +106,7 @@ export function* traverse(term: Term): IterableIterator<Term> {
     }
 }
 
-export function* traverseSymbols(term: Term): IterableIterator<Symb> {
+export function* traverseNames(term: Term): IterableIterator<Symb> {
     for (const t of traverse(term)) {
         if (isVar(t)) {
             yield t;

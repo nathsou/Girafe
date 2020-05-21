@@ -1,8 +1,9 @@
-import { Maybe } from "../Compiler/Utils";
+import { Maybe, fun } from "../Compiler/Utils";
 import { Err, isError, Ok, Result, unwrap } from "../Types";
 import { Lexer, LexerError } from "./Lexer/Lexer";
 import { PositionInfo, Token } from "./Lexer/Token";
 import { Fun, Rule, Term, TRS } from "./Types";
+import { lazyAnnotationSymb } from "../Compiler/Passes/Lazify";
 
 export type ParserError =
     | ExpectedLeftParen
@@ -112,7 +113,17 @@ export class TRSParser {
     }
 
     public parseTerm(): Result<Term, ParserError> {
-        return this.parseVar();
+        const term = this.parseVar();
+        if (isError(term)) return term;
+
+        // Wrap inside a Lazy constructor
+        // when the term is annotated as lazy
+        if (this.currentToken()?.type === '?') {
+            this.advance();
+            return Ok(fun(lazyAnnotationSymb, unwrap(term)));
+        }
+
+        return term;
     }
 
     private parseVar(): Result<Term, ParserError> {

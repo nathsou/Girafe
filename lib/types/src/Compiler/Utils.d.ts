@@ -9,7 +9,7 @@ export declare function vars(term: Term, acc?: Var[]): Var[];
 export declare function occurs(x: Var, t: Term): boolean;
 export declare function isNothing<T>(m: Maybe<T>): m is void;
 export declare function isSomething<T>(m: Maybe<T>): m is T;
-export declare function substitute(t: Term, sigma: Substitution): Term;
+export declare const substitute: (t: Term, sigma: Substitution) => Term;
 export declare const termsEq: (a: Term, b: Term) => boolean;
 export declare const rulesEq: ([lhs1, rhs1]: Rule, [lhs2, rhs2]: Rule) => boolean;
 export declare function zip<T, U>(as: T[], bs: U[]): IterableIterator<[T, U]>;
@@ -62,5 +62,4 @@ export declare const replaceTerms: (old: Term, by: Term, inside: Term[]) => Term
 export declare function isEmpty<T>(collection: T[] | Set<T>): boolean;
 export declare const alphaEquiv: (s: Term, t: Term) => boolean;
 export declare type AlphaSubst = StringMap<Var>;
-export declare const alphaEquivAux: (eqs: [Term, Term][], sigma?: AlphaSubst) => Maybe<AlphaSubst>;
 export declare const rulesAlphaEquiv: (rule1: Rule, rule2: Rule) => boolean;
