@@ -23,10 +23,9 @@ Or(a, b) -> If(a, True, b)
 7 -> S(6)
 8 -> S(7)
 9 -> S(8)
-10 -> S(9)
 
 |(0, x) -> x
-|(a, b) -> +(b, *(a, 10))
+|(a, b) -> +(b, *(a, S(9)))
 
 =(0, 0) -> True
 =(S(a), S(b)) -> =(a, b)
@@ -143,18 +142,12 @@ N(S(S(S(S(S(S(S(S(S(0)))))))))) -> 9'
 
 N(n) -> Reverse(N'(n, Nil))
 N'(0, acc) -> acc
-N'(n, acc) -> N''(/(n, 10), acc)
+N'(n, acc) -> N''(/(n, S(9)), acc)
 N''(DivRes(q, r), acc) -> :(N(r), N'(q, acc))
 
 N(Nil) -> Nil
 N(:(h, tl)) -> :(N(h), N(tl))
 
-App(N, a) -> N(a)
-
-Map(f, lst) -> Map'(f, lst, Nil)
-Map'(f, Nil, acc) -> Reverse(acc)
-Map'(f, :(h, tl), acc) -> Map'(f, tl, :(App(f, h), acc))
-
 Inst(x) -> x
 
-Query -> Map(N, Primes(|(5, 0)))
+Query -> Reverse(N(Primes(|(|(1, 0), 0))))

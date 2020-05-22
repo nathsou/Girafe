@@ -13,7 +13,7 @@ import { ruleBasedUnify } from "./RuleBasedUnify";
 import { Unificator } from "./Unificator";
 
 export const match: Unificator = ruleBasedUnify;
-export const matches = (s: Term, t: Term): boolean => isSomething(match(s, t));
+export const matches = (s: Term, t: Term): boolean => isSomething(match(t, s));
 
 function logErrors<E = string>(errors: Right_<E[]>): void {
   for (const err of unwrap(errors)) {

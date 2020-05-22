@@ -1,5 +1,5 @@
 import { Fun, mapEntries, mapGet, mapHas, mapSet, Rule, StringMap, Substitution, Symb, Term, TRS, Var } from "../Parser/Types";
-import { every, some, traverseNames } from "../Parser/Utils";
+import { every, some, traverseNames, gen } from "../Parser/Utils";
 import { Ok } from "../Types";
 import { check, checkArity, checkNoDuplicates, checkNoFreeVars } from "./Passes/Checks";
 import { CompilerPass } from "./Passes/CompilerPass";
@@ -78,10 +78,6 @@ export const termsEq = (a: Term, b: Term): boolean => {
   return false;
 };
 
-export const rulesEq = ([lhs1, rhs1]: Rule, [lhs2, rhs2]: Rule): boolean => {
-  return termsEq(lhs1, lhs2) && termsEq(rhs1, rhs2);
-};
-
 export function* zip<T, U>(as: T[], bs: U[]): IterableIterator<[T, U]> {
   const len = Math.min(as.length, bs.length);
 
@@ -90,10 +86,14 @@ export function* zip<T, U>(as: T[], bs: U[]): IterableIterator<[T, U]> {
   }
 }
 
+export const rulesEq = ([lhs1, rhs1]: Rule, [lhs2, rhs2]: Rule): boolean => {
+  return termsEq(lhs1, lhs2) && termsEq(rhs1, rhs2);
+};
+
 export const hasRule = (trs: TRS, rule: Rule): boolean => {
   const name = ruleName(rule);
   if (trs.has(name)) {
-    return trs.get(name).some((def) => rulesEq(def, rule));
+    return trs.get(name).some(def => rulesEq(def, rule));
   }
 
   return false;
@@ -129,7 +129,7 @@ export const removeRules = (trs: TRS, ...rules: Rule[]): void => {
   for (const rule of rules) {
     const name = ruleName(rule);
     if (trs.has(name)) {
-      trs.set(name, trs.get(name).filter((def) => !rulesEq(rule, def)));
+      trs.set(name, trs.get(name).filter(def => !rulesEq(rule, def)));
     }
   }
 };
@@ -200,11 +200,7 @@ export const fun = (name: Symb, ...args: Term[]): Fun => {
 };
 
 export function genVars(n: number): string[] {
-  const names = [];
-  for (let i = 0; i < n; i++) {
-    names.push(`v${(i + 1)}`);
-  }
-  return names;
+  return [...gen(n, i => `v${i + 1}`)];
 }
 
 export const mostGeneralFun = (name: string, arity: number): Fun => {
@@ -292,7 +288,7 @@ export function elem<T>(
   elems: T[],
   eq: (a: T, b: T) => boolean = (a, b) => a === b,
 ): boolean {
-  return elems.some((val) => eq(val, value));
+  return elems.some(val => eq(val, value));
 }
 
 export function hasDuplicates<T>(

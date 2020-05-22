@@ -1,5 +1,7 @@
 # Girafe
 
+[Try online](https://nathsou.github.io/Girafe/dist/)
+
  ### Term Rewriting Systems infrastructure
 
 Girafe provides a set of tools based on a minimal [term rewriting systems](https://en.wikipedia.org/wiki/Rewriting) language that can be interpreted or even compiled to various targets.

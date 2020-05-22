@@ -24,13 +24,25 @@ test('ruleBasedUnify', () => {
     const tests = ([
         ['F(A, B)', 'G(A, B)', Fail],
         ['F(A, B)', 'F(A, B)', {}],
+        ['F(G, H, I(J, K(L(x))))', 'F(G, H, I(J, K(L(y))))', { 'x': 'y' }],
+        ['F(G, H, I(J, K(L(x))))', 'F(G, H, I(J, K(L(M))))', { 'x': fun('M') }],
+        ['F(G, H, I(J, K(L(x))))', 'F(G, H, I(J, K(M(x))))', Fail],
+        ['A(B(C(D(a, b), c), d), e)', 'A(B(C(D(1, 2), 3), 4), 5)', {
+            'a': fun('1'),
+            'b': fun('2'),
+            'c': fun('3'),
+            'd': fun('4'),
+            'e': fun('5')
+        }],
         ['Layout(Azerty, Qwerty)', 'Layout(Qwerty, Azerty)', Fail],
         ['If(True, a, b)', 'If(True, 2, *(3, 7))', {
             'a': fun('2'),
             'b': fun('*', fun('3'), fun('7'))
         }],
         ['If(True, a, b)', 'If(False, 2, *(3, 7))', Fail],
-        ['Eq(a, b)', 'Eq(b, a)', { 'a': 'b', 'b': 'a' }]
+        ['Eq(a, b)', 'Eq(b, a)', { 'a': 'b', 'b': 'a' }],
+        ['+(a, 0)', '+(S(x), 0)', { 'a': fun('S', 'x') }],
+        ['+(S(x), 0)', '+(a, 0)', Fail],
     ] as Array<[string, string, Substitution]>)
         .map(([s, t, sigma]) => [parseTerm(s), parseTerm(t), sigma])
         .filter(

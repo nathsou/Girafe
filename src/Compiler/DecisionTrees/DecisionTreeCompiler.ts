@@ -29,7 +29,7 @@ export const patternOf = (term: Term): Pattern => {
 // all the rules must share the same head symbol and arity
 export const clauseMatrixOf = (rules: Rule[]): ClauseMatrix => {
     return {
-        patterns: rules.map(rule => lhs(rule).args.map(t => patternOf(t))),
+        patterns: rules.map(rule => lhs(rule).args.map(patternOf)),
         dims: [rules.length, arity(rules)], // rows * cols
         actions: rules.map(rule => rhs(rule))
     };
