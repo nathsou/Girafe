@@ -1,19 +1,19 @@
 import { compile } from "../Compiler/Passes/CompilerPass";
-import { defaultPasses, isSomething, isVar, Maybe, substitute } from "../Compiler/Utils";
+import { defaultPasses, isSomething, isVar, Maybe, rhs, substitute } from "../Compiler/Utils";
 import { parse } from "../Parser/Parser";
 import { FileReader, handleImports, ImportInfos } from "../Parser/Preprocessor/Import";
 import { consLists } from "../Parser/Preprocessor/Lists";
 import { removeComments } from "../Parser/Preprocessor/RemoveComments";
 import { convertStrings } from "../Parser/Preprocessor/Strings";
-import { Fun, JSExternals, mapHas, Term, TRS } from "../Parser/Types";
+import { Fun, JSExternals, dictHas, Term, TRS } from "../Parser/Types";
 import { mapMut } from "../Parser/Utils";
 import { isError, Right_, unwrap } from "../Types";
-import { TermMatcher } from "./Matchers/TermMatcher/TermMatcher";
+import { Matcher } from "./Matchers/Matcher";
 import { ruleBasedUnify } from "./RuleBasedUnify";
 import { Unificator } from "./Unificator";
 
-export const match: Unificator = ruleBasedUnify;
-export const matches = (s: Term, t: Term): boolean => isSomething(match(t, s));
+export const match: Unificator = (s, t) => ruleBasedUnify(t, s);
+export const matches = (s: Term, t: Term): boolean => isSomething(match(s, t));
 
 function logErrors<E = string>(errors: Right_<E[]>): void {
   for (const err of unwrap(errors)) {
@@ -53,12 +53,12 @@ export async function compileRules(
 export const oneStepReduce = (
   term: Fun,
   externals: JSExternals<string> = {},
-  matcher: TermMatcher,
+  matcher: Matcher,
 ): { term: Term; changed: boolean } => {
   // externals
   if (term.name.charAt(0) === "@") {
     const f = term.name.substr(1);
-    if (mapHas(externals, f)) {
+    if (dictHas(externals, f)) {
       const newTerm = externals[f](term);
       return { term: newTerm, changed: newTerm !== term };
     } else {
@@ -66,15 +66,11 @@ export const oneStepReduce = (
     }
   }
 
-  const rules = matcher.lookup(term);
+  const matched = matcher(term, match);
 
-  if (rules) {
-    for (const [lhs, rhs] of rules) {
-      const sigma = match(lhs, term);
-      if (sigma) {
-        return { term: substitute(rhs, sigma), changed: true };
-      }
-    }
+  if (matched) {
+    return { term: substitute(rhs(matched.rule), matched.sigma), changed: true };
+
   }
 
   return { term, changed: false };
@@ -83,7 +79,7 @@ export const oneStepReduce = (
 export const reduce = (
   term: Term,
   externals: JSExternals<string> = {},
-  matcher: TermMatcher,
+  matcher: Matcher,
 ): Term => {
   if (isVar(term)) return term;
   let reduced: { term: Term; changed: boolean } = { term, changed: true };

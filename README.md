@@ -6,7 +6,7 @@
 
 Girafe provides a set of tools based on a minimal [term rewriting systems](https://en.wikipedia.org/wiki/Rewriting) language that can be interpreted or even compiled to various targets.
 
-See the TRSs/ folder for examples.
+See the examples/ folder for small demos.
 
 Various preprocessors and transformations can be applied to support laziness, imports, currying, non-linearity etc.. see src/Compiler/Passes/
 

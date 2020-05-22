@@ -2,8 +2,8 @@ export type Var = string;
 export type Symb = string;
 export type Fun = { name: Symb, args: Term[] };
 export type Term = Var | Fun;
-export type StringMap<T> = { [key: string]: T };
-export type Substitution = StringMap<Term>;
+export type Dict<T> = { [key: string]: T };
+export type Substitution = Dict<Term>;
 export type Rule = [Fun, Term];
 export type TRS = Map<Symb, Rule[]>;
 
@@ -18,29 +18,38 @@ export type Externals<Target extends Targets, Exts extends string> = {
     [key in Exts]: (name: string) => string
 };
 
-export function mapSet<T>(map: StringMap<T>, key: string, value: T): StringMap<T> {
-    map[key] = value;
-    return map;
+export function dictSet<T>(dict: Dict<T>, key: string, value: T): Dict<T> {
+    dict[key] = value;
+    return dict;
 }
 
-export function mapHas<T>(map: StringMap<T>, key: string): boolean {
-    return map.hasOwnProperty(key);
+export function dictHas<T>(dict: Dict<T>, key: string): boolean {
+    return dict.hasOwnProperty(key);
 }
 
-export function mapGet<T>(map: StringMap<T>, key: string): T {
-    return map[key];
+export function dictGet<T>(dict: Dict<T>, key: string): T {
+    return dict[key];
 }
 
-export function mapEntries<T>(map: StringMap<T>): [string, T][] {
-    return Object.entries(map);
+export function dictEntries<T>(dict: Dict<T>): [string, T][] {
+    return Object.entries(dict);
 }
 
-export function mapValues<T>(map: StringMap<T>): T[] {
-    return Object.values(map);
+export function dictValues<T>(dict: Dict<T>): T[] {
+    return Object.values(dict);
 }
 
-export function mapKeys<T>(map: StringMap<T>): string[] {
-    return Object.keys(map);
+export function dictKeys<T>(dict: Dict<T>): string[] {
+    return Object.keys(dict);
+}
+
+export function dictMap<T, U>(dict: Dict<T>, f: (val: T) => U): Dict<U> {
+    const newDict: Dict<U> = {};
+    for (const [key, val] of dictEntries(dict)) {
+        dictSet(newDict, key, f(val));
+    }
+
+    return newDict;
 }
 
 export const unreachable = (msg = ''): never => {

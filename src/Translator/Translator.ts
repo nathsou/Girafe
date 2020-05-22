@@ -7,7 +7,7 @@ import {
   Targets,
   Term,
   TRS,
-  mapHas,
+  dictHas,
 } from "../Parser/Types";
 
 export abstract class Translator<Target extends Targets, Exts extends string> {
@@ -36,7 +36,7 @@ export abstract class Translator<Target extends Targets, Exts extends string> {
 
   protected isDefined(f: Symb): boolean {
     return this.trs.has(f) || this.definedSymbols.has(f) ||
-      mapHas(this.externals, f.substr(1));
+      dictHas(this.externals, f.substr(1));
   }
 
   private renameTerm(term: Term): Term {

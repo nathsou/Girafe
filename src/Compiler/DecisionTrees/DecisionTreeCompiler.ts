@@ -1,8 +1,7 @@
-import { Rule, Symb, Term, unreachable } from "../../Parser/Types";
-import { gen, repeat } from "../../Parser/Utils";
-import { Either, Left, Right } from "../../Types";
-import { arity, decons, head, isSomething, isVar, lhs, Maybe, rhs, setEq, swapMut, tail, zip } from "../Utils";
-import { DecisionTree, makeFail, makeLeaf, makeSwitch, Switch } from "./DecisionTree";
+import { Rule, Symb, Term, unreachable, Dict, Substitution } from "../../Parser/Types";
+import { gen, repeat, indexed } from "../../Parser/Utils";
+import { arity, decons, head, isSomething, isVar, lhs, Maybe, rhs, setEq, swapMut, tail, zip, substitute } from "../Utils";
+import { DecisionTree, makeFail, makeLeaf, makeSwitch, Switch, isTermOccurence } from "./DecisionTree";
 
 // Based on "Compiling Pattern Matching to Good Decision Trees" by Luc Maranget
 
@@ -24,6 +23,29 @@ export type ClauseMatrix = {
 export const patternOf = (term: Term): Pattern => {
     if (isVar(term)) return _;
     return { name: term.name, args: term.args.map(patternOf) };
+};
+
+export const occurencesOf = (term: Term): Dict<Occcurence> => {
+    if (isVar(term)) return { [term]: term };
+    const collectOccurences = (t: Term, sigma: Dict<Occcurence>, offset = 0, depth = 0, parent: Occcurence): void => {
+        const occ: Occcurence = { value: parent, index: depth };
+        if (isVar(t)) {
+            sigma[t] = occ;
+            return;
+        }
+
+        t.args.forEach((s, idx) => {
+            collectOccurences(s, sigma, offset + idx, idx, occ);
+        });
+    };
+
+    const sigma = {};
+
+    for (const [t, i] of indexed(term.args)) {
+        collectOccurences(t, sigma, 0, i, term);
+    }
+
+    return sigma;
 };
 
 // all the rules must share the same head symbol and arity
@@ -120,13 +142,9 @@ const heads = (patterns: Pattern[]): Map<Symb, number> => {
 };
 
 export type Occcurence = {
-    value: Either<Occcurence, Term>,
-    index?: number
-};
-
-export const occurencesOf = (...terms: Term[]): Occcurence[] => {
-    return terms.map(t => ({ value: Right(t) }));
-};
+    value: Occcurence,
+    index: number
+} | Term;
 
 export const compileClauseMatrix = (
     occurences: Occcurence[],
@@ -152,7 +170,7 @@ export const compileClauseMatrix = (
 
     for (const [ctor, arity] of hds) {
         const o1 = [...gen(arity, i => ({
-            value: Left(occurences[0]),
+            value: occurences[0],
             index: i
         }))];
 

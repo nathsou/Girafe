@@ -15,7 +15,7 @@ const transpile = async (path: string, target: Targets): Promise<string> => {
     defaultPasses,
     async (path) => {
       return new Promise((resolve, reject) => {
-        const contents = readFileSync(`./TRSs/${path}`).toString();
+        const contents = readFileSync(`./examples/${path}`).toString();
         resolve(contents);
       });
     },

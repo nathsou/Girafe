@@ -1,9 +1,9 @@
-import { isSomething, fun } from "../Compiler/Utils";
+import { fun, isSomething } from "../Compiler/Utils";
+import { ruleBasedUnify as unify } from '../Evaluator/RuleBasedUnify';
 import { parseTerm } from "../Parser/Parser";
-import { Term, Substitution } from "../Parser/Types";
-import { ruleBasedUnify as unify } from '../Evaluator/RuleBasedUnify'
+import { Substitution, Term } from "../Parser/Types";
 import { gen } from "../Parser/Utils";
-import { randomTerm, mutateTerm, substIn, substsEq } from "./TestUtils";
+import { mutateTerm, randomLeftLinearFun, substIn, substsEq } from "./TestUtils";
 
 test('substIn', () => {
     expect(substIn({ 'a': 'b', 'c': 'd' }, { 'c': 'd', 'a': 'b' })).toBe(true);
@@ -22,6 +22,8 @@ test('ruleBasedUnify', () => {
     const Fail = undefined;
 
     const tests = ([
+        ['a', 'b', { 'a': 'b' }],
+        ['b', 'a', { 'b': 'a' }],
         ['F(A, B)', 'G(A, B)', Fail],
         ['F(A, B)', 'F(A, B)', {}],
         ['F(G, H, I(J, K(L(x))))', 'F(G, H, I(J, K(L(y))))', { 'x': 'y' }],
@@ -43,6 +45,11 @@ test('ruleBasedUnify', () => {
         ['Eq(a, b)', 'Eq(b, a)', { 'a': 'b', 'b': 'a' }],
         ['+(a, 0)', '+(S(x), 0)', { 'a': fun('S', 'x') }],
         ['+(S(x), 0)', '+(a, 0)', Fail],
+        ['a', 'S(a)', Fail],
+        ['D(E(E(w, x), y), z)', 'D(E(E(P(w), x), y), z)', Fail],
+        ['D(E(E(w, x), y), z)', 'D(E(E(P(t), x), y), z)', {
+            'w': fun('P', 't')
+        }],
     ] as Array<[string, string, Substitution]>)
         .map(([s, t, sigma]) => [parseTerm(s), parseTerm(t), sigma])
         .filter(
@@ -54,7 +61,7 @@ test('ruleBasedUnify', () => {
     }
 
     const randomUnificationTest = (): [Term, Term, Substitution] => {
-        const s = randomTerm();
+        const s = randomLeftLinearFun();
         const [t, sigma] = mutateTerm(s);
         return [s, t, sigma];
     };

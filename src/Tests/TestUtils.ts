@@ -1,7 +1,8 @@
-import { gen, randomElement } from "../Parser/Utils";
+import { isFunLeftLinear } from "../Compiler/Passes/Checks";
+import { substitute, vars, occurs } from "../Compiler/Utils";
 import { specialCharacters } from "../Parser/Lexer/SpecialChars";
-import { Symb, Var, Fun, Term, Rule, Substitution, mapKeys, mapHas, mapGet } from "../Parser/Types";
-import { vars, substitute } from "../Compiler/Utils";
+import { Fun, dictGet, dictHas, dictKeys, Rule, Substitution, Symb, Term, Var } from "../Parser/Types";
+import { gen, randomElement, randomInt } from "../Parser/Utils";
 
 export const digits = [...gen(10, i => `${i}`)];
 export const lowerCaseLetters = [...gen(26, i => String.fromCharCode(97 + i))];
@@ -53,13 +54,41 @@ export const randomFun = (eps = 0.1, varProb = 0.5, maxArgs = 5, maxDepth = 3): 
     };
 };
 
+export const randomLeftLinearFun = (eps = 0.1, varProb = 0.5, maxArgs = 5, maxDepth = 3): Fun => {
+    const args = [...gen(
+        randomInt(0, maxArgs),
+        () => randomLeftLinearTerm(eps, varProb, maxArgs, maxDepth - 1)
+    )];
+
+    const term: Fun = {
+        name: randomSymb(eps),
+        args
+    };
+
+    // ensure the term is left linear
+    if (!isFunLeftLinear(term)) {
+        return randomLeftLinearFun(eps, varProb, maxArgs, maxDepth);
+    }
+
+    return term;
+};
+
 export const randomTerm = (eps = 0.1, varProb = 0.5, maxArgs = 10, maxDepth = 3): Term => {
     if (maxDepth === 0 || Math.random() < varProb) return randomVar(eps);
     return randomFun(eps, varProb, maxArgs, maxDepth);
 };
 
+export const randomLeftLinearTerm = (eps = 0.1, varProb = 0.5, maxArgs = 10, maxDepth = 3): Term => {
+    if (maxDepth === 0 || Math.random() < varProb) return randomVar(eps);
+    return randomLeftLinearFun(eps, varProb, maxArgs, maxDepth);
+};
+
 export const randomRule = (eps = 0.1): Rule => {
     return [randomFun(eps), randomTerm(eps)];
+};
+
+export const randomLeftLinenarRule = (eps = 0.1): Rule => {
+    return [randomLeftLinearFun(eps), randomTerm(eps)];
 };
 
 export const randomTRS = (eps = 0.1): Rule[] => {
@@ -69,12 +98,22 @@ export const randomTRS = (eps = 0.1): Rule[] => {
     )];
 };
 
+export const randomLeftLinearTRS = (eps = 0.1): Rule[] => {
+    return [...gen(
+        Math.floor(Math.random() * 20),
+        () => randomLeftLinenarRule(eps)
+    )];
+};
+
 export const randomSubstitution = (term: Term, eps = 0.1, mutateProb = 0.5): Substitution => {
     const sigma: Substitution = {};
 
     for (const v of vars(term)) {
         if (Math.random() < mutateProb) {
-            sigma[v] = randomVar(eps);
+            const randTerm = randomTerm(eps);
+            if (!occurs(v, randTerm)) {
+                sigma[v] = randTerm;
+            }
         }
     }
 
@@ -87,8 +126,8 @@ export const mutateTerm = (term: Term, eps = 0.1, mutateProb = 0.5): [Term, Subs
 };
 
 export const substIn = (a: Substitution, b: Substitution): boolean => {
-    for (const varName of mapKeys(a)) {
-        if (mapGet(a, varName) !== varName && !mapHas(b, varName)) return false;
+    for (const varName of dictKeys(a)) {
+        if (dictGet(a, varName) !== varName && !dictHas(b, varName)) return false;
     }
 
     return true;

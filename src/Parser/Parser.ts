@@ -6,15 +6,6 @@ import { Source } from "./Source";
 import { ParserError, TRSParser } from "./TRSParser";
 import { Rule, Term, TRS } from "./Types";
 
-export function renameVars<T extends Term>(t: Term): T {
-    if (isVar(t)) return `$${t}` as T;
-
-    return {
-        name: t.name,
-        args: t.args.map(s => renameVars(s))
-    } as T;
-}
-
 export const parseRule = (str: string): Maybe<Rule> => {
     const err = TRSParser.getInstance().tokenize(str);
     if (err) return;

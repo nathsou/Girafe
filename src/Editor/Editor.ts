@@ -2,6 +2,7 @@ import { editor as monacoEditor } from 'monaco-editor';
 ///@ts-ignore
 import trs from "../../examples/test.grf";
 import { TermMatcher } from "../Evaluator/Matchers/TermMatcher/TermMatcher";
+import { DecisionTreeMatcher } from "../Evaluator/Matchers/DecisionTreeMatcher";
 import {
     fun,
     isNothing,
@@ -110,7 +111,9 @@ const run = async () => {
     const trs = await compileRules(source, defaultPasses, defaultFileReader);
     if (isNothing(trs)) return;
 
-    const matcher = new TermMatcher(trs);
+    const matcher = new TermMatcher(trs).asMatcher();
+    const dtMatcher = new DecisionTreeMatcher(trs);
+    console.log(dtMatcher);
 
     const [delta, nf] = time(() => reduce(queryLhs, externals, matcher));
 

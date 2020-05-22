@@ -1,6 +1,5 @@
-import { Symb, Term } from "../../Parser/Types";
-import { either } from "../../Types";
-import { showTerm } from "../Utils";
+import { Fun, dictGet, Substitution, Symb, Term } from "../../Parser/Types";
+import { isFun, isVar, Maybe, substitute } from "../Utils";
 import { AnyPat, Occcurence } from "./DecisionTreeCompiler";
 
 export type Leaf = { type: 'leaf', action: Term };
@@ -24,35 +23,28 @@ export const makeSwitch = (occurence: Occcurence, tests: Switch['tests']): Switc
     };
 };
 
-const showOccurence = (occ: Occcurence): string => {
-    const val = either(occ.value, showOccurence, showTerm);
-    if (occ.index !== undefined) return `${val}[${occ.index}]`;
-    return val;
+export function isPureOccurence(occ: Occcurence): occ is { value: Occcurence, index: number } {
+    return occ['value'] !== undefined;
+}
+
+export function isTermOccurence(occ: Occcurence): occ is Term {
+    return !isPureOccurence(occ);
+}
+
+export const getOccurence = (subst: Substitution, occ: Occcurence): Term => {
+    if (isTermOccurence(occ)) return isVar(occ) ? dictGet(subst, occ) ?? occ : occ;
+    const val = getOccurence(subst, occ.value);
+    return (val as Fun).args[occ.index];
 };
 
-export const showDecisionTree = (tree: DecisionTree): string => {
-    switch (tree.type) {
-        case 'fail':
-            return 'fail;';
-        case 'leaf':
-            return `return ${showTerm(tree.action)};`;
-        case 'switch':
-            const tests: string[] = [];
-
-            for (const [ctor, A] of tree.tests) {
-                if (ctor === '_') {
-                    tests.push(`default:
-                        ${showDecisionTree(A)}
-                    `);
-                } else {
-                    tests.push(`case "${ctor}":
-                        ${showDecisionTree(A)}
-                    `);
-                }
+export const evaluate = (subst: Substitution, dt: DecisionTree): Maybe<Term> => {
+    if (dt.type === 'leaf') return substitute(dt.action, subst);
+    if (dt.type === 'switch') {
+        for (const [ctor, subtree] of dt.tests) {
+            const term = getOccurence(subst, dt.occurence);
+            if (isFun(term, ctor)) {
+                return evaluate(subst, subtree);
             }
-
-            return `switch (${showOccurence(tree.occurence)}) {
-                ${tests.join('\n')}
-            }`;
+        }
     }
 };

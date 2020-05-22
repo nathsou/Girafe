@@ -1,4 +1,4 @@
-import { Rule, TRS } from "../../Parser/Types";
+import { Rule, TRS, Fun } from "../../Parser/Types";
 import { Err, Ok } from "../../Types";
 import { CompilationError, CompilationResult, CompilerPass } from "./CompilerPass";
 import { arity, hasDuplicatesSet, ruleArity, ruleName, rulesAlphaEquiv, showRule, vars } from "../Utils";
@@ -35,7 +35,11 @@ export const checkArity: Checker = (rules: Rule[]): CompilationError[] => {
 };
 
 export const isLeftLinear = ([lhs, _]: Rule): boolean => {
-    return !hasDuplicatesSet(vars(lhs));
+    return isFunLeftLinear(lhs);
+};
+
+export const isFunLeftLinear = (f: Fun): boolean => {
+    return !hasDuplicatesSet(vars(f));
 };
 
 export const checkLeftLinearity: Checker = (rules: Rule[]): CompilationError[] => {

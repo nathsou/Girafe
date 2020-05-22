@@ -1,4 +1,4 @@
-import { DecisionTree } from "../Compiler/DecisionTrees/DecisionTree";
+import { DecisionTree, isTermOccurence } from "../Compiler/DecisionTrees/DecisionTree";
 import { DecisionTreeTranslator } from "../Compiler/DecisionTrees/DecisionTreeTranslator";
 import { isVar, showTerm, fun } from "../Compiler/Utils";
 import { Externals, Term, TRS } from "../Parser/Types";
@@ -52,7 +52,8 @@ export class JSTranslator<Exts extends string>
 
     translateDecisionTree(name: string, dt: DecisionTree, varNames: string[]): string {
         const translateOccurence = (occ: Occcurence): string => {
-            const val = either(occ.value, translateOccurence, showTerm);
+            if (isTermOccurence(occ)) return showTerm(occ);
+            const val = translateOccurence(occ.value);
             if (occ.index !== undefined) return `${val}.args[${occ.index}]`;
             return val;
         };

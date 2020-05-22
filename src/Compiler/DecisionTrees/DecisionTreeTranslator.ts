@@ -3,9 +3,9 @@ import { Externals, Fun, Rule, Substitution, Symb, Targets, Term, TRS, Var } fro
 import { indexed } from "../../Parser/Utils";
 import { Translator } from "../../Translator/Translator";
 import { Arities } from "../Passes/Lazify";
-import { fst, genVars, isVar, ruleArity, substitute } from "../Utils";
+import { arity, genVars, isVar, substitute } from "../Utils";
 import { DecisionTree } from "./DecisionTree";
-import { clauseMatrixOf, compileClauseMatrix, occurencesOf } from "./DecisionTreeCompiler";
+import { clauseMatrixOf, compileClauseMatrix } from "./DecisionTreeCompiler";
 
 export abstract class DecisionTreeTranslator<Target extends Targets, Exts extends string>
     extends Translator<Target, Exts> {
@@ -27,27 +27,33 @@ export abstract class DecisionTreeTranslator<Target extends Targets, Exts extend
 
     abstract accessSubterm(parent: string, childIndex: number): string;
 
-    translateRules(name: string, rules: Rule[]): string {
+    protected collectVarNames(
+        t: Term,
+        sigma: Substitution,
+        newVars: Var[],
+        offset = 0,
+        depth = 0,
+        parent?: string
+    ): void {
+        const name = parent ? this.accessSubterm(parent, depth) : newVars[offset];
+        if (isVar(t)) {
+            sigma[t] = name;
+            return;
+        }
 
-        const renameVars = (t: Term, sigma: Substitution, i = 0, j = 0, parent?: string): void => {
-            const name = parent ? this.accessSubterm(parent, j) : `v${(i + 1)}`;
-            if (isVar(t)) {
-                sigma[t] = name;
-                return;
-            }
+        t.args.forEach((s, idx) => {
+            this.collectVarNames(s, sigma, newVars, offset + idx, idx, name);
+        });
+    }
 
-            t.args.forEach((s, idx) => {
-                renameVars(s, sigma, i + idx, idx, name);
-            });
-        };
+    public translateRules(name: string, rules: Rule[]): string {
 
-        const newVars: Var[] = genVars(ruleArity(fst(rules)));
+        const newVars: Var[] = genVars(arity(rules));
 
         const rules_: Rule[] = rules.map(([lhs, rhs]) => {
             const sigma: Substitution = {};
-
             for (const [t, i] of indexed(lhs.args)) {
-                renameVars(t, sigma, i);
+                this.collectVarNames(t, sigma, newVars, i);
             }
 
             return [
@@ -57,9 +63,8 @@ export abstract class DecisionTreeTranslator<Target extends Targets, Exts extend
         });
 
         const m = clauseMatrixOf(rules_);
-        const occs = occurencesOf(...newVars);
         const dt = compileClauseMatrix(
-            occs,
+            newVars,
             m,
             this.signature
         );

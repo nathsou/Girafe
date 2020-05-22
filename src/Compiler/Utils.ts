@@ -1,4 +1,4 @@
-import { Fun, mapEntries, mapGet, mapHas, mapSet, Rule, StringMap, Substitution, Symb, Term, TRS, Var } from "../Parser/Types";
+import { Fun, dictEntries, dictGet, dictHas, dictSet, Rule, Dict, Substitution, Symb, Term, TRS, Var } from "../Parser/Types";
 import { every, some, traverseNames, gen } from "../Parser/Utils";
 import { Ok } from "../Types";
 import { check, checkArity, checkNoDuplicates, checkNoFreeVars } from "./Passes/Checks";
@@ -63,7 +63,7 @@ export function isSomething<T>(m: Maybe<T>): m is T {
 }
 
 export const substitute = (t: Term, sigma: Substitution): Term => {
-  if (isVar(t)) return mapGet(sigma, t) ?? t;
+  if (isVar(t)) return dictGet(sigma, t) ?? t;
   return { name: t.name, args: t.args.map(s => substitute(s, sigma)) };
 };
 
@@ -174,7 +174,7 @@ export const showRule = ([lhs, rhs]: Rule): string => (
 );
 
 export const showSubst = (sigma: Substitution): string => (
-  mapEntries(sigma)
+  dictEntries(sigma)
     .map(([a, b]) => `${showTerm(a)}: ${showTerm(b)}`)
     .join(", ")
 );
@@ -357,7 +357,7 @@ export const alphaEquiv = (s: Term, t: Term): boolean => (
   isSomething(alphaEquivAux([hasDuplicates(vars(t)) ? [t, s] : [s, t]]))
 );
 
-export type AlphaSubst = StringMap<Var>;
+export type AlphaSubst = Dict<Var>;
 
 const alphaEquivAux = (
   eqs: [Term, Term][],
@@ -367,12 +367,12 @@ const alphaEquivAux = (
   const [a, b] = eqs.pop();
 
   if (isVar(a) && isVar(b)) {
-    if (mapHas(sigma, a)) {
-      if (mapGet(sigma, a) === b) {
+    if (dictHas(sigma, a)) {
+      if (dictGet(sigma, a) === b) {
         return alphaEquivAux(eqs, sigma);
       }
     } else {
-      return alphaEquivAux(eqs, mapSet(sigma, a, b));
+      return alphaEquivAux(eqs, dictSet(sigma, a, b));
     }
   } else if (isFun(a) && isFun(b)) {
     if (a.name == b.name && a.args.length === b.args.length) {

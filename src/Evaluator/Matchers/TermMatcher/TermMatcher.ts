@@ -110,9 +110,9 @@ export class TermMatcher {
             const rules = this.lookup(term);
 
             if (rules) {
-                for (const [lhs, _] of rules) {
+                for (const [lhs, rhs] of rules) {
                     const sigma = unificator(term, lhs);
-                    if (sigma) return sigma;
+                    if (sigma) return { sigma, rule: [lhs, rhs] };
                 }
             }
         };

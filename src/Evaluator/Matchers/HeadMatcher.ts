@@ -7,9 +7,9 @@ import { isVar } from "../../Compiler/Utils";
 export const headMatcher: (trs: TRS) => Matcher = (trs: TRS) => {
     return (term: Term, unificator: Unificator) => {
         if (isVar(term)) return;
-        for (const [lhs, _] of (trs.get(term.name) ?? [])) {
+        for (const [lhs, rhs] of (trs.get(term.name) ?? [])) {
             const sigma = unificator(term, lhs);
-            if (sigma) return sigma;
+            if (sigma) return { sigma, rule: [lhs, rhs] };
         }
     };
 };

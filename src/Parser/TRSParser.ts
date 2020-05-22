@@ -1,9 +1,9 @@
-import { Maybe, fun } from "../Compiler/Utils";
+import { lazyAnnotationSymb } from "../Compiler/Passes/Lazify";
+import { fun, Maybe } from "../Compiler/Utils";
 import { Err, isError, Ok, Result, unwrap } from "../Types";
 import { Lexer, LexerError } from "./Lexer/Lexer";
 import { PositionInfo, Token } from "./Lexer/Token";
-import { Fun, Rule, Term, TRS } from "./Types";
-import { lazyAnnotationSymb } from "../Compiler/Passes/Lazify";
+import { Fun, Rule, Term } from "./Types";
 
 export type ParserError =
     | ExpectedLeftParen
@@ -143,10 +143,7 @@ export class TRSParser {
             const args = [];
             if (this.nextToken()?.type === '(') {
                 this.advance(2);
-                while (
-                    this.currentToken() !== undefined &&
-                    this.currentToken()?.type !== ')'
-                ) {
+                while (this.currentToken()?.type !== ')') {
                     if (this.currentToken().type === ',') {
                         // skip the comma
                         this.advance();
@@ -155,11 +152,7 @@ export class TRSParser {
                     const arg = this.parseTerm();
                     if (isError(arg)) return arg;
                     args.push(unwrap(arg));
-                    if (
-                        this.currentToken().type !== ',' &&
-                        this.currentToken().type !== ')' &&
-                        this.currentToken().type !== '->'
-                    ) {
+                    if (![',', ')', '->'].includes(this.currentToken().type)) {
                         return Err({
                             type: 'UnexpectedToken' as 'UnexpectedToken',
                             token: this.currentToken(),
