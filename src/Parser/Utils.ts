@@ -87,6 +87,15 @@ export function mapMut<U, V>(vals: U[], f: (val: U) => V): V[] {
     return vals as any as V[];
 }
 
+export function mapString(str: string, f: (char: string) => string) {
+    let newStr = '';
+    for (const char of str) {
+        newStr += f(char);
+    }
+
+    return newStr;
+}
+
 export function time<T>(f: () => T): [number, T] {
     const start = Date.now();
     const res = f();

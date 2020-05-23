@@ -1,7 +1,8 @@
-import { Rule, Symb, Term, unreachable, Dict, Substitution } from "../../Parser/Types";
-import { gen, repeat, indexed } from "../../Parser/Utils";
-import { arity, decons, head, isSomething, isVar, lhs, Maybe, rhs, setEq, swapMut, tail, zip, substitute } from "../Utils";
-import { DecisionTree, makeFail, makeLeaf, makeSwitch, Switch, isTermOccurence } from "./DecisionTree";
+import { Dict, dictGet, Rule, Symb, Term, unreachable, dictHas, dictSet } from "../../Parser/Types";
+import { gen, indexed, repeat } from "../../Parser/Utils";
+import { arity, decons, head, isSomething, isVar, lhs, Maybe, setEq, swapMut, tail, zip, showTerm } from "../Utils";
+import { DecisionTree, makeFail, makeLeaf, makeSwitch, Switch, termOf } from "./DecisionTree";
+import { Err } from "../../Types";
 
 // Based on "Compiling Pattern Matching to Good Decision Trees" by Luc Maranget
 
@@ -17,7 +18,7 @@ type ClauseMatrixColumn = Pattern[];
 export type ClauseMatrix = {
     dims: [number, number],
     patterns: ClauseMatrixRow[],
-    actions: Term[]
+    actions: OccTerm[]
 };
 
 export const patternOf = (term: Term): Pattern => {
@@ -25,27 +26,54 @@ export const patternOf = (term: Term): Pattern => {
     return { name: term.name, args: term.args.map(patternOf) };
 };
 
-export const occurencesOf = (term: Term): Dict<Occcurence> => {
-    if (isVar(term)) return { [term]: term };
-    const collectOccurences = (t: Term, sigma: Dict<Occcurence>, offset = 0, depth = 0, parent: Occcurence): void => {
-        const occ: Occcurence = { value: parent, index: depth };
+export const occurencesOf = (
+    term: Term,
+    sigma: Dict<IndexedOccurence> = {},
+    subTermIndex = 0
+): Dict<IndexedOccurence> => {
+    if (isVar(term)) return dictSet(sigma, term, { index: subTermIndex, pos: [] });
+    const collectOccurences = (
+        t: Term,
+        sigma: Dict<IndexedOccurence>,
+        localOffset = 0,
+        parent: IndexedOccurence
+    ): void => {
+        const occ: IndexedOccurence = {
+            index: parent.index,
+            pos: [...parent.pos, localOffset]
+        };
+
         if (isVar(t)) {
             sigma[t] = occ;
             return;
         }
 
         t.args.forEach((s, idx) => {
-            collectOccurences(s, sigma, offset + idx, idx, occ);
+            collectOccurences(s, sigma, idx, occ);
         });
     };
 
-    const sigma = {};
-
     for (const [t, i] of indexed(term.args)) {
-        collectOccurences(t, sigma, 0, i, term);
+        collectOccurences(t, sigma, i, { index: 0, pos: [] });
     }
 
     return sigma;
+};
+
+export type OccTerm = IndexedOccurence | { name: Symb, args: OccTerm[] };
+
+export const substituteOccurences = (term: Term, occs: Dict<IndexedOccurence>): OccTerm => {
+    if (isVar(term)) {
+        if (dictHas(occs, term)) {
+            return dictGet(occs, term);
+        } else {
+            throw new Error(`unbound variable: ${term} in ${JSON.stringify(occs)}`);
+        }
+    }
+    return {
+        name: term.name,
+        args: term.args.map(arg => substituteOccurences(arg, occs))
+    };
 };
 
 // all the rules must share the same head symbol and arity
@@ -53,7 +81,13 @@ export const clauseMatrixOf = (rules: Rule[]): ClauseMatrix => {
     return {
         patterns: rules.map(rule => lhs(rule).args.map(patternOf)),
         dims: [rules.length, arity(rules)], // rows * cols
-        actions: rules.map(rule => rhs(rule))
+        actions: rules.map(([lhs, rhs]) => {
+            const sigma = {};
+            for (const [arg, i] of indexed(lhs.args)) {
+                occurencesOf(arg, sigma, i);
+            }
+            return substituteOccurences(rhs, sigma);
+        })
     };
 };
 
@@ -141,13 +175,28 @@ const heads = (patterns: Pattern[]): Map<Symb, number> => {
     return hds;
 };
 
+// pos of h in A(B(c, d, E(f, G(h)))) is [0, 2, 1, 0]
 export type Occcurence = {
-    value: Occcurence,
-    index: number
-} | Term;
+    term: Term,
+    pos: number[]
+};
+
+export type IndexedOccurence = {
+    index: number,
+    pos: number[]
+};
 
 export const compileClauseMatrix = (
-    occurences: Occcurence[],
+    argsCount: number,
+    matrix: ClauseMatrix,
+    signature: Set<Symb>
+): DecisionTree => {
+    const occurences = [...gen(argsCount, i => ({ index: i, pos: [] }))];
+    return compileClauseMatrixAux(occurences, matrix, signature);
+}
+
+const compileClauseMatrixAux = (
+    occurences: IndexedOccurence[],
     matrix: ClauseMatrix,
     signature: Set<Symb>
 ): DecisionTree => {
@@ -169,12 +218,12 @@ export const compileClauseMatrix = (
     const tests: Switch['tests'] = [];
 
     for (const [ctor, arity] of hds) {
-        const o1 = [...gen(arity, i => ({
-            value: occurences[0],
-            index: i
+        const o1: IndexedOccurence[] = [...gen(arity, i => ({
+            index: occurences[0].index,
+            pos: [...occurences[0].pos, i]
         }))];
 
-        const A_k = compileClauseMatrix(
+        const A_k = compileClauseMatrixAux(
             [...o1, ...tail(occurences)],
             specializeClauseMatrix(matrix, ctor, arity),
             signature
@@ -184,7 +233,7 @@ export const compileClauseMatrix = (
     }
 
     if (!setEq(hds, signature)) {
-        const A_D = compileClauseMatrix(
+        const A_D = compileClauseMatrixAux(
             tail(occurences),
             defaultClauseMatrix(matrix),
             signature

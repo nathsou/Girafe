@@ -7,6 +7,11 @@ import { orderBySpecificity } from "./Passes/OrderBy";
 
 export type Maybe<T> = T | void;
 
+// Used when we know for sure that a maybe is defined
+export function defined<T>(mb: Maybe<T>): T {
+  return mb as T;
+}
+
 export const logTRS: CompilerPass = (trs: TRS) => {
   console.log(showTRS(trs));
   return Ok(trs);

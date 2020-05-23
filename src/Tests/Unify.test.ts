@@ -1,5 +1,5 @@
 import { fun, isSomething } from "../Compiler/Utils";
-import { ruleBasedUnify as unify } from '../Evaluator/RuleBasedUnify';
+import { ruleBasedUnify as unify } from '../Normalizer/RuleBasedUnify';
 import { parseTerm } from "../Parser/Parser";
 import { Substitution, Term } from "../Parser/Types";
 import { gen } from "../Parser/Utils";

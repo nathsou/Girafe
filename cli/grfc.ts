@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from "fs";
 import { defaultPasses } from "../src/Compiler/Utils";
-import { compileRules } from "../src/Evaluator/Unification";
+import { compileRules } from "../src/Normalizer/Unification";
 import { Targets, supportedTargets } from "../src/Parser/Types";
 import { translate } from "../src/Translator/Translate";
 

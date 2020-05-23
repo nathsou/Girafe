@@ -50,11 +50,11 @@ test('Parse terms', () => {
 
 test('Parse rules', () => {
     const parser = TRSParser.getInstance();
-    for (const trs of gen(100, () => randomTRS())) {
-        const asStr = trs.map(rule => showRule(rule)).join('\n');
+    for (const rules of gen(100, () => randomTRS())) {
+        const asStr = rules.map(rule => showRule(rule)).join('\n');
         const parsedTRS = parser.parse(asStr);
         if (isError(parsedTRS)) console.error(parsedTRS);
         expect(isOk(parsedTRS)).toBe(true);
-        expect(unwrap(parsedTRS)).toStrictEqual(trs);
+        expect(unwrap(parsedTRS)).toStrictEqual(rules);
     }
 });

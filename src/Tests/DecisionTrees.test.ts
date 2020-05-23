@@ -1,15 +1,15 @@
 import { DecisionTree, evaluate, getOccurence } from '../Compiler/DecisionTrees/DecisionTree';
-import { clauseMatrixOf, compileClauseMatrix, defaultClauseMatrix, Occcurence, specializeClauseMatrix, occurencesOf } from '../Compiler/DecisionTrees/DecisionTreeCompiler';
-import { fun, isSomething } from "../Compiler/Utils";
-import { DecisionTreeMatcher } from '../Evaluator/Matchers/DecisionTreeMatcher';
+import { clauseMatrixOf, compileClauseMatrix, defaultClauseMatrix, IndexedOccurence, occurencesOf, specializeClauseMatrix } from '../Compiler/DecisionTrees/DecisionTreeCompiler';
+import { defined, fun, isSomething } from "../Compiler/Utils";
+import { DecisionTreeNormalizer } from '../Normalizer/DecisionTreeNormalizer';
 import { parseRule, parseRules, parseTerm } from "../Parser/Parser";
-import { Term, Dict } from '../Parser/Types';
+import { Dict, Term } from '../Parser/Types';
 
 const rules = [
     'Merge(Nil, b) -> 1',
     'Merge(a, Nil) -> 2',
     'Merge(:(a, as), :(b, bs)) -> 3',
-].map(parseRule).filter(isSomething);
+].map(r => defined(parseRule(r)));
 
 test('clauseMatrixOf', () => {
     const m = clauseMatrixOf(rules);
@@ -60,7 +60,7 @@ test('specializeClauseMatrix', () => {
     ]);
 });
 
-test('specializeClauseMatrix', () => {
+test('defaultClauseMatrix', () => {
     const rules = [
         'Test(Nil, b) -> 1',
         'Test(a, Nil) -> 2',
@@ -85,7 +85,7 @@ test('specializeClauseMatrix', () => {
 
 const mergeDecisionTree: DecisionTree = {
     "type": "switch",
-    "occurence": "as",
+    "occurence": { index: 0, pos: [] },
     "tests": [
         [
             "Nil",
@@ -101,7 +101,7 @@ const mergeDecisionTree: DecisionTree = {
             ":",
             {
                 "type": "switch",
-                "occurence": "bs",
+                "occurence": { index: 1, pos: [] },
                 "tests": [
                     [
                         "Nil",
@@ -133,14 +133,14 @@ test('compileClauseMatrix', () => {
     const m = clauseMatrixOf(rules);
     const sig = new Set([':', 'Nil', 'If']);
     const decisionTree = compileClauseMatrix(
-        ['as', 'bs'],
+        2,
         m,
         sig
     );
 
     const expected: DecisionTree = {
         "type": "switch",
-        "occurence": "as",
+        "occurence": { index: 0, pos: [] },
         "tests": [
             [
                 "Nil",
@@ -156,7 +156,7 @@ test('compileClauseMatrix', () => {
                 ":",
                 {
                     "type": "switch",
-                    "occurence": "bs",
+                    "occurence": { index: 1, pos: [] },
                     "tests": [
                         [
                             "Nil",
@@ -191,7 +191,7 @@ test('compileClauseMatrix', () => {
                 "_",
                 {
                     "type": "switch",
-                    "occurence": "bs",
+                    "occurence": { index: 1, pos: [] },
                     "tests": [
                         [
                             "Nil",
@@ -219,7 +219,7 @@ test('compileClauseMatrix', () => {
 
     const sig2 = new Set([':', 'Nil']);
     const decisionTree2 = compileClauseMatrix(
-        ['as', 'bs'],
+        2,
         m,
         sig2
     );
@@ -228,70 +228,50 @@ test('compileClauseMatrix', () => {
 });
 
 test('getOccurence', () => {
-    const tests: Array<[Occcurence, Term]> = [
-        [{
-            value: fun(':', 'h', 'tl'),
-            index: 0
-        }, 'h'],
-        [{
-            value: fun(':', 'h', 'tl'),
-            index: 1
-        }, 'tl'],
-        [fun(':', 'h', 'tl'), fun(':', 'h', 'tl')],
-        [{
-            value: {
-                value: fun(':', 'a', fun(':', 'b', 'c')),
-                index: 1
-            },
-            index: 0
-        }, 'b'],
+    const tests: Array<[Term[], IndexedOccurence, Term]> = [
+        [[fun(':', 'h', 'tl')], { index: 0, pos: [] }, fun(':', 'h', 'tl')],
+        [[fun(':', 'h', 'tl')], { index: 0, pos: [0] }, 'h'],
+        [[fun(':', 'h', 'tl')], { index: 0, pos: [1] }, 'tl'],
+        [[
+            defined(parseTerm('C(H(I, C(a, g, O(x, y))))')),
+            defined(parseTerm('P(A(R, i, S(0)))')),
+        ], { index: 1, pos: [0, 2] }, fun('S', fun('0'))],
+        [[
+            defined(parseTerm('C(H(I, C(a, g, O(x, y))))')),
+            defined(parseTerm('P(A(R, i, S(0)))')),
+        ], { index: 0, pos: [0, 1, 2, 1] }, 'y'],
     ];
 
-    for (const [occ, res] of tests) {
-        expect(getOccurence({}, occ)).toStrictEqual(res);
+    for (const [ts, occ, res] of tests) {
+        expect(getOccurence(ts, occ)).toStrictEqual(res);
     }
 });
 
-test('evaluate', () => {
-    expect(evaluate({ 'as': fun('Nil') }, mergeDecisionTree)).toStrictEqual(fun('1'));
-
-    expect(evaluate({
-        'as': fun(':', '1', 'Nil'),
-        'bs': fun('Nil')
-    }, mergeDecisionTree)).toStrictEqual(fun('2'));
-
-    expect(evaluate({
-        'as': fun(':', 'x', 'xs'),
-        'bs': fun(':', 'y', 'ys'),
-    }, mergeDecisionTree)).toStrictEqual(fun('3'));
-
-    expect(evaluate({
-        'as': fun('+', 'x', 'y'),
-        'bs': fun(':', 'y', 'ys'),
-    }, mergeDecisionTree)).toStrictEqual(undefined);
-});
-
 test('occurencesOf', () => {
-    type Subst = Dict<Occcurence>;
+    type Subst = Dict<IndexedOccurence>;
 
-    const tests = ([
-        ['a', { 'a': 'a' }],
+    const tests: Array<[Term, Subst]> = ([
+        ['a', { 'a': { index: 0, pos: [] } }],
         ['Just(Symbols, No, Vars)', {}],
-        ['S(a)', { 'a': { value: fun('S', 'a'), index: 0 } }],
-        ['S(S(x))', { 'x': { value: { value: fun('S', fun('S', 'x')), index: 0 }, index: 0 } }],
+        ['S(a)', { 'a': { index: 0, pos: [0] } }],
+        ['S(S(x))', { 'x': { index: 0, pos: [0, 0] } }],
         ['+(a, b)', {
-            'a': { value: fun('+', 'a', 'b'), index: 0 },
-            'b': { value: fun('+', 'a', 'b'), index: 1 }
+            'a': { index: 0, pos: [0] },
+            'b': { index: 0, pos: [1] }
         }],
         ['+(a, S(b))', {
-            'a': { value: fun('+', 'a', fun('S', 'b')), index: 0 },
-            'b': {
-                value: {
-                    value: fun('+', 'a', fun('S', 'b')),
-                    index: 1
-                },
-                index: 0
-            }
+            'a': { index: 0, pos: [0] },
+            'b': { index: 0, pos: [1, 0] }
+        }],
+        ['A(B(c, d, E(f, G(h))))', {
+            'c': { index: 0, pos: [0, 0] },
+            'd': { index: 0, pos: [0, 1] },
+            'f': { index: 0, pos: [0, 2, 0] },
+            'h': { index: 0, pos: [0, 2, 1, 0] }
+        }],
+        ["Range(S(n), rng)", {
+            'n': { index: 0, pos: [0, 0] },
+            'rng': { index: 0, pos: [1] }
         }]
     ] as Array<[string, Subst]>)
         .map(([a, sigma]) => [parseTerm(a), sigma]) as Array<[Term, Subst]>;
@@ -302,17 +282,85 @@ test('occurencesOf', () => {
     }
 });
 
+test('evaluate', () => {
+    expect(evaluate([fun('Nil')], mergeDecisionTree)).toStrictEqual(fun('1'));
+
+    expect(evaluate([
+        fun(':', '1', 'Nil'),
+        fun('Nil')
+    ], mergeDecisionTree)).toStrictEqual(fun('2'));
+
+    expect(evaluate([
+        fun(':', 'x', 'xs'),
+        fun(':', 'y', 'ys'),
+    ], mergeDecisionTree)).toStrictEqual(fun('3'));
+
+    expect(evaluate([
+        fun('+', 'x', 'y'),
+        fun(':', 'y', 'ys'),
+    ], mergeDecisionTree)).toStrictEqual(undefined);
+
+    expect(evaluate(
+        [fun('S', 'y')],
+        compileClauseMatrix(1, clauseMatrixOf([
+            [fun('Test', fun('S', 'x')), 'x']
+        ]), new Set(['Test', 'S']))
+    )).toStrictEqual('y');
+
+    expect(evaluate(
+        [fun('S', fun('S', fun('S', 'a')))],
+        compileClauseMatrix(1, clauseMatrixOf([
+            [fun('Test', fun('S', fun('S', fun('S', 'x')))), 'x']
+        ]), new Set(['Test', 'S']))
+    )).toStrictEqual('a');
+
+});
+
 test('DecisionTreeMatcher', () => {
     const trs = parseRules([
         'Merge(Nil, bs) -> 1',
         'Merge(as, Nil) -> 2',
         'Merge(:(a, as), :(b, bs)) -> 3',
-        'Test(a) -> a'
+        'Test(a) -> a',
+        'T(R(O(Y(E(s))))) -> s',
+        "Range(n) -> Range'(n, Nil)",
+        "Range'(0, rng) -> rng",
+        "Range'(S(n), rng) -> Range'(n, :(n, rng))"
     ].join('\n'));
 
     if (trs) {
-        const matcher = new DecisionTreeMatcher(trs);
-        expect(matcher.match(fun('Merge', fun('Nil'), 'ys'))).toStrictEqual(fun('1'));
-        // expect(matcher.match(fun('Test', 'x'))).toStrictEqual('x');
+        const nf = new DecisionTreeNormalizer(trs);
+        expect(nf.oneStepReduce(fun('Merge', fun('Nil'), 'ys'))).toStrictEqual(fun('1'));
+        expect(nf.oneStepReduce(defined(parseTerm('T(R(O(Y(E(ns)))))')))).toStrictEqual('ns');
+
+        expect(nf.oneStepReduce(
+            defined(parseTerm('Range(S(S(0)))'))
+        )).toStrictEqual(
+            defined(parseTerm("Range'(S(S(0)), Nil)"))
+        );
+
+        expect(nf.oneStepReduce(
+            defined(parseTerm("Range'(S(S(0)), Nil)"))
+        )).toStrictEqual(
+            defined(parseTerm("Range'(S(0), :(S(0), Nil))"))
+        );
+
+        expect(nf.oneStepReduce(
+            defined(parseTerm("Range'(S(0), :(S(0), Nil))"))
+        )).toStrictEqual(
+            defined(parseTerm("Range'(0, :(0, :(S(0), Nil)))"))
+        );
+
+        expect(nf.oneStepReduce(
+            defined(parseTerm("Range'(0, :(0, :(S(0), Nil)))"))
+        )).toStrictEqual(
+            defined(parseTerm(":(0, :(S(0), Nil))"))
+        );
+
+        expect(nf.asNormalizer({})(
+            defined(parseTerm('Range(S(S(0)))'))
+        )).toStrictEqual(
+            defined(parseTerm(':(0, :(S(0), Nil))'))
+        );
     }
 });

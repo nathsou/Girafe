@@ -1,21 +1,21 @@
-import { Fun, dictGet, Substitution, Symb, Term } from "../../Parser/Types";
-import { isFun, isVar, Maybe, substitute } from "../Utils";
-import { AnyPat, Occcurence } from "./DecisionTreeCompiler";
+import { Fun, Symb, Term } from "../../Parser/Types";
+import { isFun, isVar, Maybe } from "../Utils";
+import { AnyPat, IndexedOccurence, OccTerm, _ } from "./DecisionTreeCompiler";
 
-export type Leaf = { type: 'leaf', action: Term };
+export type Leaf = { type: 'leaf', action: OccTerm };
 export type Fail = { type: 'fail' };
 
 export type Switch = {
     type: 'switch',
-    occurence: Occcurence,
+    occurence: IndexedOccurence,
     tests: Array<[(Symb | AnyPat), DecisionTree]>
 };
 
 export type DecisionTree = Leaf | Fail | Switch;
 
-export const makeLeaf = (action: Term): Leaf => ({ type: 'leaf', action });
+export const makeLeaf = (action: OccTerm): Leaf => ({ type: 'leaf', action });
 export const makeFail = (): Fail => ({ type: 'fail' });
-export const makeSwitch = (occurence: Occcurence, tests: Switch['tests']): Switch => {
+export const makeSwitch = (occurence: IndexedOccurence, tests: Switch['tests']): Switch => {
     return {
         type: 'switch',
         occurence,
@@ -23,27 +23,36 @@ export const makeSwitch = (occurence: Occcurence, tests: Switch['tests']): Switc
     };
 };
 
-export function isPureOccurence(occ: Occcurence): occ is { value: Occcurence, index: number } {
-    return occ['value'] !== undefined;
-}
+export const getOccurence = (terms: Term[], occurence: IndexedOccurence): Term => {
+    let t = terms[occurence.index];
 
-export function isTermOccurence(occ: Occcurence): occ is Term {
-    return !isPureOccurence(occ);
-}
+    for (const idx of occurence.pos) {
+        t = (t as Fun).args[idx];
+    }
 
-export const getOccurence = (subst: Substitution, occ: Occcurence): Term => {
-    if (isTermOccurence(occ)) return isVar(occ) ? dictGet(subst, occ) ?? occ : occ;
-    const val = getOccurence(subst, occ.value);
-    return (val as Fun).args[occ.index];
+    return isVar(t) ? t : t;
 };
 
-export const evaluate = (subst: Substitution, dt: DecisionTree): Maybe<Term> => {
-    if (dt.type === 'leaf') return substitute(dt.action, subst);
+export const termOf = (terms: Term[], occ: OccTerm): Term => {
+    if (isOccurence(occ)) return getOccurence(terms, occ);
+
+    return {
+        name: occ.name,
+        args: occ.args.map(arg => termOf(terms, arg))
+    };
+};
+
+export const isOccurence = (t: OccTerm): t is IndexedOccurence => {
+    return t['pos'] !== undefined && t['index'] !== undefined;
+};
+
+export const evaluate = (args: Term[], dt: DecisionTree): Maybe<Term> => {
+    if (dt.type === 'leaf') return termOf(args, dt.action);
     if (dt.type === 'switch') {
         for (const [ctor, subtree] of dt.tests) {
-            const term = getOccurence(subst, dt.occurence);
-            if (isFun(term, ctor)) {
-                return evaluate(subst, subtree);
+            const term = getOccurence(args, dt.occurence);
+            if (ctor === _ || isFun(term, ctor)) {
+                return evaluate(args, subtree);
             }
         }
     }

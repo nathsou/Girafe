@@ -11,6 +11,7 @@ import { isError, Right_, unwrap } from "../Types";
 import { Matcher } from "./Matchers/Matcher";
 import { ruleBasedUnify } from "./RuleBasedUnify";
 import { Unificator } from "./Unificator";
+import { StepNormalizer } from "./Normalizer";
 
 export const match: Unificator = (s, t) => ruleBasedUnify(t, s);
 export const matches = (s: Term, t: Term): boolean => isSomething(match(s, t));
@@ -50,45 +51,30 @@ export async function compileRules(
   return unwrap(trs);
 }
 
-export const oneStepReduce = (
-  term: Fun,
-  externals: JSExternals<string> = {},
-  matcher: Matcher,
-): { term: Term; changed: boolean } => {
-  // externals
-  if (term.name.charAt(0) === "@") {
-    const f = term.name.substr(1);
-    if (dictHas(externals, f)) {
-      const newTerm = externals[f](term);
-      return { term: newTerm, changed: newTerm !== term };
-    } else {
-      throw new Error(`Unknown external function: "${f}"`);
-    }
-  }
-
+export const oneStepReducer = (matcher: Matcher) => (term: Fun): Maybe<Term> => {
   const matched = matcher(term, match);
-
   if (matched) {
-    return { term: substitute(rhs(matched.rule), matched.sigma), changed: true };
-
+    return substitute(rhs(matched.rule), matched.sigma);
   }
-
-  return { term, changed: false };
 };
 
-export const reduce = (
-  term: Term,
-  externals: JSExternals<string> = {},
-  matcher: Matcher,
-): Term => {
-  if (isVar(term)) return term;
-  let reduced: { term: Term; changed: boolean } = { term, changed: true };
+export const unificationNormalizer = (matcher: Matcher): StepNormalizer => ({
+  oneStepReduce: oneStepReducer(matcher)
+});
 
-  while (reduced.changed) {
-    if (isVar(reduced.term)) return reduced.term;
-    mapMut(reduced.term.args, (s) => reduce(s, externals, matcher));
-    reduced = oneStepReduce(reduced.term, externals, matcher);
-  }
+// export const reduce = (
+//   term: Term,
+//   externals: JSExternals<string> = {},
+//   matcher: Matcher,
+// ): Term => {
+//   if (isVar(term)) return term;
+//   let reduced: { term: Term; changed: boolean } = { term, changed: true };
 
-  return reduced.term;
-};
+//   while (reduced.changed) {
+//     if (isVar(reduced.term)) return reduced.term;
+//     mapMut(reduced.term.args, (s) => reduce(s, externals, matcher));
+//     reduced = oneStepReduce(reduced.term, externals, matcher);
+//   }
+
+//   return reduced.term;
+// };

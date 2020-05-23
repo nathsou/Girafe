@@ -27,8 +27,8 @@ import { StringMatcher } from "./StringMatcher";
 type SuffixSet = Set<string>;
 type Closure = Set<string>;
 
-export const ε = "";
-export const ω = "ω";
+export const ε = '';
+export const ω = 'ω';
 
 export const factorOut = (α: Symb, M: SuffixSet): SuffixSet => {
   const factored = new Set<string>();
@@ -46,7 +46,7 @@ export const prepend = (α: string, M: SuffixSet): SuffixSet => (
   setMap(M, (s) => `${α}${s}`)
 );
 
-const repeat = (α: string, n: number): string => {
+export const repeatString = (α: string, n: number): string => {
   if (n < 1) return ε;
   let seq = α;
 
@@ -67,7 +67,7 @@ export const closure = (M: SuffixSet, arities: Map<Symb, number>): Closure => {
     if (α === ω) return M_α;
     if (isEmpty(M_α)) return new Set<string>();
     const arity = arities.get(α);
-    return unionMut(M_α, prepend(repeat(ω, arity), factorOut(ω, M)));
+    return unionMut(M_α, prepend(repeatString(ω, arity), factorOut(ω, M)));
   };
 
   const M_ = new Set<string>();

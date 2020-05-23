@@ -4,19 +4,19 @@ export * from "./Compiler/Utils";
 export * from "./Compiler/Passes/Checks";
 export * from "./Compiler/Passes/CompilerPass";
 export * from "./Compiler/Passes/Currify";
-export * from "./Evaluator/Matchers/HeadMatcher";
+export * from "./Normalizer/Matchers/HeadMatcher";
 export * from "./Compiler/Passes/Imports";
 export * from "./Compiler/Passes/Lazify";
 export * from "./Compiler/Passes/LeftLinearize";
-export * from "./Evaluator/Matchers/Matcher";
+export * from "./Normalizer/Matchers/Matcher";
 export * from "./Compiler/Passes/OrderBy";
-export * from "./Evaluator/Matchers/StringMatcher/Closure";
-export * from "./Evaluator/Matchers/StringMatcher/StringMatcher";
-export * from "./Evaluator/Matchers/TermMatcher/TermMatcher";
+export * from "./Normalizer/Matchers/StringMatcher/Closure";
+export * from "./Normalizer/Matchers/StringMatcher/StringMatcher";
+export * from "./Normalizer/Matchers/TermMatcher/TermMatcher";
 
-export * from "./Evaluator/Unification";
-export * from "./Evaluator/Unificator";
-export * from "./Evaluator/RuleBasedUnify";
+export * from "./Normalizer/Unification";
+export * from "./Normalizer/Unificator";
+export * from "./Normalizer/RuleBasedUnify";
 
 export * from "./Externals/Arithmetic";
 export * from "./Externals/Lists";

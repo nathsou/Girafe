@@ -47,9 +47,7 @@ export abstract class DecisionTreeTranslator<Target extends Targets, Exts extend
     }
 
     public translateRules(name: string, rules: Rule[]): string {
-
         const newVars: Var[] = genVars(arity(rules));
-
         const rules_: Rule[] = rules.map(([lhs, rhs]) => {
             const sigma: Substitution = {};
             for (const [t, i] of indexed(lhs.args)) {
@@ -64,7 +62,7 @@ export abstract class DecisionTreeTranslator<Target extends Targets, Exts extend
 
         const m = clauseMatrixOf(rules_);
         const dt = compileClauseMatrix(
-            newVars,
+            arity(rules),
             m,
             this.signature
         );

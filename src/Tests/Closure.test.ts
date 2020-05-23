@@ -1,6 +1,6 @@
 import { Arities } from "../Compiler/Passes/Lazify";
-import { closure, collectArities, genSymbolSplitter, makePatterns, stringify, symbs, unstringify } from "../Evaluator/Matchers/StringMatcher/Closure";
-import { StringMatcher } from "../Evaluator/Matchers/StringMatcher/StringMatcher";
+import { closure, collectArities, genSymbolSplitter, makePatterns, stringify, symbs, unstringify } from "../Normalizer/Matchers/StringMatcher/Closure";
+import { StringMatcher } from "../Normalizer/Matchers/StringMatcher/StringMatcher";
 import { fun, isSomething } from "../Compiler/Utils";
 import { Symb, Term } from "../Parser/Types";
 import { gen, iter, join, randomElement } from "../Parser/Utils";
