@@ -1,7 +1,8 @@
-import { arity, fun, genVars, hasMostGeneralRule, isVar, substitute, unusedRuleVars, vars, zip, isEmpty } from "../Compiler/Utils";
+import { arity, fun, genVars, hasMostGeneralRule, isVar, substitute, unusedRuleVars, zip } from "../Compiler/Utils";
 import { Fun, Rule, Substitution, Symb, Term } from "../Parser/Types";
+import { mapString } from "../Parser/Utils";
+import { symbolMap } from "./JSTranslator";
 import { Translator } from "./Translator";
-import { SpecialCharacters } from "../Parser/Lexer/SpecialChars";
 
 export class OCamlTranslator<Exts extends string>
     extends Translator<'ocaml', Exts> {
@@ -25,36 +26,7 @@ export class OCamlTranslator<Exts extends string>
     }
 
     rename(name: Symb): Symb {
-        const symbolMap: { [key in SpecialCharacters]: string } = {
-            '.': '_dot_',
-            '-': '_minus_',
-            '~': '_tilde_',
-            '+': '_plus_',
-            '*': '_star_',
-            '&': '_ampersand_',
-            '|': '_pipe_',
-            '/': '_slash_',
-            '\\': '_backslash_',
-            '^': '_caret_',
-            '%': '_percent_',
-            '°': '_num_',
-            '$': '_dollar_',
-            '@': '_at_',
-            '#': '_hash_',
-            ';': '_semicolon_',
-            ':': '_colon_',
-            '_': '_',
-            '=': '_eq_',
-            "'": '_prime_',
-            ">": '_gtr_',
-            "<": '_lss_'
-        };
-
-        const noSymbols = name
-            .split('')
-            .map(c => symbolMap[c] ?? c)
-            .join('');
-
+        const noSymbols = mapString(name, c => symbolMap[c] ?? c);
         return `grf_${noSymbols}`;
     }
 
@@ -82,7 +54,7 @@ export class OCamlTranslator<Exts extends string>
         const args = `(${newVars.join(', ')})`;
         const res: string[] = [
             `${this.firstRule ? 'let rec' : 'and'} ${name} ${args} =
-                match (${newVars.join(', ')}) with
+                match ${args} with
             `.trim()
         ];
 

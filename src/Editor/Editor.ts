@@ -1,24 +1,22 @@
 import { editor as monacoEditor } from 'monaco-editor';
 ///@ts-ignore
 import trs from "../../examples/test.grf";
-import { TermMatcher } from "../Evaluator/Matchers/TermMatcher/TermMatcher";
-import { DecisionTreeMatcher } from "../Evaluator/Matchers/DecisionTreeMatcher";
 import {
-    fun,
+    defaultPasses, fun,
     isNothing,
     showRule,
     showTerm,
     uniq,
-    vars,
-    defaultPasses
+    vars
 } from "../Compiler/Utils";
-import { compileRules, reduce } from "../Evaluator/Unification";
-import { time } from "../Parser/Utils";
-import { JSExternals } from "../Parser/Types";
 import { arithmeticExternals } from "../Externals/Arithmetic";
 import { listExternals } from "../Externals/Lists";
-import { FileReader } from "../Parser/Preprocessor/Import";
+import { DecisionTreeNormalizer } from "../Normalizer/DecisionTreeNormalizer";
+import { compileRules } from "../Normalizer/Unification";
 import { parseTerm } from '../Parser/Parser';
+import { FileReader } from "../Parser/Preprocessor/Import";
+import { JSExternals } from "../Parser/Types";
+import { time } from "../Parser/Utils";
 
 document.body.style.margin = "0px";
 document.body.style.padding = "0px";
@@ -111,12 +109,9 @@ const run = async () => {
     const trs = await compileRules(source, defaultPasses, defaultFileReader);
     if (isNothing(trs)) return;
 
-    const matcher = new TermMatcher(trs).asMatcher();
-    const dtMatcher = new DecisionTreeMatcher(trs);
-    console.log(dtMatcher);
+    const normalize = new DecisionTreeNormalizer(trs).asNormalizer(externals);
 
-    const [delta, nf] = time(() => reduce(queryLhs, externals, matcher));
-
+    const [delta, nf] = time(() => normalize(queryLhs));
     const out = showTerm(nf);
     output.setValue(out);
     console.log(out);

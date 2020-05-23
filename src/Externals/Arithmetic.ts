@@ -122,7 +122,7 @@ export const haskellArithmeticExternals: Externals<'haskell', ArithmeticExternal
           Fun (show ((read a :: Int) \`div\` (read b :: Int))) []`,
     "pow": (name) =>
         `${name} (Fun a []) (Fun b []) =
-          Fun (show ((read a :: Int) \`pow\` (read b :: Int))) []`,
+          Fun (show ((read a :: Int) ^ (read b :: Int))) []`,
     "equ": (name) =>
         `${name} (Fun a []) (Fun b []) =
           Fun (show ((read a :: Int) == (read b :: Int))) []`,
@@ -142,7 +142,7 @@ export const haskellArithmeticExternals: Externals<'haskell', ArithmeticExternal
 
 const ocamlIntBinop = (op: string, reversed = false) => {
     return (name: string) =>
-        'let ' + name + ' a b = match (a, b) with\n' +
+        'let ' + name + ' (a, b) = match (a, b) with\n' +
         '   | ((Fun (a, [])), (Fun (b, []))) ->\n' +
         (reversed ?
             '       Fun ((string_of_int ((' + op + ' (int_of_string a)) (int_of_string b))), [])' :
@@ -155,7 +155,7 @@ const ocamlBoolOf = (expr: string) => `(if ${expr} then "True" else "False")`;
 
 const ocamlBoolBinop = (op: string) => {
     return (name: string) =>
-        'let ' + name + ' a b = match (a, b) with\n' +
+        'let ' + name + ' (a, b) = match (a, b) with\n' +
         '   | ((Fun (a, [])), (Fun (b, []))) ->\n' +
         '       Fun (' + ocamlBoolOf('((int_of_string a) ' + op + ' (int_of_string b))') + ', [])\n' +
         '   | _ -> Fun ("@' + name + '", []);;';

@@ -30,9 +30,9 @@ const transpile = async (path: string, target: Targets): Promise<string> => {
 
 (async () => {
   if (src) {
-    const targetName = (target as Targets) ?? 'js';
+    const targetName = target as Targets;
     if (!supportedTargets.includes(targetName)) {
-      console.error(`invalid target: ${targetName}`);
+      console.error(`invalid target: ${targetName}, available targets are: [${supportedTargets.join(', ')}]`);
       return;
     }
     const out = await transpile(src, targetName);

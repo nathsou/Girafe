@@ -20,11 +20,13 @@ export function translate<Target extends Targets>(trs: TRS, target: Target): str
                 trs,
                 haskellArithmeticExternals
             );
+            break;
         case 'js':
             translator = new JSTranslator(
                 trs,
                 jsArithmeticExternals
             );
+            break;
     }
 
     return translator.translate();

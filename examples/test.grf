@@ -1,6 +1,6 @@
 If(True, a, b) -> Inst(a)
 If(False, a, b) -> Inst(b)
-If(cond, a, a) -> Inst(a)
+// If(cond, a, a) -> Inst(a)
 
 Not(True) -> False
 Not(False) -> True

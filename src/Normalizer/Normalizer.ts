@@ -6,7 +6,7 @@ export interface StepNormalizer {
     oneStepReduce: (term: Term) => Maybe<Term>
 };
 
-export type Normalizer = (term: Term) => Maybe<Term>;
+export type Normalizer = (term: Term) => Term;
 
 // handles externals
 const oneStepReduceWithExternals = (
