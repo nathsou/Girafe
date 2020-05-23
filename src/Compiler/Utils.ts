@@ -158,7 +158,7 @@ export const unmapify = (trs: TRS): Rule[] => (
 
 export const showTRS = (trs: TRS): string => {
   const out = [];
-  for (const [_, rules] of trs) {
+  for (const [, rules] of trs) {
     for (const rule of rules) {
       out.push(showRule(rule));
     }
@@ -241,7 +241,7 @@ export function setDiff<T>(as: Set<T>, bs: Set<T>): Set<T> {
   return diff;
 }
 
-export type SetLike<T> = Set<T> | Map<T, any>;
+export type SetLike<T> = Set<T> | Map<T, unknown>;
 
 export function setEq<T>(as: SetLike<T>, bs: SetLike<T>): boolean {
   return as.size === bs.size && !some(as.keys(), a => !bs.has(a));
@@ -291,7 +291,7 @@ export function occurences<T>(vals: T[]): Map<T, number[]> {
 export function elem<T>(
   value: T,
   elems: T[],
-  eq: (a: T, b: T) => boolean = (a, b) => a === b,
+  eq = (a: T, b: T): boolean => a === b,
 ): boolean {
   return elems.some(val => eq(val, value));
 }

@@ -84,7 +84,7 @@ const collectLazinessAnnotations = (trs: TRS): [LazinessAnnotations, boolean] =>
         const ar = arity(rules);
         const ann = fill(false, ar);
 
-        for (const [lhs, _] of rules) {
+        for (const [lhs] of rules) {
             lhs.args.forEach((t, i) => {
                 if (isFun(t, lazyAnnotationSymb)) {
                     ann[i] = true;

@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 import { DecisionTree, isOccurence } from "../Compiler/DecisionTrees/DecisionTree";
 import { OccTerm, _ } from "../Compiler/DecisionTrees/DecisionTreeCompiler";
 import { DecisionTreeTranslator } from "../Compiler/DecisionTrees/DecisionTreeTranslator";
@@ -74,7 +75,7 @@ export class JSTranslator<Exts extends string>
         return `${parent}.args[${childIndex}]`;
     }
 
-    protected init() {
+    protected init(): void {
         this.header.push(
             format(
                 'function isFun(term) {',

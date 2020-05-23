@@ -72,7 +72,7 @@ export class Lexer {
             if (this.test(tokenizeLazy, tokens)) continue;
 
             return Err({
-                type: 'InvalidChar' as 'InvalidChar',
+                type: 'InvalidChar' as const,
                 char: this.currentChar(),
                 position: this.position()
             });
@@ -140,7 +140,7 @@ export class Lexer {
 
     private tokenizeString(str: string): () => Maybe<Token> {
         const pos = this.position();
-        return () => {
+        return (): Token => {
             switch (str) {
                 case '(':
                     if (this.currentChar() === '(') {

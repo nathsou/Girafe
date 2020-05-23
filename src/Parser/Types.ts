@@ -24,7 +24,8 @@ export function dictSet<T>(dict: Dict<T>, key: string, value: T): Dict<T> {
 }
 
 export function dictHas<T>(dict: Dict<T>, key: string): boolean {
-    return dict.hasOwnProperty(key);
+    // https://eslint.org/docs/rules/no-prototype-builtins
+    return Object.prototype.hasOwnProperty.call(dict, key);
 }
 
 export function dictGet<T>(dict: Dict<T>, key: string): T {

@@ -4,7 +4,7 @@ import { Externals, Fun, JSExternals } from "../Parser/Types";
 
 export const symb = (f: string): Fun => ({ name: f, args: [] });
 
-export const arithbinop = (t: Fun, op: (a: bigint, b: bigint) => bigint) => {
+export const arithbinop = (t: Fun, op: (a: bigint, b: bigint) => bigint): Fun => {
     const [a, b] = t.args;
     if (isFun(a) && isFun(b)) {
         try {
@@ -22,7 +22,7 @@ export const arithbinop = (t: Fun, op: (a: bigint, b: bigint) => bigint) => {
     return t;
 };
 
-export const boolbinop = (t: Fun, op: (a: bigint, b: bigint) => boolean) => {
+export const boolbinop = (t: Fun, op: (a: bigint, b: bigint) => boolean): Fun => {
     const [a, b] = t.args;
     if (isFun(a) && isFun(b)) {
         const an = BigInt(a.name);

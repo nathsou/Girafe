@@ -9,7 +9,7 @@ export class OCamlTranslator<Exts extends string>
 
     private firstRule = true;
 
-    protected init() {
+    protected init(): void {
         this.header = [
             "type term = Var of string | Fun of string * term list;;",
 

@@ -5,13 +5,13 @@ import { ParserError } from "../TRSParser";
 import { LexerError } from "../Lexer/Lexer";
 
 export type PreprocessorResult = Maybe<Array<LexerError | ParserError>>;
-export type PrepocessorPass<Info = {}> = (
+export type PrepocessorPass<Info = Record<string, unknown>> = (
     source: Source,
     passes: PrepocessorPass<Info>[],
     info: Partial<Info>
 ) => Promise<PreprocessorResult>;
 
-export async function preprocess<Info extends {} = {}>(
+export async function preprocess<Info extends Record<string, unknown> = Record<string, unknown>>(
     source: string | Source,
     passes: PrepocessorPass<Info>[],
     info: Partial<Info> = {}

@@ -84,10 +84,10 @@ export function mapMut<U, V>(vals: U[], f: (val: U) => V): V[] {
         (vals[i] as (V | U)) = f(vals[i]);
     }
 
-    return vals as any as V[];
+    return vals as unknown as V[];
 }
 
-export function mapString(str: string, f: (char: string) => string) {
+export function mapString(str: string, f: (char: string) => string): string {
     let newStr = '';
     for (const char of str) {
         newStr += f(char);

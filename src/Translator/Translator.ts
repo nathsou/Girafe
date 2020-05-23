@@ -27,7 +27,7 @@ export abstract class Translator<Target extends Targets, Exts extends string> {
     this.init();
   }
 
-  protected init() { }
+  protected abstract init(): void;
 
   abstract rename(name: Symb): Symb;
   // abstract call(name: Symb, args: Term[]): string;

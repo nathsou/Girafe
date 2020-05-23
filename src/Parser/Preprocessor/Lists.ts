@@ -15,9 +15,10 @@ import { PrepocessorPass } from "./Preprocessor";
 // };
 
 export const consLists: PrepocessorPass = async (source: Source) => {
+    // eslint-disable-next-line prefer-const
     for (let [line, idx] of source.linesReversed()) {
         let matched = false;
-        for (const [list] of line.matchAll(/(\[([^\,]+\,)*[^\,]+\])|(\[\])/g)) {
+        for (const [list] of line.matchAll(/(\[([^,]+,)*[^,]+\])|(\[\])/g)) {
             const elems = list
                 .substr(1, list.length - 2)
                 .split(',')

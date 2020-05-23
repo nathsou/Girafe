@@ -1,3 +1,6 @@
+// ts-ignore comments are used to load files that
+// typescript does not know how to handle
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { editor as monacoEditor } from 'monaco-editor';
 ///@ts-ignore
 import trs from "../../examples/test.grf";

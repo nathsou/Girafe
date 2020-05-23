@@ -1,6 +1,6 @@
 import { isError, unwrap } from "../../Types";
 import { Source } from "../Source";
-import { PrepocessorPass, preprocess } from "./Preprocessor";
+import { PrepocessorPass, preprocess, PreprocessorResult } from "./Preprocessor";
 import { Symb } from "../Types";
 import { specialCharacters } from "../Lexer/SpecialChars";
 
@@ -25,7 +25,7 @@ export const handleImports = (
     src: Source,
     passes: PrepocessorPass<ImportInfos>[],
     info: ImportInfos,
-  ) => {
+  ): Promise<PreprocessorResult> => {
     if (!info.importPass) {
       info.importPass = {
         includedPaths: new Map(),

@@ -82,7 +82,7 @@ export const collectArities = (terms: Maybe<Term>[]): Arities => {
 export const collectTermSymbols = (t: Term, symbols: Set<Symb>): void => {
   if (isFun(t)) {
     symbols.add(t.name);
-    t.args.forEach((s) => collectTermSymbols(t, symbols));
+    t.args.forEach(s => collectTermSymbols(s, symbols));
   }
 };
 
@@ -104,7 +104,7 @@ export function genSymbolSplitter(
   const maxLen = Math.max(...symbols.map((l) => l.length));
   const alphabetSet = new Set(symbols);
 
-  return (str: string) => {
+  return (str: string): string[] => {
     const letters: string[] = [];
     while (str.length > 0) {
       let found = false;
@@ -209,7 +209,7 @@ export const buildMatcher = (trs: TRS): RuleMatcher => {
     }
   }
 
-  return (query: Term) => {
+  return (query: Term): Maybe<Rule[]> => {
     return matcher.lookupTerm(query, arities);
   };
 };

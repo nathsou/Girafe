@@ -4,7 +4,7 @@ import { mapMut } from "../Parser/Utils";
 
 export interface StepNormalizer {
     oneStepReduce: (term: Term) => Maybe<Term>
-};
+}
 
 export type Normalizer = (term: Term) => Term;
 
@@ -51,6 +51,6 @@ const reduce = (
 export const buildNormalizer = (
     evaluator: StepNormalizer,
     externals: JSExternals<string> = {}
-): Normalizer => (term: Term) => {
+): Normalizer => (term: Term): Term => {
     return reduce(term, evaluator, externals);
 };

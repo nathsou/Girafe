@@ -1,5 +1,5 @@
 import { Fun, Symb, Term } from "../../Parser/Types";
-import { isFun, isVar, Maybe, showTerm } from "../Utils";
+import { isFun, Maybe } from "../Utils";
 import { AnyPat, IndexedOccurence, OccTerm, _ } from "./DecisionTreeCompiler";
 
 export type Leaf = { type: 'leaf', action: OccTerm };

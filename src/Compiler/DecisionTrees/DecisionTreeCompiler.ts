@@ -1,8 +1,7 @@
-import { Dict, dictGet, Rule, Symb, Term, unreachable, dictHas, dictSet } from "../../Parser/Types";
+import { Dict, dictGet, dictHas, dictSet, Rule, Symb, Term, unreachable } from "../../Parser/Types";
 import { gen, indexed, repeat } from "../../Parser/Utils";
-import { arity, decons, head, isSomething, isVar, lhs, Maybe, setEq, swapMut, tail, zip, showTerm } from "../Utils";
-import { DecisionTree, makeFail, makeLeaf, makeSwitch, Switch, termOf } from "./DecisionTree";
-import { Err } from "../../Types";
+import { arity, decons, head, isSomething, isVar, lhs, Maybe, setEq, swapMut, tail, zip } from "../Utils";
+import { DecisionTree, makeFail, makeLeaf, makeSwitch, Switch } from "./DecisionTree";
 
 // Based on "Compiling Pattern Matching to Good Decision Trees" by Luc Maranget
 
@@ -114,8 +113,8 @@ export const specializeClauseMatrix = (
         .map(row => specializeRow(row, c, arity));
 
     const actions = [...zip(patterns, matrix.actions)]
-        .filter(([p, a]) => p)
-        .map(([p, a]) => a);
+        .filter(([p, _a]) => p)
+        .map(([_p, a]) => a);
 
     return {
         patterns: patterns.filter(isSomething),
@@ -133,8 +132,8 @@ export const defaultClauseMatrix = (matrix: ClauseMatrix): ClauseMatrix => {
     const patterns = matrix.patterns.map(defaultRow);
 
     const actions = [...zip(patterns, matrix.actions)]
-        .filter(([p, a]) => p)
-        .map(([p, a]) => a);
+        .filter(([p, _a]) => p)
+        .map(([_p, a]) => a);
 
     return {
         patterns: patterns.filter(isSomething),

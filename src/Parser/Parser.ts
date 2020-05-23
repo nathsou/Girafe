@@ -1,5 +1,5 @@
-import { isVar, mapify, Maybe } from "../Compiler/Utils";
-import { isError, mapEither, Ok, Result, unwrap, Err } from "../Types";
+import { mapify, Maybe } from "../Compiler/Utils";
+import { Err, isError, mapEither, Ok, Result, unwrap } from "../Types";
 import { LexerError } from "./Lexer/Lexer";
 import { PrepocessorPass, preprocess } from "./Preprocessor/Preprocessor";
 import { Source } from "./Source";
@@ -29,7 +29,7 @@ export const parseTerm = (str: string): Maybe<Term> => {
     return unwrap(term);
 };
 
-export async function parse<Info = {}>(
+export async function parse<Info = Record<string, unknown>>(
     source: string,
     ...preprocessors: PrepocessorPass[]
 ): Promise<Result<{ trs: TRS, info: Info }, Array<ParserError | LexerError>>> {

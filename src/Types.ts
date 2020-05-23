@@ -8,13 +8,13 @@ export type Result<T, E> = Either<T, E>;
 
 export function Left<L, R>(value: L): Left_<L> {
     return [value, 'left'];
-};
+}
 
 export const Ok = Left;
 
 export function Right<L, R>(value: R): Right_<R> {
     return [value, 'right'];
-};
+}
 
 export const Err = Right;
 
@@ -48,11 +48,13 @@ export function mapEither<L, R, T>(
     return value;
 }
 
-type UnwrapReturnType<E extends Either<any, any>> =
+type UnwrapReturnType<E extends Either<unknown, unknown>> =
     E extends Left_<infer L> ? L :
     E extends Right_<infer R> ? R :
     never;
 
-export function unwrap<E extends Either<any, any>>([value, _]: E): UnwrapReturnType<E> {
+export function unwrap<
+    E extends Either<unknown, unknown>
+>([value, _]: E): UnwrapReturnType<E> {
     return value as UnwrapReturnType<E>;
 }

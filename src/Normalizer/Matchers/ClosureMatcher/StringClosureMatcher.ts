@@ -26,7 +26,7 @@ export class StringClosureMatcher<T> {
     public insert(key: Symb[], value: T): void {
         let node = this.root;
         key.forEach((symb, i) => {
-            let child = this.findNode(symb, node);
+            const child = this.findNode(symb, node);
 
             if (child) {
                 node = child;

@@ -9,9 +9,10 @@ const intListOfString = (str: string): Term => {
 };
 
 export const convertStrings: PrepocessorPass = async (source: Source) => {
+    // eslint-disable-next-line prefer-const
     for (let [line, idx] of source.linesReversed()) {
         let matched = false;
-        for (const [quotedStr, str] of line.matchAll(/"([^\"]*)"/g)) {
+        for (const [quotedStr, str] of line.matchAll(/"([^"]*)"/g)) {
             const asList = showTerm(intListOfString(str));
             line = line.replace(quotedStr, asList);
             matched = true;

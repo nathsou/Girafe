@@ -7,8 +7,8 @@ export const andSymb = 'and';
 export const trueSymb = 'True';
 export const falseSymb = 'False';
 
-export const True = () => fun(trueSymb);
-export const False = () => fun(falseSymb);
+export const True = (): Fun => fun(trueSymb);
+export const False = (): Fun => fun(falseSymb);
 
 export const If = (cond: Term, thenExp: Term, elseExp: Term): Fun => {
     return fun(ifSymb, cond, thenExp, elseExp);

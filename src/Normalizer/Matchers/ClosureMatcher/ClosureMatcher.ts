@@ -107,7 +107,7 @@ export class ClosureMatcher {
     }
 
     public asMatcher(): Matcher {
-        return (term: Term, unificator: Unificator) => {
+        return (term: Term, unificator: Unificator): ReturnType<Matcher> => {
             const rules = this.lookup(term);
 
             if (rules) {

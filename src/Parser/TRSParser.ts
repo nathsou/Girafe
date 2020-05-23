@@ -38,7 +38,8 @@ export class TRSParser {
     private lexer = new Lexer();
     private static instance: TRSParser;
 
-    private constructor() { };
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    private constructor() { }
 
     public static getInstance(): TRSParser {
         if (this.instance === undefined) {
@@ -99,13 +100,13 @@ export class TRSParser {
                 return Ok(rule);
             } else {
                 return Err({
-                    type: 'ExpectedArrow' as 'ExpectedArrow',
+                    type: 'ExpectedArrow' as const,
                     position: this.currentToken().position
                 });
             }
         } else {
             return Err({
-                type: 'UnexpectedToken' as 'UnexpectedToken',
+                type: 'UnexpectedToken' as const,
                 token: this.currentToken(),
                 position: this.currentToken().position
             });
@@ -154,7 +155,7 @@ export class TRSParser {
                     args.push(unwrap(arg));
                     if (![',', ')', '->'].includes(this.currentToken().type)) {
                         return Err({
-                            type: 'UnexpectedToken' as 'UnexpectedToken',
+                            type: 'UnexpectedToken' as const,
                             token: this.currentToken(),
                             position: this.currentToken().position
                         });
@@ -170,7 +171,7 @@ export class TRSParser {
         }
 
         return Err({
-            type: 'UnexpectedToken' as 'UnexpectedToken',
+            type: 'UnexpectedToken' as const,
             token: this.currentToken(),
             position: this.currentToken().position
         });

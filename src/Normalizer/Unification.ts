@@ -1,17 +1,16 @@
 import { compile } from "../Compiler/Passes/CompilerPass";
-import { defaultPasses, isSomething, isVar, Maybe, rhs, substitute } from "../Compiler/Utils";
+import { defaultPasses, isSomething, Maybe, rhs, substitute } from "../Compiler/Utils";
 import { parse } from "../Parser/Parser";
 import { FileReader, handleImports, ImportInfos } from "../Parser/Preprocessor/Import";
 import { consLists } from "../Parser/Preprocessor/Lists";
 import { removeComments } from "../Parser/Preprocessor/RemoveComments";
 import { convertStrings } from "../Parser/Preprocessor/Strings";
-import { Fun, JSExternals, dictHas, Term, TRS } from "../Parser/Types";
-import { mapMut } from "../Parser/Utils";
+import { Fun, Term, TRS } from "../Parser/Types";
 import { isError, Right_, unwrap } from "../Types";
 import { Matcher } from "./Matchers/Matcher";
+import { StepNormalizer } from "./Normalizer";
 import { ruleBasedUnify } from "./RuleBasedUnify";
 import { Unificator } from "./Unificator";
-import { StepNormalizer } from "./Normalizer";
 
 export const match: Unificator = (s, t) => ruleBasedUnify(t, s);
 export const matches = (s: Term, t: Term): boolean => isSomething(match(s, t));
