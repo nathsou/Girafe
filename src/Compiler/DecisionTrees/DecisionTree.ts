@@ -1,5 +1,5 @@
 import { Fun, Symb, Term } from "../../Parser/Types";
-import { isFun, isVar, Maybe } from "../Utils";
+import { isFun, isVar, Maybe, showTerm } from "../Utils";
 import { AnyPat, IndexedOccurence, OccTerm, _ } from "./DecisionTreeCompiler";
 
 export type Leaf = { type: 'leaf', action: OccTerm };
@@ -30,7 +30,7 @@ export const getOccurence = (terms: Term[], occurence: IndexedOccurence): Term =
         t = (t as Fun).args[idx];
     }
 
-    return isVar(t) ? t : t;
+    return t;
 };
 
 export const termOf = (terms: Term[], occ: OccTerm): Term => {

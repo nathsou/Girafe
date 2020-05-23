@@ -1,28 +1,10 @@
 import { matches } from "../../Unification";
 import { parseTerm } from "../../../Parser/Parser";
 import { Fun, Rule, Symb, Term, TRS } from "../../../Parser/Types";
-import {
-  join,
-  once,
-  pop,
-  reverse,
-  setMap,
-  traverseNames,
-  unionMut,
-} from "../../../Parser/Utils";
+import { join, once, pop, reverse, setMap, traverseNames, unionMut, } from "../../../Parser/Utils";
 import { Arities, collectArity } from "../../../Compiler/Passes/Lazify";
-import {
-  fun,
-  isEmpty,
-  isFun,
-  isNothing,
-  isSomething,
-  isVar,
-  lhs,
-  Maybe,
-  zip,
-} from "../../../Compiler/Utils";
-import { StringMatcher } from "./StringMatcher";
+import { fun, isEmpty, isFun, isNothing, isSomething, isVar, lhs, Maybe, zip, } from "../../../Compiler/Utils";
+import { StringClosureMatcher } from "./StringClosureMatcher";
 
 type SuffixSet = Set<string>;
 type Closure = Set<string>;
@@ -207,7 +189,7 @@ export const buildMatcher = (trs: TRS): RuleMatcher => {
   const arities = collectArities(patterns);
   const M_ = closure(M, arities);
 
-  const matcher = new StringMatcher<Rule[]>();
+  const matcher = new StringClosureMatcher<Rule[]>();
   const symbols = [...arities.keys(), ω];
   const splitSymbols = genSymbolSplitter(symbols);
 
@@ -226,8 +208,6 @@ export const buildMatcher = (trs: TRS): RuleMatcher => {
       matcher.insert(letters, P_s);
     }
   }
-
-  console.log(matcher);
 
   return (query: Term) => {
     return matcher.lookupTerm(query, arities);

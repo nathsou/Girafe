@@ -78,7 +78,7 @@ const lib = {
     extensions: [".ts", ".js"],
   },
   optimization: {
-    minimize: false,
+    minimize: true,
   },
   output: {
     filename: "grf.js",
@@ -114,7 +114,7 @@ const grfc = {
     new webpack.BannerPlugin({ banner: "#!/usr/bin/env node", raw: true }),
   ],
   optimization: {
-    minimize: false,
+    minimize: true,
   },
   output: {
     filename: "grfc.js",
@@ -122,6 +122,6 @@ const grfc = {
   // devtool: 'source-map'
 };
 
-// module.exports = [unif];
+module.exports = [unif];
 // module.exports = [lib, grfc];
-module.exports = [grfc];
+// module.exports = [grfc];

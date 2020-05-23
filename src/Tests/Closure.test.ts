@@ -1,6 +1,6 @@
 import { Arities } from "../Compiler/Passes/Lazify";
-import { closure, collectArities, genSymbolSplitter, makePatterns, stringify, symbs, unstringify } from "../Normalizer/Matchers/StringMatcher/Closure";
-import { StringMatcher } from "../Normalizer/Matchers/StringMatcher/StringMatcher";
+import { closure, collectArities, genSymbolSplitter, makePatterns, stringify, symbs, unstringify } from "../Normalizer/Matchers/ClosureMatcher/Closure";
+import { StringClosureMatcher } from "../Normalizer/Matchers/ClosureMatcher/StringClosureMatcher";
 import { fun, isSomething } from "../Compiler/Utils";
 import { Symb, Term } from "../Parser/Types";
 import { gen, iter, join, randomElement } from "../Parser/Utils";
@@ -46,7 +46,7 @@ test('matcher', () => {
     const M = new Set(patternsStr);
     const arities = collectArities(patterns);
     const M_ = closure(M, arities);
-    const matcher = new StringMatcher<string>();
+    const matcher = new StringClosureMatcher<string>();
     const symbols = [...arities.keys(), ω];
     const splitSymbols = genSymbolSplitter(symbols);
 

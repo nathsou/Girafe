@@ -10,7 +10,7 @@ export type TrieNode<T> = {
     children?: { [key: string]: TrieNode<T> }
 };
 
-export class StringMatcher<T> {
+export class StringClosureMatcher<T> {
     private root: TrieNode<T>;
 
     constructor() {

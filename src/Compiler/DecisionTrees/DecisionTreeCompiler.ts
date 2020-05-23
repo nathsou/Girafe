@@ -54,7 +54,7 @@ export const occurencesOf = (
     };
 
     for (const [t, i] of indexed(term.args)) {
-        collectOccurences(t, sigma, i, { index: 0, pos: [] });
+        collectOccurences(t, sigma, i, { index: subTermIndex, pos: [] });
     }
 
     return sigma;
@@ -76,18 +76,22 @@ export const substituteOccurences = (term: Term, occs: Dict<IndexedOccurence>): 
     };
 };
 
+export const occTermOfRule = ([lhs, rhs]: Rule): OccTerm => {
+    const sigma: Dict<IndexedOccurence> = {};
+
+    for (const [arg, i] of indexed(lhs.args)) {
+        occurencesOf(arg, sigma, i);
+    }
+
+    return substituteOccurences(rhs, sigma);
+};
+
 // all the rules must share the same head symbol and arity
 export const clauseMatrixOf = (rules: Rule[]): ClauseMatrix => {
     return {
         patterns: rules.map(rule => lhs(rule).args.map(patternOf)),
         dims: [rules.length, arity(rules)], // rows * cols
-        actions: rules.map(([lhs, rhs]) => {
-            const sigma = {};
-            for (const [arg, i] of indexed(lhs.args)) {
-                occurencesOf(arg, sigma, i);
-            }
-            return substituteOccurences(rhs, sigma);
-        })
+        actions: rules.map(occTermOfRule)
     };
 };
 
@@ -193,7 +197,7 @@ export const compileClauseMatrix = (
 ): DecisionTree => {
     const occurences = [...gen(argsCount, i => ({ index: i, pos: [] }))];
     return compileClauseMatrixAux(occurences, matrix, signature);
-}
+};
 
 const compileClauseMatrixAux = (
     occurences: IndexedOccurence[],

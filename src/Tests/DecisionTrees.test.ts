@@ -1,9 +1,9 @@
 import { DecisionTree, evaluate, getOccurence } from '../Compiler/DecisionTrees/DecisionTree';
-import { clauseMatrixOf, compileClauseMatrix, defaultClauseMatrix, IndexedOccurence, occurencesOf, specializeClauseMatrix } from '../Compiler/DecisionTrees/DecisionTreeCompiler';
+import { clauseMatrixOf, compileClauseMatrix, defaultClauseMatrix, IndexedOccurence, occurencesOf, specializeClauseMatrix, occTermOfRule, OccTerm } from '../Compiler/DecisionTrees/DecisionTreeCompiler';
 import { defined, fun, isSomething } from "../Compiler/Utils";
 import { DecisionTreeNormalizer } from '../Normalizer/DecisionTreeNormalizer';
 import { parseRule, parseRules, parseTerm } from "../Parser/Parser";
-import { Dict, Term } from '../Parser/Types';
+import { Dict, Term, Rule } from '../Parser/Types';
 
 const rules = [
     'Merge(Nil, b) -> 1',
@@ -282,6 +282,27 @@ test('occurencesOf', () => {
     }
 });
 
+test('occTermOfRule', () => {
+    const tests: Array<[Rule, OccTerm]> = ([
+        ['A(x) -> x', { index: 0, pos: [] }],
+        ['+(a, S(b)) -> S(+(a, b))', {
+            name: 'S',
+            args: [{
+                name: '+',
+                args: [
+                    { index: 0, pos: [] },
+                    { index: 1, pos: [0] },
+                ]
+            }]
+        }],
+    ] as Array<[string, OccTerm]>)
+        .map(([rule, term]) => ([defined(parseRule(rule)), term]));
+
+    for (const [rule, expectedOccTerm] of tests) {
+        expect(occTermOfRule(rule)).toStrictEqual(expectedOccTerm);
+    }
+});
+
 test('evaluate', () => {
     expect(evaluate([fun('Nil')], mergeDecisionTree)).toStrictEqual(fun('1'));
 
@@ -325,7 +346,11 @@ test('DecisionTreeMatcher', () => {
         'T(R(O(Y(E(s))))) -> s',
         "Range(n) -> Range'(n, Nil)",
         "Range'(0, rng) -> rng",
-        "Range'(S(n), rng) -> Range'(n, :(n, rng))"
+        "Range'(S(n), rng) -> Range'(n, :(n, rng))",
+        "+(a, 0) -> a",
+        "+(0, b) -> b",
+        "+(a, S(b)) -> S(+(a, b))",
+        "+(S(a), b) -> S(+(a, b))"
     ].join('\n'));
 
     if (trs) {
@@ -361,6 +386,24 @@ test('DecisionTreeMatcher', () => {
             defined(parseTerm('Range(S(S(0)))'))
         )).toStrictEqual(
             defined(parseTerm(':(0, :(S(0), Nil))'))
+        );
+
+        expect(nf.oneStepReduce(
+            defined(parseTerm('+(S(0), 0)'))
+        )).toStrictEqual(
+            defined(parseTerm('S(0)'))
+        );
+
+        expect(nf.oneStepReduce(
+            defined(parseTerm('+(0, S(0))'))
+        )).toStrictEqual(
+            defined(parseTerm('S(0)'))
+        );
+
+        expect(nf.oneStepReduce(
+            defined(parseTerm('+(a, S(b))'))
+        )).toStrictEqual(
+            defined(parseTerm('S(+(a, b))'))
         );
     }
 });

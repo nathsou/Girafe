@@ -2,7 +2,7 @@ import { DecisionTree, isOccurence } from "../Compiler/DecisionTrees/DecisionTre
 import { OccTerm, _ } from "../Compiler/DecisionTrees/DecisionTreeCompiler";
 import { DecisionTreeTranslator } from "../Compiler/DecisionTrees/DecisionTreeTranslator";
 import { fun, isVar } from "../Compiler/Utils";
-import { repeatString } from "../Normalizer/Matchers/StringMatcher/Closure";
+import { repeatString } from "../Normalizer/Matchers/ClosureMatcher/Closure";
 import { SpecialCharacters } from "../Parser/Lexer/SpecialChars";
 import { Externals, Term, TRS } from "../Parser/Types";
 import { mapString } from "../Parser/Utils";

@@ -1,9 +1,9 @@
 import { matches, unificationNormalizer } from "../../Unification";
 import { Rule, Symb, Term, TRS, JSExternals } from "../../../Parser/Types";
 import { indexed } from "../../../Parser/Utils";
-import { closure, collectArities, stringify, unstringify, genSymbolSplitter } from "../StringMatcher/Closure";
+import { closure, collectArities, stringify, unstringify, genSymbolSplitter } from "./Closure";
 import { isEmpty, isFun, isVar, lhs, Maybe, zip } from "../../../Compiler/Utils";
-import { ω } from '../StringMatcher/Closure';
+import { ω } from './Closure';
 import { Matcher } from "../Matcher";
 import { Unificator } from "../../Unificator";
 import { buildNormalizer, Normalizer } from "../../Normalizer";
@@ -14,7 +14,7 @@ type Node = {
     children: { [key: string]: Node }
 };
 
-export class TermMatcher {
+export class ClosureMatcher {
     private root: Node;
 
     constructor(trs: TRS) {
