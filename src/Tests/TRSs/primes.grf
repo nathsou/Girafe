@@ -151,4 +151,4 @@ N(:(h, tl)) -> :(N(h), N(tl))
 
 Inst(x) -> x
 
-Query -> Reverse(N(Primes(|(5, 0))))
+Query -> N(Len(Primes(9)))

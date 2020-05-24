@@ -3,23 +3,23 @@ import { dictHas, JSExternals, Term } from "../Parser/Types";
 import { mapMut } from "../Parser/Utils";
 
 export interface StepNormalizer {
-    oneStepReduce: (term: Term) => Maybe<Term>
+    oneStepReduce: (query: Term) => Maybe<Term>
 }
 
-export type Normalizer = (term: Term) => Term;
+export type Normalizer = (query: Term) => Term;
 
 // handles externals
 const oneStepReduceWithExternals = (
-    term: Term,
+    query: Term,
     normalizer: StepNormalizer,
     externals: JSExternals<string> = {}
 ): Maybe<Term> => {
-    if (isVar(term)) return;
-    if (term.name.charAt(0) === '@') {
-        const f = term.name.substr(1);
+    if (isVar(query)) return;
+    if (query.name.charAt(0) === '@') {
+        const f = query.name.substr(1);
         if (dictHas(externals, f)) {
-            const newTerm = externals[f](term);
-            if (newTerm != term) {
+            const newTerm = externals[f](query);
+            if (newTerm != query) {
                 return newTerm;
             }
         } else {
@@ -27,20 +27,20 @@ const oneStepReduceWithExternals = (
         }
     }
 
-    return normalizer.oneStepReduce(term);
+    return normalizer.oneStepReduce(query);
 };
 
-const reduce = (
-    term: Term,
+const normalize = (
+    query: Term,
     evaluator: StepNormalizer,
     externals: JSExternals<string> = {}
 ): Term => {
-    if (isVar(term)) return term;
-    let reduced: Maybe<Term> = term;
+    if (isVar(query)) return query;
+    let reduced: Maybe<Term> = query;
 
     while (isSomething(reduced)) {
         if (isVar(reduced)) return reduced;
-        mapMut(reduced.args, s => reduce(s, evaluator, externals));
+        mapMut(reduced.args, s => normalize(s, evaluator, externals));
 
         const newTerm = oneStepReduceWithExternals(reduced, evaluator, externals);
         if (newTerm === undefined) return reduced;
@@ -51,6 +51,6 @@ const reduce = (
 export const buildNormalizer = (
     evaluator: StepNormalizer,
     externals: JSExternals<string> = {}
-): Normalizer => (term: Term): Term => {
-    return reduce(term, evaluator, externals);
+): Normalizer => (query: Term): Term => {
+    return normalize(query, evaluator, externals);
 };

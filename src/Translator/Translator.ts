@@ -27,7 +27,8 @@ export abstract class Translator<Target extends Targets, Exts extends string> {
     this.init();
   }
 
-  protected abstract init(): void;
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  protected init(): void { }
 
   abstract rename(name: Symb): Symb;
   // abstract call(name: Symb, args: Term[]): string;

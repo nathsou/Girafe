@@ -122,6 +122,6 @@ const grfc = {
   // devtool: 'source-map'
 };
 
-module.exports = [unif];
+// module.exports = [unif];
 // module.exports = [lib, grfc];
-// module.exports = [grfc];
+module.exports = [grfc];

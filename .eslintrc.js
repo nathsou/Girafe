@@ -11,5 +11,6 @@ module.exports = {
     "rules": {
         "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
         "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+        "no-unneeded-ternary": "error"
     }
 };
