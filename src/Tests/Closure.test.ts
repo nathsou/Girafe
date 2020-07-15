@@ -3,7 +3,8 @@ import { closure, collectArities, genSymbolSplitter, makePatterns, stringify, sy
 import { StringClosureMatcher } from "../Normalizer/Matchers/ClosureMatcher/StringClosureMatcher";
 import { fun, isSomething } from "../Compiler/Utils";
 import { Symb, Term } from "../Parser/Types";
-import { gen, iter, join, randomElement } from "../Parser/Utils";
+import { gen, iter, join } from "../Parser/Utils";
+import { randomElem } from "./TestUtils";
 
 export const ε = '';
 export const ω = 'ω';
@@ -64,7 +65,7 @@ test('matcher', () => {
 
 const genArbitraryTerm = (arities: Array<[Symb, number]>): Term => {
     if (Math.random() < 0.05) return ω;
-    const [f, ar] = randomElement(arities);
+    const [f, ar] = randomElem(Math.random, arities);
     return fun(f, ...gen(ar, () => genArbitraryTerm(arities)));
 };
 

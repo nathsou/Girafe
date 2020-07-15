@@ -36,16 +36,12 @@ export class TRSParser {
     private pos = 0;
     private tokens: Token[];
     private lexer = new Lexer();
-    private static instance: TRSParser;
+    private static instance = new TRSParser();
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     private constructor() { }
 
     public static getInstance(): TRSParser {
-        if (this.instance === undefined) {
-            this.instance = new TRSParser();
-        }
-
         return this.instance;
     }
 

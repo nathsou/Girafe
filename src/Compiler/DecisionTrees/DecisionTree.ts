@@ -33,6 +33,10 @@ export const getOccurence = (terms: Term[], occurence: IndexedOccurence): Term =
     return t;
 };
 
+export const isOccurence = (t: OccTerm): t is IndexedOccurence => {
+    return t['pos'] !== undefined && t['index'] !== undefined;
+};
+
 export const termOf = (terms: Term[], occ: OccTerm): Term => {
     if (isOccurence(occ)) return getOccurence(terms, occ);
 
@@ -40,10 +44,6 @@ export const termOf = (terms: Term[], occ: OccTerm): Term => {
         name: occ.name,
         args: occ.args.map(arg => termOf(terms, arg))
     };
-};
-
-export const isOccurence = (t: OccTerm): t is IndexedOccurence => {
-    return t['pos'] !== undefined && t['index'] !== undefined;
 };
 
 export const evaluate = (args: Term[], dt: DecisionTree): Maybe<Term> => {

@@ -1,5 +1,6 @@
 If(True, a, b) -> Inst(a)
 If(False, a, b) -> Inst(b)
+Inst(#If(a, b, c)) -> If(Inst(a), b, c)
 
 Not(True) -> False
 Not(False) -> True

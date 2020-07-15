@@ -3,11 +3,13 @@ import { Lexer } from '../Parser/Lexer/Lexer';
 import { TRSParser } from '../Parser/TRSParser';
 import { gen } from '../Parser/Utils';
 import { isError, isOk, unwrap } from '../Types';
-import { randomVar, randomSymb, randomTerm, randomTRS } from './TestUtils';
+import { randomSymb, randomTerm, randomTRS, randomVar, testRNG } from './TestUtils';
+
+const rnd = testRNG;
 
 test('Lex vars', () => {
     const lexer = new Lexer();
-    for (const varName of gen(100, () => randomVar())) {
+    for (const varName of gen(100, () => randomVar(rnd))) {
         const lexVar = lexer.tokenize(varName);
         expect(isOk(lexVar)).toBe(true);
         expect(unwrap(lexVar)).toStrictEqual([{
@@ -23,7 +25,7 @@ test('Lex vars', () => {
 
 test('Lex symbols', () => {
     const lexer = new Lexer();
-    for (const symb of gen(100, () => randomSymb())) {
+    for (const symb of gen(100, () => randomSymb(rnd))) {
         const lexSpecialSymb = lexer.tokenize(symb);
         expect(isOk(lexSpecialSymb)).toBe(true);
         expect(unwrap(lexSpecialSymb)).toStrictEqual([{
@@ -39,7 +41,7 @@ test('Lex symbols', () => {
 
 test('Parse terms', () => {
     const parser = TRSParser.getInstance();
-    for (const term of gen(100, () => randomTerm())) {
+    for (const term of gen(100, () => randomTerm(rnd))) {
         const lexerErr = parser.tokenize(showTerm(term));
         expect(lexerErr).toBe(undefined);
         const parsedTerm = parser.parseTerm();
@@ -50,7 +52,7 @@ test('Parse terms', () => {
 
 test('Parse rules', () => {
     const parser = TRSParser.getInstance();
-    for (const rules of gen(100, () => randomTRS())) {
+    for (const rules of gen(100, () => randomTRS(rnd))) {
         const asStr = rules.map(rule => showRule(rule)).join('\n');
         const parsedTRS = parser.parse(asStr);
         if (isError(parsedTRS)) console.error(parsedTRS);

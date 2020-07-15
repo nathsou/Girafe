@@ -3,7 +3,9 @@ import { ruleBasedUnify as unify } from '../Normalizer/RuleBasedUnify';
 import { parseTerm } from "../Parser/Parser";
 import { Substitution, Term } from "../Parser/Types";
 import { gen } from "../Parser/Utils";
-import { mutateTerm, randomLeftLinearFun, substIn, substsEq } from "./TestUtils";
+import { mutateTerm, randomLeftLinearFun, substIn, substsEq, testRNG } from "./TestUtils";
+
+const rnd = testRNG;
 
 test('substIn', () => {
     expect(substIn({ 'a': 'b', 'c': 'd' }, { 'c': 'd', 'a': 'b' })).toBe(true);
@@ -61,8 +63,8 @@ test('ruleBasedUnify', () => {
     }
 
     const randomUnificationTest = (): [Term, Term, Substitution] => {
-        const s = randomLeftLinearFun();
-        const [t, sigma] = mutateTerm(s);
+        const s = randomLeftLinearFun(rnd);
+        const [t, sigma] = mutateTerm(rnd, s);
         return [s, t, sigma];
     };
 

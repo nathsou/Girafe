@@ -135,14 +135,6 @@ export function pop<T>(elems: T[], count = 1): T[] {
     return popped;
 }
 
-export function randomElement<T>(elems: T[]): T {
-    return elems[randomInt(0, elems.length)];
-}
-
-export function randomInt(from: number, to: number): number {
-    return from + Math.floor(Math.random() * (to - from));
-}
-
 export function* gen<T>(count: number, f: (idx: number) => T): IterableIterator<T> {
     for (let i = 0; i < count; i++) {
         yield f(i);

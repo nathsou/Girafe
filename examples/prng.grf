@@ -1,0 +1,13 @@
+// Pseudo random number generator
+
+import "arith.grf"
+
+NextPRN(seed) -> %(+(*(seed, 1588635695), 12345), 4294967291)
+
+GenRand(seed, count) -> GenRand'(NextPRN(seed), count, Nil)
+GenRand'(seed, 0, lst) -> lst 
+GenRand'(seed, n, lst) -> GenRand'(
+    NextPRN(seed),
+    -(n, 1),
+    :(Frac(seed, 4294967291), lst)
+)

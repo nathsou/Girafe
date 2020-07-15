@@ -3,9 +3,9 @@ import { clauseMatrixOf, compileClauseMatrix } from "../Compiler/DecisionTrees/D
 import { collectTRSArities } from "../Compiler/Passes/Lazify";
 import { arity, isVar, Maybe } from "../Compiler/Utils";
 import { JSExternals, Symb, Term, TRS } from "../Parser/Types";
-import { buildNormalizer, Normalizer } from "./Normalizer";
+import { buildNormalizer, Normalizer, StepNormalizer } from "./Normalizer";
 
-export class DecisionTreeNormalizer {
+export class DecisionTreeNormalizer implements StepNormalizer {
     private rules: Map<Symb, DecisionTree>;
 
     constructor(trs: TRS) {

@@ -44,7 +44,8 @@ export const lazify: CompilerPass = (trsWithAnnotations: TRS): CompilationResult
         const instRule: Rule = [
             Inst(Thunk(symb, ...varNames)),
             // FIXME: Don't instantiate everything
-            fun(symb, ...varNames.map(t => Inst(t)))
+            // fun(symb, ...varNames.map(t => Inst(t)))
+            fun(symb, ...varNames)
         ];
 
         addRules(newTrs, instRule);
@@ -123,8 +124,8 @@ export const collectArity = (t: Term, arities: Arities): void => {
     }
 };
 
-const isLazy = (ruleName: string, nth: number, ann: LazinessAnnotations): boolean => {
-    return ann.has(ruleName) ? ann.get(ruleName)[nth] : false;
+const isLazy = (ruleName: string, argIdx: number, ann: LazinessAnnotations): boolean => {
+    return ann.has(ruleName) ? ann.get(ruleName)[argIdx] : false;
 };
 
 const isVarActive = (x: Var, t: Term, ann: LazinessAnnotations): boolean => {

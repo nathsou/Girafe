@@ -60,20 +60,3 @@ export const oneStepReducer = (matcher: Matcher) => (term: Fun): Maybe<Term> => 
 export const unificationNormalizer = (matcher: Matcher): StepNormalizer => ({
   oneStepReduce: oneStepReducer(matcher)
 });
-
-// export const reduce = (
-//   term: Term,
-//   externals: JSExternals<string> = {},
-//   matcher: Matcher,
-// ): Term => {
-//   if (isVar(term)) return term;
-//   let reduced: { term: Term; changed: boolean } = { term, changed: true };
-
-//   while (reduced.changed) {
-//     if (isVar(reduced.term)) return reduced.term;
-//     mapMut(reduced.term.args, (s) => reduce(s, externals, matcher));
-//     reduced = oneStepReduce(reduced.term, externals, matcher);
-//   }
-
-//   return reduced.term;
-// };

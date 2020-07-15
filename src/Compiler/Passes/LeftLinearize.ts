@@ -1,9 +1,9 @@
 import { Fun, Rule, Term, TRS, Var } from "../../Parser/Types";
+import { Ok } from "../../Types";
+import { And, Eq, If, True, useAnd, useIf } from '../Passes/Imports';
+import { addRules, decons, fun, genVars, head, isVar, lhs, occurrences, removeRules, rhs, vars } from "../Utils";
 import { isLeftLinear } from "./Checks";
 import { CompilationResult, CompilerPass } from "./CompilerPass";
-import { And, Eq, If, True, useAnd, useIf } from '../Passes/Imports';
-import { addRules, decons, fst, fun, genVars, head, isVar, lhs, occurences, removeRules, rhs, snd, vars } from "../Utils";
-import { Ok } from "../../Types";
 
 // transforms a general TRS into a left-linear one
 // requires a structural equality external function (eqSymb)
@@ -17,7 +17,7 @@ export const leftLinearize: CompilerPass = (trs: TRS): CompilationResult => {
                 const lhsVars = vars(lhs(rule));
                 const rhsVars = vars(rhs(rule));
                 const uniqueVars = genVars(lhsVars.length);
-                const counts = occurences(lhsVars);
+                const counts = occurrences(lhsVars);
                 const eqs: Fun[] = [];
 
                 for (const occs of counts.values()) {
@@ -65,7 +65,7 @@ const conjunction = (terms: Term[]): Term => {
 // allEq(['a', 'b', 'c']) = And(Eq('a', 'b'), Eq('b', 'c'))
 const allEq = (terms: Term[]): Fun => {
     if (terms.length <= 1) return True();
-    if (terms.length === 2) return Eq(fst(terms), snd(terms));
+    if (terms.length === 2) return Eq(terms[0], terms[1]);
 
     const [h, tl] = decons(terms);
     return And(Eq(h, head(tl)), allEq(tl));

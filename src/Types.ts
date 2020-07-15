@@ -48,13 +48,13 @@ export function mapEither<L, R, T>(
     return value;
 }
 
-type UnwrapReturnType<E extends Either<unknown, unknown>> =
+type UnwrapEitherType<E extends Either<unknown, unknown>> =
     E extends Left_<infer L> ? L :
     E extends Right_<infer R> ? R :
     never;
 
 export function unwrap<
     E extends Either<unknown, unknown>
->([value, _]: E): UnwrapReturnType<E> {
-    return value as UnwrapReturnType<E>;
+>([value,]: E): UnwrapEitherType<E> {
+    return value as UnwrapEitherType<E>;
 }

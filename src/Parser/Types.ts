@@ -7,7 +7,7 @@ export type Substitution = Dict<Term>;
 export type Rule = [Fun, Term];
 export type TRS = Map<Symb, Rule[]>;
 
-export type Targets = 'js' | 'haskell' | 'ocaml';
+export type Targets = 'js' | 'ocaml' | 'haskell';
 export const supportedTargets: Targets[] = ['js', 'ocaml', 'haskell'];
 
 export type JSExternals<Exts extends string> = {
@@ -54,5 +54,5 @@ export function dictMap<T, U>(dict: Dict<T>, f: (val: T) => U): Dict<U> {
 }
 
 export const unreachable = (msg = ''): never => {
-    throw Error(`Code marked as unreachable was reached: ${msg}`);
+    throw new Error(`Code marked as unreachable was reached: ${msg}`);
 };

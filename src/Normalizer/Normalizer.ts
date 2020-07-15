@@ -1,8 +1,11 @@
-import { isSomething, isVar, Maybe } from "../Compiler/Utils";
-import { dictHas, JSExternals, Term } from "../Parser/Types";
+import { isVar, Maybe } from "../Compiler/Utils";
+import { dictHas, Fun, JSExternals, Term } from "../Parser/Types";
 import { mapMut } from "../Parser/Utils";
 
 export interface StepNormalizer {
+    /**
+     * Performs one step of reduction when a rule applies
+     */
     oneStepReduce: (query: Term) => Maybe<Term>
 }
 
@@ -10,16 +13,16 @@ export type Normalizer = (query: Term) => Term;
 
 // handles externals
 const oneStepReduceWithExternals = (
-    query: Term,
+    query: Fun,
     normalizer: StepNormalizer,
     externals: JSExternals<string> = {}
 ): Maybe<Term> => {
-    if (isVar(query)) return;
     if (query.name.charAt(0) === '@') {
         const f = query.name.substr(1);
         if (dictHas(externals, f)) {
             const newTerm = externals[f](query);
-            if (newTerm != query) {
+            // prevent infinite loops
+            if (newTerm !== query) {
                 return newTerm;
             }
         } else {
@@ -32,19 +35,17 @@ const oneStepReduceWithExternals = (
 
 const normalize = (
     query: Term,
-    evaluator: StepNormalizer,
+    normalizer: StepNormalizer,
     externals: JSExternals<string> = {}
 ): Term => {
-    if (isVar(query)) return query;
-    let reduced: Maybe<Term> = query;
+    let reduced = query;
 
-    while (isSomething(reduced)) {
+    while (true) {
         if (isVar(reduced)) return reduced;
-        mapMut(reduced.args, s => normalize(s, evaluator, externals));
-
-        const newTerm = oneStepReduceWithExternals(reduced, evaluator, externals);
+        mapMut(reduced.args, s => normalize(s, normalizer, externals));
+        const newTerm = oneStepReduceWithExternals(reduced, normalizer, externals);
         if (newTerm === undefined) return reduced;
-        reduced = newTerm;
+        reduced = newTerm as Term;
     }
 };
 

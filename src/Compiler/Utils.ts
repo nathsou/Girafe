@@ -4,6 +4,7 @@ import { Ok } from "../Types";
 import { check, checkArity, checkNoDuplicates, checkNoFreeVars } from "./Passes/Checks";
 import { CompilerPass } from "./Passes/CompilerPass";
 import { orderBySpecificity } from "./Passes/OrderBy";
+import { lazify } from "./Passes/Lazify";
 
 export type Maybe<T> = T | void;
 
@@ -24,10 +25,10 @@ export const defaultPasses: CompilerPass[] = [
     checkNoDuplicates,
   ),
   // currify,
-  // lazify,
+  lazify,
   // leftLinearize,
   orderBySpecificity,
-  // logTRS,
+  logTRS,
 ];
 
 export function isFun(term: Term, name?: Symb): term is Fun {
@@ -274,18 +275,18 @@ export function fill<T>(val: T, count: number): T[] {
   return vals;
 }
 
-export function occurences<T>(vals: T[]): Map<T, number[]> {
-  const occurences = new Map<T, number[]>();
+export function occurrences<T>(vals: T[]): Map<T, number[]> {
+  const occurrences = new Map<T, number[]>();
 
   vals.forEach((val, idx) => {
-    if (occurences.has(val)) {
-      occurences.get(val).push(idx);
+    if (occurrences.has(val)) {
+      occurrences.get(val).push(idx);
     } else {
-      occurences.set(val, [idx]);
+      occurrences.set(val, [idx]);
     }
   });
 
-  return occurences;
+  return occurrences;
 }
 
 export function elem<T>(
@@ -314,7 +315,7 @@ export function hasDuplicatesSet<T>(
 export function hasDuplicatesMap<T>(
   vals: T[],
 ): boolean {
-  return some(occurences(vals).values(), (occs: number[]) => occs.length > 1);
+  return some(occurrences(vals).values(), (occs: number[]) => occs.length > 1);
 }
 
 export function head<T>(list: T[]): T {
@@ -337,20 +338,20 @@ export function split<T>(list: T[], splitIdx: number): [T[], T[]] {
   return [list.slice(0, splitIdx), list.slice(splitIdx)];
 }
 
-export function fst<T>(list: T[]): T {
-  return list[0];
+export function fst<U, V>([u,]: [U, V]): U {
+  return u;
 }
 
-export function snd<T>(list: T[]): T {
-  return list[1];
+export function snd<U, V>([, v]: [U, V]): V {
+  return v;
 }
 
-export function trd<T>(list: T[]): T {
-  return list[2];
+export function trd<U, V, W>([, , w]: [U, V, W]): W {
+  return w;
 }
 
 export const replaceTerms = (old: Term, by: Term, inside: Term[]): Term[] => {
-  return inside.map((t) => termsEq(t, old) ? by : t);
+  return inside.map(t => termsEq(t, old) ? by : t);
 };
 
 export function isEmpty<T>(collection: T[] | Set<T>): boolean {
@@ -359,13 +360,13 @@ export function isEmpty<T>(collection: T[] | Set<T>): boolean {
 }
 
 export const alphaEquiv = (s: Term, t: Term): boolean => (
-  isSomething(alphaEquivAux([hasDuplicates(vars(t)) ? [t, s] : [s, t]]))
+  isSomething(alphaEquivAux([hasDuplicatesSet(vars(t)) ? [t, s] : [s, t]]))
 );
 
 export type AlphaSubst = Dict<Var>;
 
 const alphaEquivAux = (
-  eqs: [Term, Term][],
+  eqs: Array<[Term, Term]>,
   sigma: AlphaSubst = {},
 ): Maybe<AlphaSubst> => {
   if (isEmpty(eqs)) return sigma;
@@ -379,8 +380,8 @@ const alphaEquivAux = (
     } else {
       return alphaEquivAux(eqs, dictSet(sigma, a, b));
     }
-  } else if (isFun(a) && isFun(b)) {
-    if (a.name == b.name && a.args.length === b.args.length) {
+  } else if (isFun(a) && isFun(b, a.name)) {
+    if (a.args.length === b.args.length) {
       eqs.push(...zip(a.args, b.args));
       return alphaEquivAux(eqs, sigma);
     }

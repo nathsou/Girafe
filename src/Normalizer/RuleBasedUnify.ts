@@ -13,8 +13,7 @@ const unify = (eqs: [Term, Term][], sigma: Substitution = {}): Maybe<Substitutio
 
     // Decompose
     if (
-        isFun(s) && isFun(t) &&
-        s.name === t.name &&
+        isFun(s) && isFun(t, s.name) &&
         s.args.length === t.args.length
     ) {
         eqs.push(...zip(s.args, t.args));
@@ -26,11 +25,7 @@ const unify = (eqs: [Term, Term][], sigma: Substitution = {}): Maybe<Substitutio
 
     // Eliminate
     if (isVar(s) && !occurs(s, t)) {
-        const S_: Array<[Term, Term]> = mapMut(eqs, ([a, b]) => [
-            substitute(a, sigma),
-            substitute(b, sigma)
-        ]);
-
-        return unify(S_, dictSet(sigma, s, t));
+        mapMut(eqs, eq => mapMut(eq, u => substitute(u, sigma)));
+        return unify(eqs, dictSet(sigma, s, t));
     }
 };
