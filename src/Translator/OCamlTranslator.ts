@@ -7,9 +7,19 @@ import { Translator } from "./Translator";
 export class OCamlTranslator<Exts extends string>
     extends Translator<'ocaml', Exts> {
 
+    private static reservedKeywords = new Set<string>([
+        'and', 'as', 'assert', 'asr', 'begin', 'class', 'constrain', 'do', 'done', 'downto', 'else',
+        'end', 'exception', 'external', 'false', 'for', 'fun', 'function', 'functor', 'if',
+        'in', 'include', 'inherit', 'initializer', 'land', 'lazy', 'let', 'lor',
+        'lsl', 'lsr', 'lxor', 'match', 'method', 'mod', 'module', 'mutable', 'new', 'nonrec',
+        'object', 'of', 'open', 'or', 'private', 'rec', 'sig', 'struct', 'then', 'to', 'true',
+        'try', 'type', 'val', 'virtual', 'when', 'while', 'with'
+    ]);
+
     private firstRule = true;
 
     protected init(): void {
+        this.setReservedKeywords(OCamlTranslator.reservedKeywords);
         this.header = [
             "type term = Var of string | Fun of string * term list;;",
 
@@ -31,9 +41,9 @@ export class OCamlTranslator<Exts extends string>
     }
 
     translateTerm(term: Term): string {
-        if (isVar(term)) return term;
+        if (isVar(term)) return this.renameVar(term);
         return `(Fun ("${term.name}", [${
-            term.args.map((t) => this.translateTerm(t)).join("; ")
+            term.args.map(t => this.translateTerm(t)).join("; ")
             }]))`;
     }
 
@@ -45,7 +55,7 @@ export class OCamlTranslator<Exts extends string>
             );
         }
 
-        const args = `(${term.args.map((t) => this.callTerm(t)).join(', ')})`;
+        const args = `(${term.args.map(t => this.callTerm(t)).join(', ')})`;
         return `(${term.name} ${args})`;
     }
 

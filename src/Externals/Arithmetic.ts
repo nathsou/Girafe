@@ -1,6 +1,6 @@
 import { False, True } from "../Compiler/Passes/Imports";
-import { isFun } from "../Compiler/Utils";
-import { Externals, Fun, JSExternals } from "../Parser/Types";
+import { isFun, termsEq } from "../Compiler/Utils";
+import { Externals, Fun, JSExternals, Term } from "../Parser/Types";
 
 export const symb = (f: string): Fun => ({ name: f, args: [] });
 
@@ -36,6 +36,10 @@ export const boolbinop = (t: Fun, op: (a: bigint, b: bigint) => boolean): Fun =>
     return t;
 };
 
+const equ = (s: Term, t: Term): Fun => {
+    return termsEq(s, t) ? True() : False();
+};
+
 export type ArithmeticExternals = 'add' | 'sub' | 'mult' | 'div' |
     'mod' | 'pow' | 'equ' | 'gtr' | 'geq' | 'lss' | 'leq';
 
@@ -46,7 +50,7 @@ export const arithmeticExternals: JSExternals<ArithmeticExternals> = {
     'div': t => arithbinop(t, (a, b) => a / b),
     'mod': t => arithbinop(t, (a, b) => a % b),
     'pow': t => arithbinop(t, (a, b) => a ** b),
-    'equ': t => boolbinop(t, (a, b) => a === b),
+    'equ': t => { const [a, b] = t.args; return equ(a, b); },
     'gtr': t => boolbinop(t, (a, b) => a > b),
     'geq': t => boolbinop(t, (a, b) => a >= b),
     'lss': t => boolbinop(t, (a, b) => a < b),
@@ -105,37 +109,37 @@ export const jsArithmeticExternals: Externals<'js', ArithmeticExternals> = {
 };
 
 export const haskellArithmeticExternals: Externals<'haskell', ArithmeticExternals> = {
-    "sub": (name) =>
+    "sub": name =>
         `${name} (Fun a []) (Fun b []) =
           Fun (show ((read a :: Int) - (read b :: Int))) []`,
-    "add": (name) =>
+    "add": name =>
         `${name} (Fun a []) (Fun b []) =
           Fun (show ((read a :: Int) + (read b :: Int))) []`,
-    "mult": (name) =>
+    "mult": name =>
         `${name} (Fun a []) (Fun b []) =
           Fun (show ((read a :: Int) * (read b :: Int))) []`,
-    "mod": (name) =>
+    "mod": name =>
         `${name} (Fun a []) (Fun b []) =
           Fun (show ((read a :: Int) \`mod\` (read b :: Int))) []`,
-    "div": (name) =>
+    "div": name =>
         `${name} (Fun a []) (Fun b []) =
           Fun (show ((read a :: Int) \`div\` (read b :: Int))) []`,
-    "pow": (name) =>
+    "pow": name =>
         `${name} (Fun a []) (Fun b []) =
           Fun (show ((read a :: Int) ^ (read b :: Int))) []`,
-    "equ": (name) =>
+    "equ": name =>
         `${name} (Fun a []) (Fun b []) =
           Fun (show ((read a :: Int) == (read b :: Int))) []`,
-    "lss": (name) =>
+    "lss": name =>
         `${name} (Fun a []) (Fun b []) =
           Fun (show ((read a :: Int) < (read b :: Int))) []`,
-    "leq": (name) =>
+    "leq": name =>
         `${name} (Fun a []) (Fun b []) =
           Fun (show ((read a :: Int) <= (read b :: Int))) []`,
-    "gtr": (name) =>
+    "gtr": name =>
         `${name} (Fun a []) (Fun b []) =
           Fun (show ((read a :: Int) > (read b :: Int))) []`,
-    "geq": (name) =>
+    "geq": name =>
         `${name} (Fun a []) (Fun b []) =
           Fun (show ((read a :: Int) >= (read b :: Int))) []`,
 };

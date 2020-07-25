@@ -122,6 +122,38 @@ const grfc = {
   // devtool: 'source-map'
 };
 
-module.exports = [unif];
+const grfi = {
+  entry: "./cli/grfi.ts",
+  target: "node",
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        use: "ts-loader",
+        exclude: [
+          /node_modules/,
+          /lib/,
+          /dist/,
+          /TRSs/,
+        ],
+      },
+    ],
+  },
+  resolve: {
+    extensions: [".ts", ".js"],
+  },
+  plugins: [
+    new webpack.BannerPlugin({ banner: "#!/usr/bin/env node", raw: true }),
+  ],
+  optimization: {
+    minimize: true,
+  },
+  output: {
+    filename: "grfi.js",
+  },
+  // devtool: 'source-map'
+};
+
+// module.exports = [unif];
 // module.exports = [lib, grfc];
-// module.exports = [grfc];
+module.exports = [grfc, grfi];

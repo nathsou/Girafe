@@ -5,6 +5,7 @@ import { check, checkArity, checkNoDuplicates, checkNoFreeVars } from "./Passes/
 import { CompilerPass } from "./Passes/CompilerPass";
 import { orderBySpecificity } from "./Passes/OrderBy";
 import { lazify } from "./Passes/Lazify";
+import { leftLinearize } from "./Passes/LeftLinearize";
 
 export type Maybe<T> = T | void;
 
@@ -26,9 +27,9 @@ export const defaultPasses: CompilerPass[] = [
   ),
   // currify,
   lazify,
-  // leftLinearize,
+  leftLinearize,
   orderBySpecificity,
-  logTRS,
+  // logTRS,
 ];
 
 export function isFun(term: Term, name?: Symb): term is Fun {

@@ -1,0 +1,36 @@
+If(True, a, b) -> !(a)
+If(False, a, b) -> !(b)
+
+App(App(+, a), b) -> @add(a, b)
+App(App(*, a), b) -> @mult(a, b)
+App(App(-, a), b) -> @sub(a, b)
+App(App(/, a), b) -> @div(a, b)
+App(App(%, a), b) -> @mod(a, b)
+App(App(=, a), b) -> @equ(a, b)
+App(App(>, a), b) -> @gtr(a, b)
+App(App(<, a), b) -> @lss(a, b)
+App(App(>=, a), b) -> @geq(a, b)
+App(App(<=, a), b) -> @leq(a, b)
+
+App2(f, a, b) -> App(App(f, a), b)
+
+Range(from, to) -> Range'(from, to, Nil)
+Range'(from, to, rng) -> 
+    If(App2(=, from, to),
+        Rev(:(to, rng)),
+        &Range'(App2(+, from, 1), to, :(from, rng))
+    )
+!(&Range'(from, to, rng)) -> Range'(from, to, rng)
+
+Rev(lst) -> Rev'(lst, Nil)
+Rev'(Nil, rev) -> rev
+Rev'(:(h, tl), rev) -> Rev'(tl, :(h, rev))
+
+Map(f, lst) -> Map'(f, lst, Nil)
+Map'(f, Nil, acc) -> Rev(acc)
+Map'(f, :(h, tl), acc) -> Map'(f, tl, :(App(f, h), acc))
+
+App(Inc, n) -> App2(+, n, 1)
+
+// thunk instanciation
+!(x) -> x

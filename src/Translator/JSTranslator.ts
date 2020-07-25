@@ -34,8 +34,9 @@ export const symbolMap: { [key in SpecialCharacters]: string } = {
     '_': '_',
     '=': '_eq_',
     "'": '_prime_',
-    ">": '_gtr_',
-    "<": '_lss_'
+    '>': '_gtr_',
+    '<': '_lss_',
+    '!': '_exclamation_mark_'
 };
 
 const tabs = (count: number): string => repeatString('   ', count);

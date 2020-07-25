@@ -25,7 +25,7 @@ export const factorOut = (α: Symb, M: SuffixSet): SuffixSet => {
 };
 
 export const prepend = (α: string, M: SuffixSet): SuffixSet => (
-  setMap(M, (s) => `${α}${s}`)
+  setMap(M, s => `${α}${s}`)
 );
 
 export const repeatString = (α: string, n: number): string => {
@@ -64,7 +64,7 @@ export const closure = (M: SuffixSet, arities: Map<Symb, number>): Closure => {
 export const stringify = (t: Maybe<Term>): string => {
   if (isNothing(t)) return "";
   if (isVar(t)) return ω;
-  return `${t.name}${t.args.map((s) => stringify(s)).join("")}`;
+  return `${t.name}${t.args.map(s => stringify(s)).join("")}`;
 };
 
 export const collectArities = (terms: Maybe<Term>[]): Arities => {
@@ -101,7 +101,7 @@ export const collectSymbols = (terms: Maybe<Term>[]): Set<Symb> => {
 export function genSymbolSplitter(
   symbols: string[],
 ): (str: string) => Maybe<string[]> {
-  const maxLen = Math.max(...symbols.map((l) => l.length));
+  const maxLen = Math.max(...symbols.map(l => l.length));
   const alphabetSet = new Set(symbols);
 
   return (str: string): string[] => {
@@ -127,7 +127,7 @@ export function genSymbolSplitter(
 
 const replaceVars = (t: Term): Term => {
   if (isVar(t)) return ω;
-  return fun(t.name, ...t.args.map((s) => replaceVars(s)));
+  return fun(t.name, ...t.args.map(s => replaceVars(s)));
 };
 
 export const termToNames = (term: Term): string[] => {

@@ -1,5 +1,5 @@
 export type SpecialCharacters = "." | "-" | "~" | "+" | "*" | "&" | "|" | "/" | "\\"
-    | "^" | "%" | "°" | "$" | "@" | "#" | ";" | ":" | "_" | "=" | "'" | ">" | "<";
+    | "^" | "%" | "°" | "$" | "@" | "#" | ";" | ":" | "_" | "=" | "'" | ">" | "<" | "!";
 
 export const specialCharacters: SpecialCharacters[] = [
     ".",
@@ -22,5 +22,7 @@ export const specialCharacters: SpecialCharacters[] = [
     "'",
     ">",
     "<",
-    "/"
+    "/",
+    "!",
+    "&"
 ];

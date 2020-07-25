@@ -13,8 +13,8 @@ const transpile = async (path: string, target: Targets): Promise<string> => {
   const trs = await compileRules(
     source,
     defaultPasses,
-    async (path) => {
-      return new Promise((resolve, reject) => {
+    async path => {
+      return new Promise(resolve => {
         const contents = readFileSync(`./examples/${path}`).toString();
         resolve(contents);
       });

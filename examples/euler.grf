@@ -1,6 +1,6 @@
-If(True, a, b) -> Inst(a)
-If(False, a, b) -> Inst(b)
-// If(cond, a, a) -> Inst(a)
+If(True, a, b) -> !(a)
+If(False, a, b) -> !(b)
+!(If(cond, a, b)) -> If(!(cond), a, b)
 
 Not(True) -> False
 Not(False) -> True
@@ -27,189 +27,84 @@ Or(True, True) -> True
 <(a, b) -> @lss(a, b)
 <=(a, b) -> @leq(a, b)
 
-Range(n) -> Range'(n, Nil)
-Range'(0, rng) -> :(0, rng)
-Range'(n, rng) -> Range'(-(n, 1), :(n, rng))
+// iterators and lists
 
-Len(lst) -> Len'(lst, 0)
-Len'(Nil, n) -> n
-Len'(:(h, tl), n) -> Len'(tl, +(n, 1))
+Range(from, to) -> If(=(from, to), It(to, EmptyIt), It(from, &Range(+(from, 1), to)))
+!(&Range(from, to)) -> Range(from, to)
 
-Divisible(a, b) -> =(%(a, b), 0)
+Next(It(val, next)) -> !(next)
 
-IsPrime(2) -> True
-IsPrime(n) -> If(Or(<(n, 2), Divisible(n, 2)), False, #IsPrime'(n, 3))
+Rev(&Rev(lst)) -> lst
 
-Inst(#IsPrime'(n, i)) -> IsPrime'(n, Inst(i))
-Inst(#If(a, b, c)) -> If(Inst(a), b, c)
-Inst(#Divisible(a, b)) -> Divisible(a, b)
-Inst(#+(a, b)) -> +(a, b)
-Inst(x) -> x
+List(it) -> List'(it, Nil)
+List'(EmptyIt, lst) -> Rev(lst)
+List'(It(n, next), lst) -> List'(!(next), :(n, lst))
 
-IsPrime'(n, i) ->
-    If(>(*(i, i), n),
-        True,
-        #If(#Divisible(n, i),
-            False,
-            #IsPrime'(n, #+(i, 2))
+Rev(lst) -> Rev'(lst, Nil)
+Rev'(Nil, rev) -> rev
+Rev'(:(h, tl), rev) -> Rev'(tl, :(h, rev))
+
+Take(0, it) -> EmptyIt
+Take(n, It(val, next)) -> It(val, &Take(-(n, 1), next))
+!(&Take(n, it)) -> Take(n, !(it))
+
+Len(it) -> Len'(it, 0)
+Len'(EmptyIt, len) -> len 
+Len'(It(h, next), len) -> Len'(!(next), +(len, 1))
+
+Map(f, EmptyIt) -> EmptyIt
+Map(f, It(h, next)) -> It(App(f, h), &Map(f, next))
+!(&Map(f, next)) -> Map(f, !(next))
+
+Foldl(f, EmptyIt, acc) -> acc
+Foldl(f, It(n, next), acc) -> Foldl(f, !(next), App(App(f, acc), n))
+
+App(App(Plus, a), b) -> +(a, b)
+App(App(Mult, a), b) -> *(a, b)
+
+App(Inc, n) -> +(n, 1)
+
+IsDivisible(a, b) -> =(%(a, b), 0)
+IsEven(n) -> IsDivisible(n, 2)
+
+Collatz(1) -> It(1, EmptyIt)
+Collatz(n) -> It(n, &Collatz(If(IsEven(n), /(n, 2), +(*(3, n), 1))))
+!(&Collatz(n)) -> Collatz(n)
+
+Max(It(n, next)) -> Max'(!(next), n)
+Max'(EmptyIt, max) -> max
+Max'(It(n, next), max) -> Max'(!(next), If(>(n, max), n, max))
+
+// Binary trees
+
+Ins(Leaf, key, val) -> Node(Entry(key, val), Leaf, Leaf)
+Ins(Node(Entry(n, v), left, right), key, val) -> 
+    If(<(key, n),
+        &Node(Entry(n, v), &Ins(left, key, val), right),
+        &Node(Entry(n, v), left, &Ins(right, key, val))
+    )
+!(&Node(n, left, right)) -> Node(n, !(left), !(right))
+!(&Ins(dict, key, val)) -> Ins(dict, key, val)
+
+Lookup(Leaf, key) -> None
+Lookup(Node(Entry(k, v), left, right), key) ->
+    If(=(key, k), 
+        Some(v),
+        If(<(key, k),
+            &Lookup(left, key),
+            &Lookup(right, key)
         )
     )
+!(&Lookup(dict, key)) -> Lookup(dict, key)
 
-Inst(#:(h, tl)) -> :(Inst(h), Inst(tl))
-Inst(#Factorize(n)) -> Factorize(Inst(n))
-Inst(#Factorize'(n, i)) -> Factorize'(n, Inst(i))
-Inst(#/(a, b)) -> /(Inst(a), Inst(b))
+IsSome(None) -> False
+IsSome(Some(x)) -> True
 
-Factorize(2) -> :(2, Nil)
-Factorize(n) -> 
-        If(Divisible(n, 2),
-            #:(2, #Factorize(#/(n, 2))),
-            #Factorize'(n, 3)
-        )
+Has(dict, key) -> IsSome(Lookup(dict, key))
 
-Factorize'(n, i) ->
-    If(<=(*(i, i), n),
-        #If(Divisible(n, i),
-            #:(i, #Factorize(/(n, i))),
-            #Factorize'(n, #+(i, 2))
-        ),
-        :(n, Nil) // n is prime
-    )
+T -> Ins(Ins(Ins(Leaf, 27, Len(Collatz(27))), 32, Len(Collatz(32))), 19, Len(Collatz(19)))
 
-PrevOdd(n) -> If(Divisible(n, 2), #-(n, 1), n)
-Inst(#PrevOdd(n)) -> PrevOdd(Inst(n))
+Query -> Foldl(Mult, Range(1, 10), 1)
 
-PrimesLessThan(n) -> If(<(n, 2), Nil, #PrimesLessThan'(#PrevOdd(n), Nil))
-Inst(#PrimesLessThan'(n, ps)) -> PrimesLessThan'(Inst(n), ps)
-Inst(#-(a, b)) -> -(Inst(a), Inst(b))
-PrimesLessThan'(3, ps) -> :(2, :(3, ps))
-PrimesLessThan'(n, ps) -> 
-    If(IsPrime(n),
-        #PrimesLessThan'(#-(n, 2), :(n, ps)),
-        #PrimesLessThan'(#-(n, 2), ps)
-    )
-
-Filter(as, f) -> Filter'(as, f, Nil)
-Filter'(Nil, f, filtered) -> filtered
-Filter'(:(h, tl), f, filtered) -> Filter'(tl, f, If(App(f, h), :(h, filtered), filtered))
-
-App(IsDivisibleBy3Or5, n) -> Or(Divisible(n, 3), Divisible(n, 5))
-
-Sum(as) -> Sum'(as, 0)
-Sum'(Nil, sum) -> sum
-Sum'(:(h, tl), sum) -> Sum'(tl, +(h, sum))
-
-Fib(a, b) -> Iter(#Fib(b, +(a, b)), +(a, b))
-Inst(#Fib(a, b)) -> Fib(a, b)
-
-Take(iter, n) -> Take'(iter, n, Nil)
-Take'(iter, 0, lst) -> lst
-Take'(EmptyIter, n, lst) -> lst
-Take'(Iter(next, val), n, lst) -> Take'(Inst(next), -(n, 1), :(val, lst))
-
-TakeWhile(iter, pred) -> TakeWhile'(iter, pred, Nil)
-TakeWhile'(EmptyIter, pred, lst) -> lst
-TakeWhile'(Iter(next, val), pred, lst) -> If(App(pred, val), #TakeWhile'(Inst(next), pred, :(val, lst)), lst)
-Inst(#TakeWhile'(iter, pred, lst)) -> TakeWhile'(iter, pred, lst)
-
-App(IsEven, n) -> =(%(n, 2), 0)
-App(App(Lss, a), b) -> <(b, a)
-
-Max(Nil) -> EmptyListMaxError
-Max(:(h, tl)) -> Max'(tl, h)
-Max'(Nil, max) -> max
-Max'(:(h, tl), max) -> Max'(tl, If(>(h, max), h, max))
-
-Digits(n) -> Digits'(n, Nil)
-Digits'(0, digits) -> digits
-Digits'(n, digits) -> Digits'(/(n, 10), :(%(n, 10), digits))
-
-Reverse(lst) -> Reverse'(lst, Nil)
-Reverse'(Nil, rev) -> rev
-Reverse'(:(h, tl), rev) -> Reverse'(tl, :(h, rev))
-
-IsPalindrome(lst) -> IsPalindrome'(lst, Reverse(lst))
-IsPalindrome'(Nil, Nil) -> True
-IsPalindrome'(Nil, rev) -> False
-IsPalindrome'(lst, Nil) -> False
-IsPalindrome'(:(h1, tl1), :(h2, tl2)) -> If(=(h1, h2), #IsPalindrome'(tl1, tl2), False)
-Inst(#IsPalindrome'(lst, rev)) -> IsPalindrome'(lst, rev)
-
-Range2(from, to) -> Range2'(from, to, Nil)
-Range2'(from, n, rng) -> If(<=(n, from), :(from, rng), #Range2'(from, -(n, 1), :(n, rng)))
-Inst(#Range2'(from, n, rng)) -> Range2'(from, n, rng)
-
-Zip(as, bs) -> Zip'(as, bs, Nil)
-Zip'(Nil, bs, zipped) -> Reverse(zipped)
-Zip'(as, Nil, zipped) -> Reverse(zipped)
-Zip'(:(a, as), :(b, bs), zipped) -> Zip'(as, bs, :(Pair(a, b), zipped))
-
-Map(lst, f) -> Map'(lst, f, Nil)
-Map'(Nil, f, mapped) -> mapped
-Map'(:(h, tl), f, mapped) -> Map'(tl, f, :(App(f, h), mapped))
-
-App(MultPair, Pair(a, b)) -> *(a, b)
-App(IsPalindromic, n) -> IsPalindrome(Digits(n))
-
-Combinations(as, bs) -> Combinations'(Reverse(as), Reverse(bs), Nil)
-Combinations'(Nil, bs, combs) -> combs
-Combinations'(as, Nil, combs) -> Nil
-
-AppendCombs(a, :(b, bs), combs) -> AppendCombs(a, bs, :(Pair(a, b), combs))
-AppendCombs(a, Nil, combs) -> combs
-
-Combinations'(:(a, as), bs, combs) -> Combinations'(as, bs, AppendCombs(a, bs, combs))
-
-// Fib(a, b) -> Iter(#Fib(b, +(a, b)), +(a, b))
-// Inst(#Fib(a, b)) -> Fib(a, b)
-
-// Take(iter, n) -> Take'(iter, n, Nil)
-// Take'(iter, 0, lst) -> lst
-// Take'(EmptyIter, n, lst) -> lst
-// Take'(Iter(next, val), n, lst) -> Take'(Inst(next), -(n, 1), :(val, lst))
-
-CombinationsIter(as, bs) -> CombinationsIter'(as, bs)
-CombinationsIter'(EmptyIter, bs) -> EmptyIter
-CombinationsIter'(as, EmptyIter) -> EmptyIter
-CombinationsIter'(Iter(as, a), bs) -> Combs(a, bs, #CombinationsIter(Inst(as), bs))
-Inst(#CombinationsIter(as, bs)) -> CombinationsIter(as, bs)
-
-Combs(a, bs, nextIter) -> Combs'(a, bs, nextIter)
-Combs'(a, EmptyIter, nextIter) -> Inst(nextIter)
-Combs'(a, Iter(bs, b), nextIter) -> Iter(#Combs'(a, Inst(bs), nextIter), Pair(a, b))
-Inst(#Combs'(a, bs, nextIter)) -> Combs'(a, bs, nextIter)
-
-MaxIter(EmptyIter) -> EmptyIterMaxError
-MaxIter(Iter(next, val)) -> MaxIter'(Inst(next), val) 
-MaxIter'(EmptyIter, max) -> max
-MaxIter'(Iter(next, val), max) -> MaxIter'(Inst(next), If(>(val, max), val, max))
-
-MapIter(EmptyIter, f) -> EmptyIter
-MapIter(Iter(next, h), f) -> Iter(#MapIter(Inst(next), f), App(f, h))
-Inst(#MapIter(it, f)) -> MapIter(it, f)
-
-FilterIter(EmptyIter, pred) -> EmptyIter
-FilterIter(Iter(next, h), pred) ->
-    If(App(pred, h),
-        Iter(#FilterIter(Inst(next), pred), h),
-        #FilterIter(Inst(next), pred)
-    )
-Inst(#FilterIter(next, pred)) -> FilterIter(next, pred)
-
-RangeIter(n) -> RangeIter'(n, 0)
-RangeIter'(to, n) -> If(=(n, to), Iter(EmptyIter, to), Iter(#RangeIter'(to, +(n, 1)), n))
-Inst(#RangeIter'(to, n)) -> RangeIter'(to, n)
-
-RangeIter2(from, to) -> RangeIter2'(from, to)
-RangeIter2'(n, to) -> If(=(n, to), Iter(EmptyIter, to), Iter(#RangeIter2'(+(n, 1), to), n))
-Inst(#RangeIter2'(n, to)) -> RangeIter2'(n, to)
-
-NthIter(it, n) -> NthIter'(it, n)
-NthIter(EmptyIter, n) -> None
-NthIter(Iter(next, h), 0) -> Some(h)
-NthIter(Iter(next, h), n) -> NthIter(Inst(next), -(n, 1))
-
-Euler1 -> Sum(Filter(Range(999), IsDivisibleBy3Or5))
-Euler2 -> Sum(Filter(TakeWhile(Fib(0, 1), App(Lss, 4000000)), IsEven))
-Euler3 -> Max(Factorize(600851475143))
-Euler4 -> MaxIter(FilterIter(MapIter(CombinationsIter(RangeIter2(99, 999), RangeIter2(99, 999)), MultPair), IsPalindromic))
+// thunk instanciation
+!(x) -> x

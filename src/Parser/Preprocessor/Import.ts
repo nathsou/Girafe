@@ -8,7 +8,7 @@ export type FileReader = (path: string) => Promise<string>;
 
 // import "arith.grf" (+, -, *, %, >)
 
-const symb = `[${specialCharacters.map((c) => `\\${c}`).join("")}a-zA-Z0-9]+`;
+const symb = `[${specialCharacters.map(c => `\\${c}`).join("")}a-zA-Z0-9]+`;
 const pattern =
   `^\\s*(import)\\s*\\"(${symb})\\"\\s*(\\(((\\s*${symb}\\,)*\\s*${symb})\\))?$`;
 
@@ -37,7 +37,7 @@ export const handleImports = (
       if (matches) {
         const path = matches[2];
         if (!info.importPass.includedPaths.has(path)) {
-          const namedImports = matches[4]?.split(",").map((s) => s.trim()) ?? [];
+          const namedImports = matches[4]?.split(",").map(s => s.trim()) ?? [];
           info.importPass.includedPaths.set(path, namedImports);
           const contents = await fileReader(path);
           const preprocessed = await preprocess(contents, passes, info);
