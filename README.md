@@ -1,6 +1,6 @@
 # Girafe
 
-[Try online](https://nathsou.github.io/Girafe/dist/)
+[Try online](https://nathsou.github.io/Girafe/)
 
  ### Term Rewriting Systems infrastructure
 
