@@ -4,7 +4,6 @@ If(False, a, b) -> !(b)
 
 Not(True) -> False
 Not(False) -> True
-Not(Not(q)) -> q
 
 And(False, False) -> False
 And(False, True) -> False
@@ -56,6 +55,10 @@ Map(f, EmptyIt) -> EmptyIt
 Map(f, It(h, next)) -> It(App(f, h), &Map(f, next))
 !(&Map(f, next)) -> Map(f, !(next))
 
+At(0, It(val, next)) -> Some(val)
+At(n, It(val, next)) -> At(-(n, 1), !(next))
+At(n, EmptyIt) -> None
+
 Foldl(f, EmptyIt, acc) -> acc
 Foldl(f, It(n, next), acc) -> Foldl(f, !(next), App(App(f, acc), n))
 
@@ -67,6 +70,7 @@ App(Inc, n) -> +(n, 1)
 IsDivisible(a, b) -> =(%(a, b), 0)
 IsEven(n) -> IsDivisible(n, 2)
 
+Collatz(0) -> Infinity
 Collatz(1) -> It(1, EmptyIt)
 Collatz(n) -> It(n, &Collatz(If(IsEven(n), /(n, 2), +(*(3, n), 1))))
 !(&Collatz(n)) -> Collatz(n)
@@ -104,7 +108,11 @@ Has(dict, key) -> IsSome(Lookup(dict, key))
 
 T -> Ins(Ins(Ins(Leaf, 27, Len(Collatz(27))), 32, Len(Collatz(32))), 19, Len(Collatz(19)))
 
-Query -> Foldl(Mult, Range(1, 10), 1)
+// Query -> Foldl(Mult, Range(1, 10), 1)
+
+App(CollatzLen, n) -> Len(Collatz(n))
+
+Query -> Max(Map(CollatzLen, Range(1, 10000)))
 
 // thunk instanciation
 !(x) -> x

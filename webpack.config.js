@@ -156,4 +156,5 @@ const grfi = {
 
 // module.exports = [unif];
 // module.exports = [lib, grfc];
-module.exports = [grfc, grfi];
+// module.exports = [grfc, grfi];
+module.exports = [lib, grfc, grfi];

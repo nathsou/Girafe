@@ -63,5 +63,3 @@ Simplify(x) -> Inst(x)
 Inst(#Expand(x)) -> Expand(x)
 Inst(#Simplify(x)) -> Simplify(x)
 Inst(a) -> a
-
-T -> Expand(**(+(a, b), Nat(2)))

@@ -32,12 +32,7 @@ const buildNormalizer = async (path: string): Promise<Normalizer> => {
     }
 };
 
-interface Context {
-    history: string[],
-    historyIndex: number
-}
-
-const repl = (norm: Normalizer, ctx: Context = { history: [], historyIndex: 0 }): void => {
+const repl = (norm: Normalizer): void => {
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
@@ -60,6 +55,7 @@ const repl = (norm: Normalizer, ctx: Context = { history: [], historyIndex: 0 })
                     buildNormalizer(src).then(updatedNorm => {
                         norm = updatedNorm;
                     });
+                    next();
                     break;
                 case '':
                 case undefined:
@@ -68,10 +64,8 @@ const repl = (norm: Normalizer, ctx: Context = { history: [], historyIndex: 0 })
             }
 
             const queryTerm = parseTerm(q);
-            ctx.historyIndex = 0;
 
             if (queryTerm) {
-                ctx.history.push(q);
                 console.log(showTerm(norm(queryTerm)));
             } else {
                 console.log(`Could not parse query: "${q}"`);
