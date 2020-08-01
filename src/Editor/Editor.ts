@@ -22,6 +22,8 @@ import { JSExternals } from "../Parser/Types";
 import { time } from "../Parser/Utils";
 import { girafeMonarch } from './syntax';
 
+const importPath = '../../examples';
+
 document.body.style.margin = "0px";
 document.body.style.padding = "0px";
 document.body.style.overflow = "hidden";
@@ -75,6 +77,22 @@ const editor = monaco.editor.create(editorDiv, {
     theme: "vs"
 });
 
+let darkMode = false;
+
+const changeThemeAction: monaco.editor.IActionDescriptor = {
+    id: 'toggleDarkMode',
+    label: 'Toggle Dark Mode',
+    keybindings: [
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_K,
+    ],
+    run: () => {
+        darkMode = !darkMode;
+        monaco.editor.setTheme(darkMode ? 'vs-dark' : 'vs');
+    }
+};
+
+editor.addAction(changeThemeAction);
+
 const query = h("input", {
     type: "text",
     placeholder: "IsPrime(1789)",
@@ -85,7 +103,7 @@ const query = h("input", {
 
 document.body.appendChild(query);
 
-const outputDiv = div({ width: "100vw", height: "calc(20vh - 40px)" });
+const outputDiv = div({ width: "100vw", height: "calc(20vh - 37px)" });
 document.body.appendChild(outputDiv);
 
 const output = monaco.editor.create(outputDiv, {
@@ -100,7 +118,7 @@ const output = monaco.editor.create(outputDiv, {
 
 const defaultFileReader: FileReader = async (path: string) => {
     ///@ts-ignore
-    const dep = await import(`../../examples/${path}`);
+    const dep = await import(`${importPath}/${path}`);
     return dep.default;
 };
 
@@ -126,7 +144,7 @@ const run = async () => {
 };
 
 query.addEventListener("keypress", async (e: KeyboardEvent) => {
-    if (e.keyCode === 13) {
+    if (e.keyCode === 13) { // Enter
         await run();
     }
 });

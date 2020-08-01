@@ -13,11 +13,11 @@ export const girafeMonarch: monaco.languages.IMonarchLanguage = {
         ],
 
         common: [
-            [/->/, 'operator'],
+            [/\\->/, 'operator'],
             // variables
             [/[a-z_$][\w$]*/, 'variable'],
             // fun
-            [/[A-Z0-9\\.\-\\~\\+\\*\\&\\|\\^\\%\\°\\$\\@\\#\\;\\:\\_\\=\\'\\>\\<\\/\\!\\&]+[A-Za-z0-9\\.\-\\~\\+\\*\\&\\|\\^\\%\\°\\$\\@\\#\\;\\:\\_\\=\\'\\>\\<\\/\\!\\&]*/, 'keyword'],  // to show class names nicely
+            [/[A-Z0-9\\.\-\\~\\+\\*\\&\\|\\^\\%\\°\\$\\@\\#\\;\\:\\_\\=\\'\\>\\<\\/\\!\\&]+[A-Za-z0-9\\.\-\\~\\+\\*\\&\\|\\^\\%\\°\\$\\@\\#\\;\\:\\_\\=\\'\\>\\<\\/\\!\\&]*/, 'type.constructor'],  // to show class names nicely
             // [/[A-Z][\w\$]*/, 'identifier'],
 
             // whitespace
