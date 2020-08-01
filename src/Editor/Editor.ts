@@ -1,7 +1,7 @@
 // ts-ignore comments are used to load files that
 // typescript does not know how to handle
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { editor as monacoEditor } from 'monaco-editor';
+import * as monaco from 'monaco-editor';
 ///@ts-ignore
 import trs from "../../examples/test.grf";
 import {
@@ -20,11 +20,11 @@ import { parseTerm } from '../Parser/Parser';
 import { FileReader } from "../Parser/Preprocessor/Import";
 import { JSExternals } from "../Parser/Types";
 import { time } from "../Parser/Utils";
+import { girafeMonarch } from './syntax';
 
 document.body.style.margin = "0px";
 document.body.style.padding = "0px";
 document.body.style.overflow = "hidden";
-document.body.style.backgroundColor = "black";
 
 const externals: JSExternals<string> = {
     ...arithmeticExternals,
@@ -65,11 +65,14 @@ const div = (
 const editorDiv = div({ width: "100vw", height: "80vh" });
 document.body.appendChild(editorDiv);
 
-const editor = monacoEditor.create(editorDiv, {
+monaco.languages.register({ id: 'girafe' });
+monaco.languages.setMonarchTokensProvider('girafe', girafeMonarch);
+
+const editor = monaco.editor.create(editorDiv, {
     value: trs,
-    language: "plaintext",
+    language: "girafe",
     fontSize: 20,
-    theme: "hc-dark",
+    theme: "vs"
 });
 
 const query = h("input", {
@@ -82,16 +85,17 @@ const query = h("input", {
 
 document.body.appendChild(query);
 
-const outputDiv = div({ width: "100vw", height: "10vh" });
+const outputDiv = div({ width: "100vw", height: "calc(20vh - 40px)" });
 document.body.appendChild(outputDiv);
 
-const output = monacoEditor.create(outputDiv, {
+const output = monaco.editor.create(outputDiv, {
     value: "",
-    language: "plaintext",
+    language: "girafe",
     fontSize: 20,
-    theme: "vs-dark",
+    theme: "vs",
     lineNumbers: "off",
     minimap: { enabled: false },
+    wordWrap: "on"
 });
 
 const defaultFileReader: FileReader = async (path: string) => {
