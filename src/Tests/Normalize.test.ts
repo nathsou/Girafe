@@ -49,6 +49,7 @@ const tests: Array<[Term, Term]> = [
     ['Reverse(Range(3))', ':(3, :(2, :(1, :(0, Nil))))'],
     ['Len(Range(11))', '12'],
     ['=(Len(Range(11)), 12)', 'True'],
+    ['=(Len(Range(11)), 11)', 'False'],
     ['=(Len(Reverse(Range(11))), Len(Range(11)))', 'True']
 ].map(([input, output]) => [defined(parseTerm(input)), defined(parseTerm(output))]);
 

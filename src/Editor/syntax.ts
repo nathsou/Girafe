@@ -13,7 +13,7 @@ export const girafeMonarch: monaco.languages.IMonarchLanguage = {
         ],
 
         common: [
-            [/\\->/, 'operator'],
+            [/->/, 'operator'],
             // variables
             [/[a-z_$][\w$]*/, 'variable'],
             // fun

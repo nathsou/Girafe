@@ -45,7 +45,7 @@ const tests = [
     { // primes
         rules: readFileSync('src/Tests/TRSs/primes.grf').toString(),
         query: 'Query',
-        output: "4'",
+        output: ":(2', :(5', Nil))",
         externals: {}
     },
 ].map(({ rules, query, output, externals }) =>

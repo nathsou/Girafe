@@ -73,13 +73,14 @@ monaco.languages.setMonarchTokensProvider('girafe', girafeMonarch);
 const editor = monaco.editor.create(editorDiv, {
     value: trs,
     language: "girafe",
-    fontSize: 20,
-    theme: "vs"
+    fontSize: 20
 });
 
-let darkMode = false;
+const hour = new Date().getHours();
+let darkMode = hour >= 20 || hour <= 9;
+monaco.editor.setTheme(darkMode ? 'vs-dark' : 'vs');
 
-const changeThemeAction: monaco.editor.IActionDescriptor = {
+const toggleDarkMode: monaco.editor.IActionDescriptor = {
     id: 'toggleDarkMode',
     label: 'Toggle Dark Mode',
     keybindings: [
@@ -91,7 +92,7 @@ const changeThemeAction: monaco.editor.IActionDescriptor = {
     }
 };
 
-editor.addAction(changeThemeAction);
+editor.addAction(toggleDarkMode);
 
 const query = h("input", {
     type: "text",
@@ -110,7 +111,6 @@ const output = monaco.editor.create(outputDiv, {
     value: "",
     language: "girafe",
     fontSize: 20,
-    theme: "vs",
     lineNumbers: "off",
     minimap: { enabled: false },
     wordWrap: "on"

@@ -24,6 +24,7 @@ Or(a, b) -> If(a, True, b)
 7 -> S(6)
 8 -> S(7)
 9 -> S(8)
+10 -> S(9)
 
 |(0, x) -> x
 |(a, b) -> +(b, *(a, S(9)))
@@ -151,4 +152,4 @@ N(:(h, tl)) -> :(N(h), N(tl))
 
 Inst(x) -> x
 
-Query -> N(Len(Primes(9)))
+Query -> N(Len(Primes(**(10, 2))))
