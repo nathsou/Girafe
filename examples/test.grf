@@ -1,5 +1,5 @@
-If(True, a, b) -> Inst(a)
-If(False, a, b) -> Inst(b)
+If(True, a?, b?) -> a
+If(False, a?, b?) -> b
 
 Not(True) -> False
 Not(False) -> True
@@ -37,53 +37,39 @@ Len'(:(h, tl), n) -> Len'(tl, +(n, 1))
 Divisible(a, b) -> =(%(a, b), 0)
 
 IsPrime(2) -> True
-IsPrime(n) -> If(Or(<(n, 2), Divisible(n, 2)), False, #IsPrime'(n, 3))
-
-Inst(#IsPrime'(n, i)) -> IsPrime'(n, Inst(i))
-Inst(#If(a, b, c)) -> If(Inst(a), b, c)
-Inst(#Divisible(a, b)) -> Divisible(a, b)
-Inst(#+(a, b)) -> +(a, b)
-Inst(x) -> x
+IsPrime(n) -> If(Or(<(n, 2), Divisible(n, 2)), False, IsPrime'(n, 3))
 
 IsPrime'(n, i) ->
     If(>(*(i, i), n),
         True,
-        #If(#Divisible(n, i),
+        If(Divisible(n, i),
             False,
-            #IsPrime'(n, #+(i, 2))
+            IsPrime'(n, +(i, 2))
         )
     )
-
-Inst(#:(h, tl)) -> :(Inst(h), Inst(tl))
-Inst(#Factorize(n)) -> Factorize(Inst(n))
-Inst(#Factorize'(n, i)) -> Factorize'(n, Inst(i))
-Inst(#/(a, b)) -> /(Inst(a), Inst(b))
 
 Factorize(2) -> :(2, Nil)
 Factorize(n) -> 
         If(Divisible(n, 2),
-            #:(2, #Factorize(#/(n, 2))),
-            #Factorize'(n, 3)
+            :(2, Factorize(/(n, 2))),
+            Factorize'(n, 3)
         )
 
 Factorize'(n, i) ->
     If(<=(*(i, i), n),
-        #If(Divisible(n, i),
-            #:(i, #Factorize(/(n, i))),
-            #Factorize'(n, #+(i, 2))
+        If(Divisible(n, i),
+            :(i, Factorize(/(n, i))),
+            Factorize'(n, +(i, 2))
         ),
         :(n, Nil) // n is prime
     )
 
-PrevOdd(n) -> If(Divisible(n, 2), #-(n, 1), n)
-Inst(#PrevOdd(n)) -> PrevOdd(Inst(n))
+PrevOdd(n) -> If(Divisible(n, 2), -(n, 1), n)
 
-PrimesLessThan(n) -> If(<(n, 2), Nil, #PrimesLessThan'(#PrevOdd(n), Nil))
-Inst(#PrimesLessThan'(n, ps)) -> PrimesLessThan'(Inst(n), ps)
-Inst(#-(a, b)) -> -(Inst(a), Inst(b))
+PrimesLessThan(n) -> If(<(n, 2), Nil, PrimesLessThan'(PrevOdd(n), Nil))
 PrimesLessThan'(3, ps) -> :(2, :(3, ps))
 PrimesLessThan'(n, ps) -> 
     If(IsPrime(n),
-        #PrimesLessThan'(#-(n, 2), :(n, ps)),
-        #PrimesLessThan'(#-(n, 2), ps)
+        PrimesLessThan'(-(n, 2), :(n, ps)),
+        PrimesLessThan'(-(n, 2), ps)
     )

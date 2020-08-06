@@ -1,10 +1,9 @@
 import { Dict, dictEntries, dictGet, dictHas, dictSet, Fun, Rule, Substitution, Symb, Term, TRS, Var } from "../Parser/Types";
 import { every, gen, some, traverseNames } from "../Parser/Utils";
 import { Ok } from "../Types";
-import { check, checkArity, checkNoDuplicates, checkNoFreeVars } from "./Passes/Checks";
+import { check, checkArity, checkLeftLinearity, checkNoDuplicates, checkNoFreeVars } from "./Passes/Checks";
 import { CompilerPass } from "./Passes/CompilerPass";
 import { lazify } from "./Passes/Lazify";
-import { leftLinearize } from "./Passes/LeftLinearize";
 import { orderBySpecificity } from "./Passes/OrderBy";
 
 export type Maybe<T> = T | void;
@@ -24,12 +23,13 @@ export const defaultPasses: CompilerPass[] = [
     checkNoFreeVars,
     checkArity,
     checkNoDuplicates,
+    checkLeftLinearity
   ),
   // currify,
   lazify,
-  leftLinearize,
+  // leftLinearize,
   orderBySpecificity,
-  // logTRS,
+  logTRS,
 ];
 
 export function isFun(term: Term, name?: Symb): term is Fun {
@@ -47,6 +47,10 @@ export function isVar(term: Term, name?: Var): term is Var {
 
   return typeof term === "string";
 }
+
+export const isConst = (term: Term): boolean => {
+  return isFun(term) && term.args.length === 0;
+};
 
 export function vars(term: Term, acc: Var[] = []): Var[] {
   if (isVar(term)) {

@@ -1,6 +1,6 @@
 import { Fun, Rule, Symb, Term, TRS, Var } from "../../Parser/Types";
 import { Ok } from "../../Types";
-import { addRules, arity, emptyTRS, fill, fun, genVars, isEmpty, isFun, isVar, replaceTerms, ruleVars } from "../Utils";
+import { addRules, arity, emptyTRS, fill, fun, genVars, isEmpty, isFun, isVar, replaceTerms, ruleVars, isConst } from "../Utils";
 import { CompilationResult, CompilerPass } from "./CompilerPass";
 
 export type LazinessAnnotations = Map<Symb, boolean[]>;
@@ -26,8 +26,7 @@ export const lazify: CompilerPass = (trsWithAnnotations: TRS): CompilationResult
     for (const [name, rules] of trs.entries()) {
         for (const [lhs, rhs] of rules) {
             const thunkedRule: Rule = instantiateMigrants([
-                // lhs,
-                thunkify(lhs, ann) as Fun,
+                thunkify(lhs, ann),
                 thunkify(rhs, ann)
             ], ann);
 
@@ -40,14 +39,16 @@ export const lazify: CompilerPass = (trsWithAnnotations: TRS): CompilationResult
 
     // instantiate each function symbol
     for (const [symb, ar] of arities.entries()) {
-        const varNames = genVars(ar);
+        if (ar > 0) {
+            const varNames = genVars(ar);
 
-        const instRule: Rule = [
-            Inst(Thunk(symb, ...varNames)),
-            instantiateLazyArgs(fun(symb, ...varNames), ann)
-        ];
+            const instRule: Rule = [
+                Inst(Thunk(symb, ...varNames)),
+                instantiateLazyArgs(fun(symb, ...varNames), ann)
+            ];
 
-        addRules(newTrs, instRule);
+            addRules(newTrs, instRule);
+        }
     }
 
     addRules(newTrs, [Inst('x'), 'x']);
@@ -166,21 +167,21 @@ const migrantVars = (rule: Rule, ann: LazinessAnnotations): Var[] => {
 };
 
 const thunkifyAll = (ts: Term[], ann: LazinessAnnotations): Term[] => (
-    ts.map(t => isVar(t) ? t : Thunk(t.name, ...thunkifyAll(t.args, ann)))
+    ts.map(t => (isVar(t) || isConst(t)) ? t : Thunk(t.name, ...thunkifyAll(t.args, ann)))
 );
 
-const thunkify = (t: Term, ann: LazinessAnnotations): Term => {
-    if (isVar(t)) return t;
+const thunkify = <T extends Term>(t: T, ann: LazinessAnnotations): T => {
+    if (isVar(t) || isConst(t)) return t;
 
-    const args = t.args.map((arg, i) => {
-        if (isFun(arg) && isLazy(t.name, i, ann)) {
+    const args = (t as Fun).args.map((arg, i) => {
+        if (isFun(arg) && isLazy((t as Fun).name, i, ann) && !isConst(arg)) {
             return thunkify(Thunk(arg.name, ...thunkifyAll(arg.args, ann)), ann);
         }
 
         return arg;
     });
 
-    return { name: t.name, args };
+    return { name: (t as Fun).name, args } as T;
 };
 
 const instantiateMigrants = (rule: Rule, ann: LazinessAnnotations): Rule => {
