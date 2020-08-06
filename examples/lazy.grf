@@ -1,0 +1,23 @@
+If(True, a?, b?) -> a
+If(False, a?, b?) -> b
+
+Inf(x) -> :(x, Inf(S(x)))
+Nth(x, :(y, z)) -> y
+Nth(S(x), :(y, z?)) -> Nth(x, z)
+
+~(~(n)?) -> n
+~(n?) -> Neg(n)
+
+T(n) -> ~(~(n))
+
+Range(S(n)) -> It(S(n), Range(n)?)
+Range(x) -> It(x, EmptyIter)
+
+Next(It(val, next)) -> next
+
+Take(n, it) -> Take'(n, it, Nil)
+Take'(x, EmptyIter, acc) -> acc
+Take'(S(n), It(val, next), acc) -> Take'(n, next, :(val, acc))
+Take'(x, It(val, next), acc) -> acc
+
+Q -> Take(S(S(0)), Range(S(S(S(0)))))

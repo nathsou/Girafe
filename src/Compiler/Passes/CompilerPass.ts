@@ -2,8 +2,8 @@ import { TRS } from "../../Parser/Types";
 import { unwrap, isError, Ok, Result } from "../../Types";
 import { showTRS } from "../Utils";
 
-export type CompilationError = string;
-export type CompilationResult = Result<TRS, CompilationError[]>;
+export type CompilationMessage = { type: 'error' | 'warning', message: string };
+export type CompilationResult = Result<TRS, CompilationMessage[]>;
 export type CompilerPass = (trs: TRS) => CompilationResult;
 
 export const compile = (trs: TRS, ...passes: CompilerPass[]): CompilationResult => {

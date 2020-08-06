@@ -1,14 +1,14 @@
 import { Rule, TRS, Fun } from "../../Parser/Types";
 import { Err, Ok } from "../../Types";
-import { CompilationError, CompilationResult, CompilerPass } from "./CompilerPass";
-import { arity, hasDuplicatesSet, ruleArity, ruleName, rulesAlphaEquiv, showRule, vars } from "../Utils";
+import { CompilationMessage, CompilationResult, CompilerPass } from "./CompilerPass";
+import { arity, hasDuplicatesSet, ruleArity, ruleName, rulesAlphaEquiv, showRule, vars, isRuleRecursive, isRuleTailRecursive } from "../Utils";
 
-export type Checker = (rules: Rule[]) => CompilationError[];
+export type Checker = (rules: Rule[]) => CompilationMessage[];
 
 // performs a set of checks on each rule
 export const check = (...checkers: Checker[]): CompilerPass => {
     return (trs: TRS): CompilationResult => {
-        const errors: CompilationError[] = [];
+        const errors: CompilationMessage[] = [];
 
         for (const rules of trs.values()) {
             for (const checker of checkers) {
@@ -20,8 +20,16 @@ export const check = (...checkers: Checker[]): CompilerPass => {
     };
 };
 
-export const checkArity: Checker = (rules: Rule[]): CompilationError[] => {
-    const errors: CompilationError[] = [];
+export const asErrors = (messages: string[]): CompilationMessage[] => {
+    return messages.map(msg => ({ type: 'error', message: msg }));
+};
+
+export const asWarnings = (messages: string[]): CompilationMessage[] => {
+    return messages.map(msg => ({ type: 'warning', message: msg }));
+};
+
+export const checkArity: Checker = (rules: Rule[]): CompilationMessage[] => {
+    const errors: string[] = [];
     const ar = arity(rules);
 
     for (const rule of rules) {
@@ -31,7 +39,7 @@ export const checkArity: Checker = (rules: Rule[]): CompilationError[] => {
         }
     }
 
-    return errors;
+    return asErrors(errors);
 };
 
 export const isLeftLinear = ([lhs, _]: Rule): boolean => {
@@ -42,8 +50,8 @@ export const isFunLeftLinear = (f: Fun): boolean => {
     return !hasDuplicatesSet(vars(f));
 };
 
-export const checkLeftLinearity: Checker = (rules: Rule[]): CompilationError[] => {
-    const errors: CompilationError[] = [];
+export const checkLeftLinearity: Checker = (rules: Rule[]): CompilationMessage[] => {
+    const errors: string[] = [];
 
     for (const rule of rules) {
         // check if the rule is left-linear
@@ -52,7 +60,7 @@ export const checkLeftLinearity: Checker = (rules: Rule[]): CompilationError[] =
         }
     }
 
-    return errors;
+    return asErrors(errors);
 };
 
 export const hasFreeVars = ([lhs, rhs]: Rule): boolean => {
@@ -60,8 +68,8 @@ export const hasFreeVars = ([lhs, rhs]: Rule): boolean => {
     return vars(rhs).some(x => !lhsVars.has(x));
 };
 
-export const checkNoFreeVars: Checker = (rules: Rule[]): CompilationError[] => {
-    const errors: CompilationError[] = [];
+export const checkNoFreeVars: Checker = (rules: Rule[]): CompilationMessage[] => {
+    const errors: string[] = [];
 
     for (const rule of rules) {
         if (hasFreeVars(rule)) {
@@ -69,7 +77,7 @@ export const checkNoFreeVars: Checker = (rules: Rule[]): CompilationError[] => {
         }
     }
 
-    return errors;
+    return asErrors(errors);
 };
 
 const overlappingRules = (rules: Rule[]): [Rule, Rule][] => {
@@ -88,14 +96,26 @@ const overlappingRules = (rules: Rule[]): [Rule, Rule][] => {
     return alphaEquivRules;
 };
 
-export const checkNoDuplicates: Checker = (rules: Rule[]): CompilationError[] => {
-    const errors: CompilationError[] = [];
+export const checkNoDuplicates: Checker = (rules: Rule[]): CompilationMessage[] => {
+    const errors: string[] = [];
 
     for (const [rule1, rule2] of overlappingRules(rules)) {
         errors.push(`${showRule(rule1)} and ${showRule(rule2)} are overlapping`);
     }
 
-    return errors;
+    return asErrors(errors);
+};
+
+export const checkTailRecursive: Checker = (rules: Rule[]): CompilationMessage[] => {
+    const warnings: string[] = [];
+
+    for (const rule of rules) {
+        if (isRuleRecursive(rule) && !isRuleTailRecursive(rule)) {
+            warnings.push(`${showRule(rule)} is not tail recursive`);
+        }
+    }
+
+    return asWarnings(warnings);
 };
 
 export const allChecks = check(

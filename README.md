@@ -4,7 +4,7 @@
 
  ### Term Rewriting Systems infrastructure
 
-Girafe provides a set of tools based on a minimal [term rewriting systems](https://en.wikipedia.org/wiki/Rewriting) language that can be interpreted or even compiled to various targets.
+Girafe provides a set of tools based on a minimal [term rewriting systems](https://en.wikipedia.org/wiki/Rewriting) language that can be interpreted or compiled to various targets.
 
 See the examples/ folder for small demos.
 
@@ -30,7 +30,7 @@ $ grfi src.grf [query]
 ### Todo
 
 - [ ] Use the necessity heuristic when building decision-trees
-- [ ] Simulate lazy rewriting correctly
+- [x] Simulate lazy rewriting correctly
 - [ ] Add targets (c/rust/wasm)
 - [ ] Confluence checks
 - [ ] Simple optimizations

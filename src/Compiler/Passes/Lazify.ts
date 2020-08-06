@@ -1,7 +1,7 @@
 import { Fun, Rule, Symb, Term, TRS, Var } from "../../Parser/Types";
 import { Ok } from "../../Types";
-import { CompilationResult, CompilerPass } from "./CompilerPass";
 import { addRules, arity, emptyTRS, fill, fun, genVars, isEmpty, isFun, isVar, replaceTerms, ruleVars } from "../Utils";
+import { CompilationResult, CompilerPass } from "./CompilerPass";
 
 export type LazinessAnnotations = Map<Symb, boolean[]>;
 export type Arities = Map<Symb, number>;
@@ -15,10 +15,10 @@ const Inst = (...args: Term[]) => fun(instSymb, ...args);
 const Thunk = (name: Symb, ...args: Term[]) => fun(`${thunkSymb}${name}`, ...args);
 
 export const lazify: CompilerPass = (trsWithAnnotations: TRS): CompilationResult => {
-    const newTrs = emptyTRS();
     const [ann, hasLazyTerms] = collectLazinessAnnotations(trsWithAnnotations);
     const trs = removeLazinessAnnotations(trsWithAnnotations);
     if (!hasLazyTerms) return Ok(trs);
+    const newTrs = emptyTRS();
 
     const arities = collectTRSArities(trs);
 
@@ -26,7 +26,8 @@ export const lazify: CompilerPass = (trsWithAnnotations: TRS): CompilationResult
     for (const [name, rules] of trs.entries()) {
         for (const [lhs, rhs] of rules) {
             const thunkedRule: Rule = instantiateMigrants([
-                lhs,
+                // lhs,
+                thunkify(lhs, ann) as Fun,
                 thunkify(rhs, ann)
             ], ann);
 
@@ -43,9 +44,7 @@ export const lazify: CompilerPass = (trsWithAnnotations: TRS): CompilationResult
 
         const instRule: Rule = [
             Inst(Thunk(symb, ...varNames)),
-            // FIXME: Don't instantiate everything
-            // fun(symb, ...varNames.map(t => Inst(t)))
-            fun(symb, ...varNames)
+            instantiateLazyArgs(fun(symb, ...varNames), ann)
         ];
 
         addRules(newTrs, instRule);
@@ -56,45 +55,68 @@ export const lazify: CompilerPass = (trsWithAnnotations: TRS): CompilationResult
     return Ok(newTrs);
 };
 
+const removeLazinessAnnotation = <T extends Term>(term: T): T => {
+    if (isVar(term)) return term;
+
+    const newArgs: Term[] = [];
+    for (const t of ((term as Fun).args).map(t => removeLazinessAnnotation(t))) {
+        if (isFun(t, lazyAnnotationSymb)) {
+            newArgs.push(t.args[0]);
+        } else {
+            newArgs.push(t);
+        }
+    }
+
+    return { name: (term as Fun).name, args: newArgs } as T;
+};
+
 const removeLazinessAnnotations = (trs: TRS): TRS => {
     const newTrs = new Map<string, Rule[]>();
 
-    for (const [name, rules] of trs.entries()) {
+    for (const rules of trs.values()) {
         for (const [lhs, rhs] of rules) {
-            const newArgs: Term[] = [];
-            for (const t of lhs.args) {
-                if (isFun(t, lazyAnnotationSymb)) {
-                    newArgs.push(t.args[0]);
-                } else {
-                    newArgs.push(t);
-                }
-            }
-
-            addRules(newTrs, [{ name, args: newArgs }, rhs]);
+            addRules(newTrs, [removeLazinessAnnotation(lhs), removeLazinessAnnotation(rhs)]);
         }
     }
 
     return newTrs;
 };
 
-const collectLazinessAnnotations = (trs: TRS): [LazinessAnnotations, boolean] => {
-    const annotations = new Map<string, boolean[]>();
+const collectLazinessAnnotation = (
+    term: Term,
+    annotations: Map<string, boolean[]>
+): boolean => {
+    if (isVar(term)) return false;
+
     let hasLazyTerms = false;
+    const name = term.name;
+    const ar = term.args.length;
+    const ann = annotations.get(name) ?? fill(false, ar);
 
-    for (const [name, rules] of trs.entries()) {
-        const ar = arity(rules);
-        const ann = fill(false, ar);
-
-        for (const [lhs] of rules) {
-            lhs.args.forEach((t, i) => {
-                if (isFun(t, lazyAnnotationSymb)) {
-                    ann[i] = true;
-                    hasLazyTerms = true;
-                }
-            });
+    term.args.forEach((t, i) => {
+        if (isFun(t, lazyAnnotationSymb)) {
+            ann[i] = true;
+            hasLazyTerms = true;
         }
 
         annotations.set(name, ann);
+        hasLazyTerms = collectLazinessAnnotation(t, annotations) || hasLazyTerms;
+    });
+
+    return hasLazyTerms;
+};
+
+const collectLazinessAnnotations = (
+    trs: TRS
+): [LazinessAnnotations, boolean] => {
+    const annotations = new Map<string, boolean[]>();
+    let hasLazyTerms = false;
+
+    for (const rules of trs.values()) {
+        for (const [lhs, rhs] of rules) {
+            hasLazyTerms = collectLazinessAnnotation(lhs, annotations) || hasLazyTerms;
+            hasLazyTerms = collectLazinessAnnotation(rhs, annotations) || hasLazyTerms;
+        }
     }
 
     return [annotations, hasLazyTerms];
@@ -175,4 +197,22 @@ const instantiateMigrants = (rule: Rule, ann: LazinessAnnotations): Rule => {
     }
 
     return rule;
+};
+
+const instantiateLazyArgs = (term: Term, annotations: LazinessAnnotations): Term => {
+    if (isVar(term)) return term;
+
+    const newArgs: Term[] = [];
+    if (!annotations.has(term.name)) return term;
+    const ann = annotations.get(term.name);
+
+    term.args.map(t => instantiateLazyArgs(t, annotations)).forEach((t, i) => {
+        if (!ann[i]) {
+            newArgs.push(Inst(t));
+        } else {
+            newArgs.push(t);
+        }
+    });
+
+    return fun(term.name, ...newArgs);
 };
