@@ -33,6 +33,7 @@ $ grfi src.grf [query]
 - [x] Simulate lazy rewriting correctly
 - [ ] Add targets (c/rust/wasm)
 - [ ] Confluence checks
+- [x] Tail call elimination
 - [ ] Simple optimizations
 
 ### References

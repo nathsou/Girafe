@@ -2,16 +2,33 @@
 import { DecisionTree, isOccurence } from "../Compiler/DecisionTrees/DecisionTree";
 import { OccTerm, _ } from "../Compiler/DecisionTrees/DecisionTreeCompiler";
 import { DecisionTreeTranslator } from "../Compiler/DecisionTrees/DecisionTreeTranslator";
-import { fun, isVar } from "../Compiler/Utils";
+import { fun, isVar, zip } from "../Compiler/Utils";
 import { repeatString } from "../Normalizer/Matchers/ClosureMatcher/Closure";
 import { SpecialCharacters } from "../Parser/Lexer/SpecialChars";
-import { Externals, Term, TRS } from "../Parser/Types";
-import { mapString } from "../Parser/Utils";
+import { dictHas, Externals, Term, TRS, Dict } from "../Parser/Types";
+import { map, mapString } from "../Parser/Utils";
 
 const translateTerm = (term: Term): string => {
     if (isVar(term)) return term;
     return `{ name: "${term.name}", args: [${term.args.map(translateTerm).join(', ')}] }`;
 };
+
+type FunCall = { funName: string, args: JSExpr[] };
+type JSExpr = string | FunCall | Term;
+
+const stringifyJSExpr = (exp: JSExpr): string => {
+    if (typeof exp === 'string') return exp;
+
+    if (isFunCall(exp)) {
+        return `${exp.funName}(${exp.args.map(stringifyJSExpr).join(', ')})`;
+    }
+
+    return translateTerm(exp);
+};
+
+function isFunCall(val: unknown): val is FunCall {
+    return typeof val === 'object' && dictHas(val as Dict<unknown>, 'funName');
+}
 
 export const symbolMap: { [key in SpecialCharacters]: string } = {
     '.': '_dot_',
@@ -98,16 +115,21 @@ export class JSTranslator<Exts extends string>
         );
     }
 
-    private callTerm(occ: OccTerm, varNames: string[]): string {
+    private callTerm(occ: OccTerm, varNames: string[]): JSExpr {
         if (isOccurence(occ)) return this.translateOccurence(occ, varNames);
+
+        // if this is a free constructor simply output a term
         if (!this.isDefined(occ.name)) {
-            return this.translateTerm(
-                fun(occ.name, ...occ.args.map(t => this.callTerm(t, varNames)))
+            return translateTerm(
+                fun(occ.name,
+                    ...occ.args.map(t => stringifyJSExpr(this.callTerm(t, varNames)))
+                )
             );
         }
 
-        const args = `${occ.args.map(t => this.callTerm(t, varNames)).join(', ')}`;
-        return `${occ.name}(${args})`;
+        // otherwise call the corresponding js function
+        const args = occ.args.map(t => stringifyJSExpr(this.callTerm(t, varNames)));
+        return { funName: occ.name, args };
     }
 
     private translateOccurence(occ: OccTerm, varNames: string[]): string {
@@ -121,12 +143,37 @@ export class JSTranslator<Exts extends string>
     }
 
     translateDecisionTree(name: string, dt: DecisionTree, varNames: string[]): string {
+        let hasTailRecursiveLeaf = false;
+
         const translate = (tree: DecisionTree): string => {
             switch (tree.type) {
                 case 'fail':
                     return 'return ' + translateTerm(fun(name, ...varNames)) + ';';
                 case 'leaf':
-                    return 'return ' + this.callTerm(tree.action, varNames) + ';';
+                    const ret = this.callTerm(tree.action, varNames);
+
+                    // check if this is a tail recursive call
+                    if (isFunCall(ret) && ret.funName === name) {
+                        const newArgs = ret.args.map(stringifyJSExpr);
+                        const updateArgs = map(
+                            zip(varNames, newArgs),
+                            ([v, newVal]) => `const ${v}_ = ${newVal};`
+                        );
+
+                        const copyArgs = varNames.map(v => `${v} = ${v}_;`);
+
+                        hasTailRecursiveLeaf = true;
+
+                        return ident(1,
+                            '{',
+                            ...updateArgs,
+                            ...copyArgs,
+                            'continue;',
+                            '}'
+                        );
+                    }
+
+                    return `return ${stringifyJSExpr(ret)};`;
                 case 'switch':
                     const cases: string[] = [];
 
@@ -147,9 +194,15 @@ export class JSTranslator<Exts extends string>
             }
         };
 
+        const tree = translate(dt);
+
+        const body = hasTailRecursiveLeaf ?
+            `while(true) {\n ${tree} \n}` :
+            tree;
+
         return ident(0,
             'function ' + name + '(' + varNames.join(', ') + ') {',
-            translate(dt),
+            body,
             '}'
         );
     }

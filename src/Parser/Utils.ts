@@ -51,7 +51,7 @@ export function* range(from: number, to: number, step = 1): IterableIterator<num
     }
 }
 
-export function* map<U, V>(it: IterableIterator<U>, f: (val: U) => V): IterableIterator<V> {
+export function* map<U, V>(it: Iterable<U>, f: (val: U) => V): IterableIterator<V> {
     for (const val of it) {
         yield f(val);
     }
