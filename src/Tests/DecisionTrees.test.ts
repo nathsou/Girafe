@@ -1,18 +1,18 @@
 import { DecisionTree, evaluate, getOccurence } from '../Compiler/DecisionTrees/DecisionTree';
-import { clauseMatrixOf, compileClauseMatrix, defaultClauseMatrix, IndexedOccurence, occurencesOf, specializeClauseMatrix, occTermOfRule, OccTerm } from '../Compiler/DecisionTrees/DecisionTreeCompiler';
+import { ClauseMatrix, clauseMatrixOf, compileClauseMatrix, defaultClauseMatrix, IndexedOccurence, isNeeded, isPatternMoreGeneral, isPatternRedundant, OccTerm, occTermOfRule, occurencesOf, Pattern, patternOf, specializeClauseMatrix } from '../Compiler/DecisionTrees/DecisionTreeCompiler';
 import { defined, fun, isSomething } from "../Compiler/Utils";
 import { DecisionTreeNormalizer } from '../Normalizer/DecisionTreeNormalizer';
 import { parseRule, parseRules, parseTerm } from "../Parser/Parser";
-import { Dict, Term, Rule } from '../Parser/Types';
+import { Dict, Rule, Term } from '../Parser/Types';
 
-const rules = [
+const mergeRules = [
     'Merge(Nil, b) -> 1',
     'Merge(a, Nil) -> 2',
     'Merge(:(a, as), :(b, bs)) -> 3',
 ].map(r => defined(parseRule(r)));
 
 test('clauseMatrixOf', () => {
-    const m = clauseMatrixOf(rules);
+    const m = clauseMatrixOf(mergeRules);
 
     expect(m.patterns).toStrictEqual([
         [{ name: 'Nil', args: [] }, '_'],
@@ -30,7 +30,7 @@ test('clauseMatrixOf', () => {
 });
 
 test('specializeClauseMatrix', () => {
-    const m = clauseMatrixOf(rules);
+    const m = clauseMatrixOf(mergeRules);
     const S = specializeClauseMatrix(m, ':', 2);
 
     expect(S.patterns).toStrictEqual([
@@ -130,7 +130,7 @@ const mergeDecisionTree: DecisionTree = {
 };
 
 test('compileClauseMatrix', () => {
-    const m = clauseMatrixOf(rules);
+    const m = clauseMatrixOf(mergeRules);
     const sig = new Set([':', 'Nil', 'If']);
     const decisionTree = compileClauseMatrix(
         2,
@@ -406,4 +406,63 @@ test('DecisionTreeMatcher', () => {
             defined(parseTerm('S(+(a, b))'))
         );
     }
+});
+
+test('isPatternMoreGeneral', () => {
+    const tests = ([
+        ['+(a, S(b))', '+(S(a), b)', false],
+        ['+(S(a), b)', '+(a, S(b))', false],
+        ['x', '+(a, S(b))', true],
+        ['+(a, S(b))', 'x', false],
+        ['a', 'b', true],
+        ['A(x, B(y, z))', 'A(x, B(y, C))', true],
+        ['A(x, B(y, C))', 'A(x, B(y, z))', false],
+        ['A', 'B', false],
+        ['A(x)', 'A(3)', true],
+        ['A(3)', 'A(x)', false],
+        ['A(a, b, 3)', 'A(a, 7, 3)', true],
+        ['A(a, B(c, 9), 3)', 'A(a, B(2, 9), 3)', true],
+    ] as Array<[string, string, boolean]>).map(([p1, p2, res]) => [
+        patternOf(defined(parseTerm(p1))),
+        patternOf(defined(parseTerm(p2))),
+        res
+    ]) as Array<[Pattern, Pattern, boolean]>;
+
+    for (const [p1, p2, res] of tests) {
+        expect(isPatternMoreGeneral(p1, p2)).toBe(res);
+    }
+});
+
+test('isPatternRedundant', () => {
+    const tests = ([
+        [['x', 'Nil', ':(h, tl)'], 1, true],
+    ] as Array<[string[], number, boolean]>).map(([ps, idx, res]) => [
+        ps.map(p => patternOf(defined(parseTerm(p)))),
+        idx,
+        res
+    ]) as Array<[Pattern[], number, boolean]>;
+
+    for (const [ps, idx, res] of tests) {
+        expect(isPatternRedundant(idx, ps)).toBe(res);
+    }
+});
+
+const necessityMatrixOf = (matrix: ClauseMatrix): boolean[][] => {
+    const [rows, cols] = matrix.dims;
+    const neccesityMatrix: boolean[][] = [];
+
+    for (let row = 0; row < rows; row++) {
+        neccesityMatrix[row] = [];
+        for (let col = 0; col < cols; col++) {
+            neccesityMatrix[row][col] = isNeeded(row, col, matrix);
+        }
+    }
+
+    return neccesityMatrix;
+};
+
+test('isNeeded', () => {
+    const m = clauseMatrixOf(mergeRules);
+    const N = necessityMatrixOf(m);
+    expect(N).toStrictEqual([[true, false], [true, true], [true, true]]);
 });

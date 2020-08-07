@@ -51,6 +51,12 @@ export function* range(from: number, to: number, step = 1): IterableIterator<num
     }
 }
 
+export function* map<U, V>(it: IterableIterator<U>, f: (val: U) => V): IterableIterator<V> {
+    for (const val of it) {
+        yield f(val);
+    }
+}
+
 export function* repeat<T>(val: T, count: number): IterableIterator<T> {
     for (let i = 0; i < count; i++) {
         yield val;
@@ -61,10 +67,26 @@ export function union<T>(...sets: Set<T>[]): Set<T> {
     return unionMut(new Set(), ...sets);
 }
 
+export function intersection<T>(...sets: Set<T>[]): Set<T> {
+    return intersectionMut(new Set(), ...sets);
+}
+
 export function unionMut<T>(a: Set<T>, ...sets: Set<T>[]): Set<T> {
     for (const set of sets) {
         for (const val of set) {
             a.add(val);
+        }
+    }
+
+    return a;
+}
+
+export function intersectionMut<T>(a: Set<T>, ...sets: Set<T>[]): Set<T> {
+    for (const set of sets) {
+        for (const val of a) {
+            if (!set.has(val)) {
+                a.delete(val);
+            }
         }
     }
 

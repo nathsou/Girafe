@@ -29,7 +29,7 @@ export const defaultPasses: CompilerPass[] = [
   lazify,
   // leftLinearize,
   orderBySpecificity,
-  logTRS,
+  // logTRS,
 ];
 
 export function isFun(term: Term, name?: Symb): term is Fun {

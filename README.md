@@ -29,7 +29,7 @@ $ grfi src.grf [query]
 
 ### Todo
 
-- [ ] Use the necessity heuristic when building decision-trees
+- [x] Use a necessity heuristic when building decision-trees
 - [x] Simulate lazy rewriting correctly
 - [ ] Add targets (c/rust/wasm)
 - [ ] Confluence checks
