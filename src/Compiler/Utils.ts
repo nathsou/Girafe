@@ -173,12 +173,62 @@ export const showTRS = (trs: TRS): string => {
   return out.join("\n");
 };
 
-export const showTerm = (t: Term): string => {
+export const showTermRec = (t: Term): string => {
   if (isVar(t)) return t;
   if (t.args.length === 0) return t.name;
 
   return `${t.name}(${t.args.map(showTerm).join(", ")})`;
 };
+
+export function showTerm(term: Term): string {
+  if (isVar(term)) return term;
+  if (term.args.length === 0) return term.name;
+
+  const terms: Term[] = [term];
+  const stack: string[] = [];
+  const symbols: [Symb, number][] = [];
+
+  // flatten the terms onto a stack
+  while (terms.length > 0) {
+    const t = terms.pop();
+
+    if (isVar(t)) {
+      stack.push(t)
+    } else if (t.args.length === 0) {
+      stack.push(t.name);
+    } else {
+      for (let i = t.args.length - 1; i >= 0; i--) {
+        terms.push(t.args[i]);
+      }
+
+      terms.push(t.name);
+      symbols.push([t.name, t.args.length]);
+    }
+  }
+
+  const argsStack: string[] = [];
+
+  // assemble constructors back when all arguments have been stringified
+  for (let i = stack.length - 1; i >= 0; i--) {
+    const t = stack[i];
+    if (symbols.length === 0) break;
+    const [f, ar] = symbols[symbols.length - 1];
+
+    if (t === f) {
+      const args = [];
+      for (let k = 0; k < ar; k++) {
+        args.push(argsStack.pop());
+      }
+
+      argsStack.push(f + '(' + args.join(', ') + ')');
+      symbols.pop();
+    } else {
+      argsStack.push(t);
+    }
+  }
+
+  return argsStack[0];
+}
 
 export const showRule = ([lhs, rhs]: Rule): string => (
   `${showTerm(lhs)} -> ${showTerm(rhs)}`

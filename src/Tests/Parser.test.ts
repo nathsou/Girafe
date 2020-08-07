@@ -1,4 +1,4 @@
-import { showRule, showTerm } from '../Compiler/Utils';
+import { showRule, showTerm, showTermRec } from '../Compiler/Utils';
 import { Lexer } from '../Parser/Lexer/Lexer';
 import { TRSParser } from '../Parser/TRSParser';
 import { gen } from '../Parser/Utils';
@@ -36,6 +36,12 @@ test('Lex symbols', () => {
                 col: 1
             }
         }]);
+    }
+});
+
+test('showTerm', () => {
+    for (const term of gen(100, () => randomTerm(rnd))) {
+        expect(showTerm(term)).toBe(showTermRec(term));
     }
 });
 

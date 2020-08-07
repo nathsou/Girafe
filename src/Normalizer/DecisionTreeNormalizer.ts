@@ -10,7 +10,7 @@ export class DecisionTreeNormalizer implements StepNormalizer {
 
     constructor(trs: TRS) {
         this.rules = new Map();
-        const sig = new Set(...collectTRSArities(trs).keys());
+        const sig = new Set(collectTRSArities(trs).keys());
 
         // Compile each rule into its own decision tree
         for (const [name, rules] of trs) {

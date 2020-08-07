@@ -5,7 +5,7 @@ import { DecisionTreeTranslator } from "../Compiler/DecisionTrees/DecisionTreeTr
 import { fun, isVar, zip } from "../Compiler/Utils";
 import { repeatString } from "../Normalizer/Matchers/ClosureMatcher/Closure";
 import { SpecialCharacters } from "../Parser/Lexer/SpecialChars";
-import { dictHas, Externals, Term, TRS, Dict } from "../Parser/Types";
+import { Dict, dictHas, Externals, Term, TRS } from "../Parser/Types";
 import { map, mapString } from "../Parser/Utils";
 
 const translateTerm = (term: Term): string => {
@@ -105,13 +105,55 @@ export class JSTranslator<Exts extends string>
                 'return typeof term === "string";',
                 '}'
             ),
-            format(
-                'function showTerm(term) {',
-                'if (isVar(term)) return term;',
-                'if (term.args.length === 0) return term.name;',
-                "return term.name + '(' +  term.args.map(showTerm).join(', ') + ')';",
-                '}'
-            )
+            `function showTerm(term) {
+                if (isVar(term)) return term;
+                if (term.args.length === 0) return term.name;
+                
+                const terms = [term];
+                const stack = [];
+                const symbols = [];
+                
+                // flatten the terms onto a stack
+                while (terms.length > 0) {
+                    const t = terms.pop();
+                
+                    if (isVar(t)) {
+                        stack.push(t)
+                    } else if (t.args.length === 0) {
+                        stack.push(t.name);
+                    } else {
+                        for (let i = t.args.length - 1; i >= 0; i--) {
+                            terms.push(t.args[i]);
+                        }
+                    
+                        terms.push(t.name);
+                        symbols.push([t.name, t.args.length]);
+                    }
+                }
+                
+                const argsStack = [];
+                
+                // assemble constructors back when all arguments have been stringified
+                for (let i = stack.length - 1; i >= 0; i--) {
+                    const t = stack[i];
+                    if (symbols.length === 0) break;
+                    const [f, ar] = symbols[symbols.length - 1];
+                
+                    if (t === f) {
+                        const args = [];
+                        for (let k = 0; k < ar; k++) {
+                            args.push(argsStack.pop());
+                        }
+                
+                        argsStack.push(f + '(' + args.join(', ') + ')');
+                        symbols.pop();
+                    } else {
+                        argsStack.push(t);
+                    }
+                }
+                
+                return argsStack[0];
+            }`
         );
     }
 
