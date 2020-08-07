@@ -3,6 +3,7 @@ import { substitute, vars, occurs } from "../Compiler/Utils";
 import { specialCharacters } from "../Parser/Lexer/SpecialChars";
 import { Fun, dictGet, dictHas, dictKeys, Rule, Substitution, Symb, Term, Var } from "../Parser/Types";
 import { gen } from "../Parser/Utils";
+import { Arities } from "../Compiler/Passes/Lazify";
 
 export const digits = [...gen(10, i => `${i}`)];
 export const lowerCaseLetters = [...gen(26, i => String.fromCharCode(97 + i))];
@@ -54,86 +55,101 @@ export const randomVar = (rnd: RandomGenerator, eps = 0.1): Var => {
 
 export const randomFun = (
     rnd: RandomGenerator,
+    arities: Arities,
     eps = 0.1,
     varProb = 0.5,
     maxArgs = 5,
     maxDepth = 3
 ): Fun => {
-    return {
-        name: randomSymb(rnd, eps),
+    const name = randomSymb(rnd, eps);
+    const t = {
+        name,
         args: [...gen(
-            randomInt(rnd, 0, maxArgs),
-            () => randomTerm(rnd, eps, varProb, maxArgs, maxDepth - 1)
+            arities.get(name) ?? randomInt(rnd, 0, maxArgs),
+            () => randomTerm(rnd, arities, eps, varProb, maxArgs, maxDepth - 1)
         )]
     };
+
+    arities.set(t.name, t.args.length);
+    return t;
 };
 
 export const randomLeftLinearFun = (
     rnd: RandomGenerator,
+    arities: Arities,
     eps = 0.1,
     varProb = 0.5,
     maxArgs = 5,
     maxDepth = 3
 ): Fun => {
+    const name = randomSymb(rnd, eps);
     const args = [...gen(
-        randomInt(rnd, 0, maxArgs),
-        () => randomLeftLinearTerm(rnd, eps, varProb, maxArgs, maxDepth - 1)
+        arities.get(name) ?? randomInt(rnd, 0, maxArgs),
+        () => randomLeftLinearTerm(rnd, eps, arities, varProb, maxArgs, maxDepth - 1)
     )];
 
-    const term: Fun = {
-        name: randomSymb(rnd, eps),
-        args
-    };
+    const term: Fun = { name, args };
 
     // ensure the term is left linear
     if (!isFunLeftLinear(term)) {
-        return randomLeftLinearFun(rnd, eps, varProb, maxArgs, maxDepth);
+        return randomLeftLinearFun(rnd, arities, eps, varProb, maxArgs, maxDepth);
     }
+
+    arities.set(name, args.length);
 
     return term;
 };
 
-export const randomTerm = (rnd: RandomGenerator, eps = 0.1, varProb = 0.5, maxArgs = 10, maxDepth = 3): Term => {
-    if (maxDepth === 0 || rnd() < varProb) return randomVar(rnd, eps);
-    return randomFun(rnd, eps, varProb, maxArgs, maxDepth);
-};
-
-export const randomLeftLinearTerm = (
+export const randomTerm = (
     rnd: RandomGenerator,
+    arities: Arities,
     eps = 0.1,
     varProb = 0.5,
     maxArgs = 10,
     maxDepth = 3
 ): Term => {
     if (maxDepth === 0 || rnd() < varProb) return randomVar(rnd, eps);
-    return randomLeftLinearFun(rnd, eps, varProb, maxArgs, maxDepth);
+    return randomFun(rnd, arities, eps, varProb, maxArgs, maxDepth);
 };
 
-export const randomRule = (rnd: RandomGenerator, eps = 0.1): Rule => {
-    return [randomFun(rnd, eps), randomTerm(rnd, eps)];
+export const randomLeftLinearTerm = (
+    rnd: RandomGenerator,
+    eps = 0.1,
+    arities: Arities,
+    varProb = 0.5,
+    maxArgs = 10,
+    maxDepth = 3
+): Term => {
+    if (maxDepth === 0 || rnd() < varProb) return randomVar(rnd, eps);
+    return randomLeftLinearFun(rnd, arities, eps, varProb, maxArgs, maxDepth);
 };
 
-export const randomLeftLinenarRule = (rnd: RandomGenerator, eps = 0.1): Rule => {
-    return [randomLeftLinearFun(rnd, eps), randomTerm(rnd, eps)];
+export const randomRule = (rnd: RandomGenerator, eps = 0.1, arities: Arities): Rule => {
+    return [randomFun(rnd, arities, eps), randomTerm(rnd, arities, eps)];
 };
 
-export const randomTRS = (rnd: RandomGenerator, eps = 0.1, maxRules = 20): Rule[] => {
+export const randomLeftLinenarRule = (rnd: RandomGenerator, eps = 0.1, arities: Arities): Rule => {
+    return [randomLeftLinearFun(rnd, arities, eps), randomTerm(rnd, arities, eps)];
+};
+
+export const randomTRS = (rnd: RandomGenerator, arities: Arities, eps = 0.1, maxRules = 20): Rule[] => {
     return [...gen(
         randomInt(rnd, 0, maxRules),
-        () => randomRule(rnd, eps)
+        () => randomRule(rnd, eps, arities)
     )];
 };
 
-export const randomLeftLinearTRS = (rnd: RandomGenerator, eps = 0.1, maxRules = 20): Rule[] => {
+export const randomLeftLinearTRS = (rnd: RandomGenerator, arities: Arities, eps = 0.1, maxRules = 20): Rule[] => {
     return [...gen(
         randomInt(rnd, 0, maxRules),
-        () => randomLeftLinenarRule(rnd, eps)
+        () => randomLeftLinenarRule(rnd, eps, arities)
     )];
 };
 
 export const randomSubstitution = (
     rnd: RandomGenerator,
     term: Term,
+    arities: Arities,
     eps = 0.1,
     mutateProb = 0.5
 ): Substitution => {
@@ -141,7 +157,7 @@ export const randomSubstitution = (
 
     for (const v of vars(term)) {
         if (rnd() < mutateProb) {
-            const randTerm = randomTerm(rnd, eps);
+            const randTerm = randomTerm(rnd, arities, eps);
             if (!occurs(v, randTerm)) {
                 sigma[v] = randTerm;
             }
@@ -154,10 +170,11 @@ export const randomSubstitution = (
 export const mutateTerm = (
     rnd: RandomGenerator,
     term: Term,
+    arities: Arities,
     eps = 0.1,
-    mutateProb = 0.5
+    mutateProb = 0.5,
 ): [Term, Substitution] => {
-    const sigma = randomSubstitution(rnd, term, eps, mutateProb);
+    const sigma = randomSubstitution(rnd, term, arities, eps, mutateProb);
     return [substitute(term, sigma), sigma];
 };
 

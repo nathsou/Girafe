@@ -4,6 +4,7 @@ import { parseTerm } from "../Parser/Parser";
 import { Substitution, Term } from "../Parser/Types";
 import { gen } from "../Parser/Utils";
 import { mutateTerm, randomLeftLinearFun, substIn, substsEq, testRNG } from "./TestUtils";
+import { Arities } from "../Compiler/Passes/Lazify";
 
 const rnd = testRNG;
 
@@ -62,9 +63,11 @@ test('ruleBasedUnify', () => {
         expect(unify(s, t)).toStrictEqual(sigma);
     }
 
+    const arities: Arities = new Map();
+
     const randomUnificationTest = (): [Term, Term, Substitution] => {
-        const s = randomLeftLinearFun(rnd);
-        const [t, sigma] = mutateTerm(rnd, s);
+        const s = randomLeftLinearFun(rnd, arities);
+        const [t, sigma] = mutateTerm(rnd, s, arities);
         return [s, t, sigma];
     };
 

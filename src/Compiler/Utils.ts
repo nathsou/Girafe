@@ -234,6 +234,10 @@ export const showRule = ([lhs, rhs]: Rule): string => (
   `${showTerm(lhs)} -> ${showTerm(rhs)}`
 );
 
+export const showRuleRec = ([lhs, rhs]: Rule): string => (
+  `${showTermRec(lhs)} -> ${showTermRec(rhs)}`
+);
+
 export const showSubst = (sigma: Substitution): string => (
   dictEntries(sigma)
     .map(([a, b]) => `${showTerm(a)}: ${showTerm(b)}`)
