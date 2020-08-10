@@ -41,8 +41,7 @@ test('Lex symbols', () => {
 });
 
 test('showTerm', () => {
-    const arities: Arities = new Map();
-    for (const t of gen(100, () => randomTerm(rnd, arities))) {
+    for (const t of gen(100, () => randomTerm(rnd, new Map()))) {
         expect(showTerm(t)).toBe(showTermRec(t));
     }
 });

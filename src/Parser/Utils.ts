@@ -46,7 +46,7 @@ export function* indexed<T>(vals: T[]): IterableIterator<[T, number]> {
 }
 
 export function* range(from: number, to: number, step = 1): IterableIterator<number> {
-    for (let i = from; i < to; i += step) {
+    for (let i = from; i <= to; i += step) {
         yield i;
     }
 }
@@ -101,9 +101,9 @@ export function setFilter<T>(set: Set<T>, f: (val: T) => boolean): Set<T> {
     return new Set([...set.values()].filter(f));
 }
 
-export function mapMut<U, V>(vals: U[], f: (val: U) => V): V[] {
+export function mapMut<U, V>(vals: U[], f: (val: U, index: number) => V): V[] {
     for (let i = 0; i < vals.length; i++) {
-        (vals[i] as (V | U)) = f(vals[i]);
+        (vals[i] as (V | U)) = f(vals[i], i);
     }
 
     return vals as unknown as V[];

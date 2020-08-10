@@ -1,5 +1,5 @@
-import { isRuleRecursive, isSomething, unusedRuleVars, setEq } from "../Compiler/Utils";
-import { parseRule } from "../Parser/Parser";
+import { isRuleRecursive, isSomething, unusedRuleVars, setEq, replaceTermAt, defined, showTerm } from "../Compiler/Utils";
+import { parseRule, parseTerm } from "../Parser/Parser";
 
 test('isRuleRecursive', () => {
     const notRecursiveRules = [
@@ -56,4 +56,32 @@ test('setEq', () => {
         new Map([['Nil', 0], [':', 2]]),
         new Set([':', 'Nil']),
     )).toBe(true);
+});
+
+test('replaceTermAt', () => {
+    const tests = [
+        {
+            parent: 'If(Or(a, b), IsPrime(a), IsPrime(b))',
+            child: '+(a, b)',
+            pos: [1, 0],
+            res: 'If(Or(a, b), IsPrime(+(a, b)), IsPrime(b))'
+        },
+        { parent: 'x', child: '+(a, b)', pos: [1, 0], res: 'x' },
+        { parent: 'Not(q)', child: 'And(u, v)', pos: [], res: 'Not(q)' },
+        {
+            parent: 'If(Or(a, b), IsPrime(a), IsPrime(b))',
+            child: 'Divisible(b, a)',
+            pos: [0],
+            res: 'If(Divisible(b, a), IsPrime(a), IsPrime(b))'
+        },
+    ].map(({ parent, child, pos, res }) => ({
+        parent: defined(parseTerm(parent)),
+        child: defined(parseTerm(child)),
+        res: defined(parseTerm(res)),
+        pos
+    }));
+
+    for (const { parent, child, pos, res } of tests) {
+        expect(showTerm(replaceTermAt(parent, child, pos))).toBe(showTerm(res));
+    }
 });

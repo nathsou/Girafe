@@ -8,8 +8,15 @@ import { arithmeticExternals } from "../src/Externals/Arithmetic";
 import { Normalizer } from "../src/Normalizer/Normalizer";
 import { parseTerm } from "../src/Parser/Parser";
 import * as readline from 'readline';
+import { metaExternals } from "../src/Externals/Meta";
+import { JSExternals } from "../src/Parser/Types";
 
 const [src, query] = process.argv.slice(2);
+
+const externals: JSExternals = {
+    ...arithmeticExternals,
+    ...metaExternals(console.log)
+};
 
 const buildNormalizer = async (path: string): Promise<Normalizer> => {
     const source = readFileSync(path).toString();
@@ -26,7 +33,7 @@ const buildNormalizer = async (path: string): Promise<Normalizer> => {
 
     if (trs) {
         return new DecisionTreeNormalizer(trs)
-            .asNormalizer(arithmeticExternals);
+            .asNormalizer(externals);
     } else {
         console.log("Transpilation failed");
     }

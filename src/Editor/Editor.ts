@@ -14,6 +14,7 @@ import {
 } from "../Compiler/Utils";
 import { arithmeticExternals } from "../Externals/Arithmetic";
 import { listExternals } from "../Externals/Lists";
+import { metaExternals } from "../Externals/Meta";
 import { DecisionTreeNormalizer } from "../Normalizer/DecisionTreeNormalizer";
 import { compileRules } from "../Normalizer/Unification";
 import { parseTerm } from '../Parser/Parser';
@@ -27,11 +28,6 @@ const importPath = '../../examples';
 document.body.style.margin = "0px";
 document.body.style.padding = "0px";
 document.body.style.overflow = "hidden";
-
-const externals: JSExternals<string> = {
-    ...arithmeticExternals,
-    ...listExternals,
-};
 
 function h<K extends keyof HTMLElementTagNameMap>(
     name: K,
@@ -122,6 +118,29 @@ const defaultFileReader: FileReader = async (path: string) => {
     return dep.default;
 };
 
+const traceLogger = (): [(t: string) => void, string[]] => {
+    const trace: string[] = [];
+
+    return [(t: string): void => {
+        trace.push(t);
+        console.log(t);
+    }, trace];
+};
+
+const log = (msg: string): void => {
+    output.setValue(msg);
+    console.log(msg);
+};
+
+const makeExternals = (): [JSExternals, string[]] => {
+    const [log, trace] = traceLogger();
+    return [{
+        ...arithmeticExternals,
+        ...listExternals,
+        ...metaExternals(log)
+    }, trace];
+};
+
 const run = async () => {
     const querySymb = "___query";
     const queryT = parseTerm(query.value);
@@ -134,12 +153,18 @@ const run = async () => {
     const trs = await compileRules(source, defaultPasses, defaultFileReader);
     if (isNothing(trs)) return;
 
+    const [externals, trace] = makeExternals();
     const normalize = new DecisionTreeNormalizer(trs).asNormalizer(externals);
 
     const [delta, nf] = time(() => normalize(queryLhs));
     const out = showTerm(nf);
-    output.setValue(out);
-    console.log(out);
+
+    if (trace.length > 0) {
+        output.setValue(trace.join('\n'));
+    } else {
+        log(out);
+    }
+
     console.log(`took ${delta} ms`);
 };
 

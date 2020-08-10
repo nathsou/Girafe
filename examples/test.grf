@@ -1,19 +1,14 @@
 If(True, a?, b?) -> a
 If(False, a?, b?) -> b
 
-Not(True) -> False
-Not(False) -> True
-Not(Not(q)) -> q
+Or(a, b?) -> If(a, True, b)
+And(a, b?) -> If(a, b, False)
 
-And(False, False) -> False
-And(False, True) -> False
-And(True, False) -> False
-And(True, True) -> True
+Not(True?) -> False
+Not(False?) -> True
+Not(Not(q)?) -> q
 
-Or(False, False) -> False
-Or(False, True) -> True
-Or(True, False) -> True
-Or(True, True) -> True
+Trace(query?) -> @trace(query?)
 
 +(a, b) -> @add(a, b)
 -(a, b) -> @sub(a, b)
@@ -68,8 +63,4 @@ PrevOdd(n) -> If(Divisible(n, 2), -(n, 1), n)
 
 PrimesLessThan(n) -> If(<(n, 2), Nil, PrimesLessThan'(PrevOdd(n), Nil))
 PrimesLessThan'(3, ps) -> :(2, :(3, ps))
-PrimesLessThan'(n, ps) -> 
-    If(IsPrime(n),
-        PrimesLessThan'(-(n, 2), :(n, ps)),
-        PrimesLessThan'(-(n, 2), ps)
-    )
+PrimesLessThan'(n, ps) -> PrimesLessThan'(-(n, 2), If(IsPrime(n), :(n, ps), ps))

@@ -195,7 +195,7 @@ export const heuristicNeededPrefix: ColumnSelectionHeuristic = (matrix: ClauseMa
         return 0;
     };
 
-    return bestCandidates(...map(range(0, matrix.dims[1]), col => score(col)));
+    return bestCandidates(...map(range(0, matrix.dims[1] - 1), col => score(col)));
 };
 
 // b
@@ -204,7 +204,7 @@ export const heuristicSmallBranchingFactor: ColumnSelectionHeuristic = (matrix: 
         return -heads(getColumn(matrix, col)).size - 1;
     };
 
-    return bestCandidates(...map(range(0, matrix.dims[1]), col => score(col)));
+    return bestCandidates(...map(range(0, matrix.dims[1] - 1), col => score(col)));
 };
 
 // a
@@ -223,7 +223,7 @@ export const heuristicArity: ColumnSelectionHeuristic = (matrix: ClauseMatrix): 
         return -sum;
     };
 
-    return bestCandidates(...map(range(0, matrix.dims[1]), col => score(col)));
+    return bestCandidates(...map(range(0, matrix.dims[1] - 1), col => score(col)));
 };
 
 export const heuristicConstructorPrefix: ColumnSelectionHeuristic = (matrix: ClauseMatrix): number[] => {
@@ -243,14 +243,14 @@ export const heuristicConstructorPrefix: ColumnSelectionHeuristic = (matrix: Cla
         return 0;
     };
 
-    return bestCandidates(...map(range(0, matrix.dims[1]), col => score(col)));
+    return bestCandidates(...map(range(0, matrix.dims[1] - 1), col => score(col)));
 };
 
 const combineHeuristics = (
     heuristics: ColumnSelectionHeuristic[]
 ): (matrix: ClauseMatrix) => number => {
     return (matrix: ClauseMatrix): number => {
-        const selected = new Set<number>(range(0, matrix.dims[1]));
+        const selected = new Set<number>(range(0, matrix.dims[1] - 1));
         for (const heuristic of heuristics) {
             if (selected.size === 1) break;
             intersectionMut(selected, new Set(heuristic(matrix)));

@@ -8,11 +8,11 @@ export type Arities = Map<Symb, number>;
 
 export const lazyAnnotationSymb = 'Lazy';
 
-const instSymb = 'inst';
-const thunkSymb = 'Θ';
+export const instSymb = 'inst';
+export const thunkSymb = 'Θ';
 
-const Inst = (...args: Term[]) => fun(instSymb, ...args);
-const Thunk = (name: Symb, ...args: Term[]) => fun(`${thunkSymb}${name}`, ...args);
+export const Inst = (...args: Term[]): Fun => fun(instSymb, ...args);
+export const Thunk = (name: Symb, ...args: Term[]): Fun => fun(`${thunkSymb}${name}`, ...args);
 
 export const lazify: CompilerPass = (trsWithAnnotations: TRS): CompilationResult => {
     const [ann, hasLazyTerms] = collectLazinessAnnotations(trsWithAnnotations);

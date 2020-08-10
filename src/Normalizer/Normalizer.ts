@@ -1,4 +1,4 @@
-import { isVar, Maybe } from "../Compiler/Utils";
+import { isVar, Maybe, replaceTermAt } from "../Compiler/Utils";
 import { dictHas, Fun, JSExternals, Term } from "../Parser/Types";
 import { mapMut } from "../Parser/Utils";
 
@@ -12,7 +12,7 @@ export interface StepNormalizer {
 export type Normalizer = (query: Term) => Term;
 
 // handles externals
-const oneStepReduceWithExternals = (
+export const oneStepReduceWithExternals = (
     query: Fun,
     normalizer: StepNormalizer,
     externals: JSExternals<string> = {}
@@ -20,7 +20,7 @@ const oneStepReduceWithExternals = (
     if (query.name.charAt(0) === '@') {
         const f = query.name.substr(1);
         if (dictHas(externals, f)) {
-            const newTerm = externals[f](query);
+            const newTerm = externals[f](query, normalizer, externals);
             // prevent infinite loops
             if (newTerm !== query) {
                 return newTerm;
@@ -33,10 +33,10 @@ const oneStepReduceWithExternals = (
     return normalizer.oneStepReduce(query);
 };
 
-const normalize = (
+export const normalize = <Externals extends string = string>(
     query: Term,
     normalizer: StepNormalizer,
-    externals: JSExternals<string> = {}
+    externals: JSExternals<Externals>
 ): Term => {
     let reduced = query;
 
@@ -46,6 +46,35 @@ const normalize = (
         const newTerm = oneStepReduceWithExternals(reduced, normalizer, externals);
         if (newTerm === undefined) return reduced;
         reduced = newTerm as Term;
+    }
+};
+
+export const traceNormalize = <Externals extends string = string>(
+    query: Term,
+    normalizer: StepNormalizer,
+    externals: JSExternals<Externals>,
+    trace: (t: Term) => void
+): Term => {
+    let reduced = query;
+
+    if (isVar(query)) {
+        trace(query);
+        return query;
+    }
+
+    while (true) {
+        if (isVar(reduced)) return reduced;
+        mapMut(reduced.args, (s, i) => traceNormalize(
+            s,
+            normalizer,
+            externals,
+            (t: Term) => trace(replaceTermAt(reduced, t, [i]))
+        ));
+
+        const newTerm = oneStepReduceWithExternals(reduced, normalizer, externals);
+        if (newTerm === undefined) return reduced;
+        reduced = newTerm as Term;
+        trace(reduced);
     }
 };
 

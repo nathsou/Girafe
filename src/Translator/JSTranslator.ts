@@ -118,7 +118,7 @@ export class JSTranslator<Exts extends string>
                     const t = terms.pop();
                 
                     if (isVar(t)) {
-                        stack.push(t)
+                        stack.push(t);
                     } else if (t.args.length === 0) {
                         stack.push(t.name);
                     } else {

@@ -177,9 +177,10 @@ export const showTermRec = (t: Term): string => {
   if (isVar(t)) return t;
   if (t.args.length === 0) return t.name;
 
-  return `${t.name}(${t.args.map(showTerm).join(", ")})`;
+  return `${t.name}(${t.args.map(showTermRec).join(", ")})`;
 };
 
+// Requires constructor arities to be consistant
 export function showTerm(term: Term): string {
   if (isVar(term)) return term;
   if (term.args.length === 0) return term.name;
@@ -193,7 +194,7 @@ export function showTerm(term: Term): string {
     const t = terms.pop();
 
     if (isVar(t)) {
-      stack.push(t)
+      stack.push(t);
     } else if (t.args.length === 0) {
       stack.push(t.name);
     } else {
@@ -232,10 +233,6 @@ export function showTerm(term: Term): string {
 
 export const showRule = ([lhs, rhs]: Rule): string => (
   `${showTerm(lhs)} -> ${showTerm(rhs)}`
-);
-
-export const showRuleRec = ([lhs, rhs]: Rule): string => (
-  `${showTermRec(lhs)} -> ${showTermRec(rhs)}`
 );
 
 export const showSubst = (sigma: Substitution): string => (
@@ -416,6 +413,29 @@ export function trd<U, V, W>([, , w]: [U, V, W]): W {
 
 export const replaceTerms = (old: Term, by: Term, inside: Term[]): Term[] => {
   return inside.map(t => termsEq(t, old) ? by : t);
+};
+
+export const cloneTerm = <T extends Term>(t: T): T => {
+  if (isVar(t)) return t;
+  return { name: (t as Fun).name, args: (t as Fun).args.map(arg => cloneTerm(arg)) } as T;
+};
+
+export const replaceTermAt = (parent: Term, t: Term, pos: number[]): Term => {
+  if (isVar(parent) || parent.args.length === 0 || pos.length === 0) {
+    return cloneTerm(parent);
+  }
+
+  const copy = cloneTerm(parent);
+  let q = copy;
+
+  const lastIdx = last(pos);
+  for (let i = 0; i < pos.length - 1; i++) {
+    q = q.args[pos[i]] as Fun;
+    if (isVar(q)) return copy;
+  }
+
+  q.args[lastIdx] = t;
+  return copy;
 };
 
 export function isEmpty<T>(collection: T[] | Set<T>): boolean {

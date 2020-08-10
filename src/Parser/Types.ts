@@ -1,3 +1,5 @@
+import { StepNormalizer } from "../Normalizer/Normalizer";
+
 export type Var = string;
 export type Symb = string;
 export type Fun = { name: Symb, args: Term[] };
@@ -10,8 +12,8 @@ export type TRS = Map<Symb, Rule[]>;
 export type Targets = 'js' | 'ocaml' | 'haskell';
 export const supportedTargets: Targets[] = ['js', 'ocaml', 'haskell'];
 
-export type JSExternals<Exts extends string> = {
-    [name in Exts]: (t: Fun) => Term
+export type JSExternals<Exts extends string = string> = {
+    [name in Exts]: (t: Fun, normalizer: StepNormalizer, externals: JSExternals<string>) => Term
 };
 
 export type Externals<Target extends Targets, Exts extends string> = {
