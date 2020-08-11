@@ -16,7 +16,7 @@ const translateTerm = (term: Term): string => {
 type FunCall = { funName: string, args: JSExpr[] };
 type JSExpr = string | FunCall | Term;
 
-const stringifyJSExpr = (exp: JSExpr): string => {
+export const stringifyJSExpr = (exp: JSExpr): string => {
     if (typeof exp === 'string') return exp;
 
     if (isFunCall(exp)) {
@@ -89,7 +89,7 @@ export class JSTranslator<Exts extends string>
         super(trs, externals);
     }
 
-    accessSubterm(parent: string, childIndex: number): string {
+    public accessSubterm(parent: string, childIndex: number): string {
         return `${parent}.args[${childIndex}]`;
     }
 
@@ -157,20 +157,37 @@ export class JSTranslator<Exts extends string>
         );
     }
 
-    private callTerm(occ: OccTerm, varNames: string[]): JSExpr {
+    public callTerm(term: Term): JSExpr {
+        if (isVar(term)) return term;
+
+        // if this is a free constructor simply output a term
+        if (!this.isDefined(term.name)) {
+            return translateTerm(
+                fun(term.name,
+                    ...term.args.map(t => stringifyJSExpr(this.callTerm(t)))
+                )
+            );
+        }
+
+        // otherwise call the corresponding js function
+        const args = term.args.map(t => stringifyJSExpr(this.callTerm(t)));
+        return { funName: term.name, args };
+    }
+
+    private callOccTerm(occ: OccTerm, varNames: string[]): JSExpr {
         if (isOccurence(occ)) return this.translateOccurence(occ, varNames);
 
         // if this is a free constructor simply output a term
         if (!this.isDefined(occ.name)) {
             return translateTerm(
                 fun(occ.name,
-                    ...occ.args.map(t => stringifyJSExpr(this.callTerm(t, varNames)))
+                    ...occ.args.map(t => stringifyJSExpr(this.callOccTerm(t, varNames)))
                 )
             );
         }
 
         // otherwise call the corresponding js function
-        const args = occ.args.map(t => stringifyJSExpr(this.callTerm(t, varNames)));
+        const args = occ.args.map(t => stringifyJSExpr(this.callOccTerm(t, varNames)));
         return { funName: occ.name, args };
     }
 
@@ -184,7 +201,7 @@ export class JSTranslator<Exts extends string>
         return `${occ.name} (${occ.args.map(o => this.translateOccurence(o, varNames)).join(', ')})`;
     }
 
-    translateDecisionTree(name: string, dt: DecisionTree, varNames: string[]): string {
+    public translateDecisionTree(name: string, dt: DecisionTree, varNames: string[]): string {
         let hasTailRecursiveLeaf = false;
 
         const translate = (tree: DecisionTree): string => {
@@ -192,7 +209,7 @@ export class JSTranslator<Exts extends string>
                 case 'fail':
                     return 'return ' + translateTerm(fun(name, ...varNames)) + ';';
                 case 'leaf':
-                    const ret = this.callTerm(tree.action, varNames);
+                    const ret = this.callOccTerm(tree.action, varNames);
 
                     // check if this is a tail recursive call
                     if (isFunCall(ret) && ret.funName === name) {
@@ -249,13 +266,13 @@ export class JSTranslator<Exts extends string>
         );
     }
 
-    rename(name: string): string {
+    public rename(name: string): string {
         const noSymbols = mapString(name, c => symbolMap[c] ?? c);
 
         return `grf_${noSymbols}`;
     }
 
-    translateTerm(term: Term): string {
+    public translateTerm(term: Term): string {
         return translateTerm(term);
     }
 

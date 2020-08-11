@@ -20,12 +20,25 @@ export const check = (...checkers: Checker[]): CompilerPass => {
     };
 };
 
-export const asErrors = (messages: string[]): CompilationMessage[] => {
-    return messages.map(msg => ({ type: 'error', message: msg }));
-};
+export const warn = (
+    warningHandler: (warnings: CompilationMessage[]) => void,
+    ...checkers: Checker[]
+): CompilerPass => {
+    return (trs: TRS): CompilationResult => {
+        const warnings: CompilationMessage[] = [];
 
-export const asWarnings = (messages: string[]): CompilationMessage[] => {
-    return messages.map(msg => ({ type: 'warning', message: msg }));
+        for (const rules of trs.values()) {
+            for (const checker of checkers) {
+                warnings.push(...checker(rules));
+            }
+        }
+
+        if (warnings.length > 0) {
+            warningHandler(warnings);
+        }
+
+        return Ok(trs);
+    };
 };
 
 export const checkArity: Checker = (rules: Rule[]): CompilationMessage[] => {
@@ -39,7 +52,7 @@ export const checkArity: Checker = (rules: Rule[]): CompilationMessage[] => {
         }
     }
 
-    return asErrors(errors);
+    return errors;
 };
 
 export const isLeftLinear = ([lhs, _]: Rule): boolean => {
@@ -60,7 +73,7 @@ export const checkLeftLinearity: Checker = (rules: Rule[]): CompilationMessage[]
         }
     }
 
-    return asErrors(errors);
+    return errors;
 };
 
 export const hasFreeVars = ([lhs, rhs]: Rule): boolean => {
@@ -77,7 +90,7 @@ export const checkNoFreeVars: Checker = (rules: Rule[]): CompilationMessage[] =>
         }
     }
 
-    return asErrors(errors);
+    return errors;
 };
 
 const overlappingRules = (rules: Rule[]): [Rule, Rule][] => {
@@ -103,7 +116,7 @@ export const checkNoDuplicates: Checker = (rules: Rule[]): CompilationMessage[] 
         errors.push(`${showRule(rule1)} and ${showRule(rule2)} are overlapping`);
     }
 
-    return asErrors(errors);
+    return errors;
 };
 
 export const checkTailRecursive: Checker = (rules: Rule[]): CompilationMessage[] => {
@@ -111,11 +124,11 @@ export const checkTailRecursive: Checker = (rules: Rule[]): CompilationMessage[]
 
     for (const rule of rules) {
         if (isRuleRecursive(rule) && !isRuleTailRecursive(rule)) {
-            warnings.push(`${showRule(rule)} is not tail recursive`);
+            warnings.push(`${ruleName(rule)} is not tail recursive`);
         }
     }
 
-    return asWarnings(warnings);
+    return warnings;
 };
 
 export const allChecks = check(

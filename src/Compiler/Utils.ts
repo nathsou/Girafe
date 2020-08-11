@@ -1,7 +1,7 @@
 import { Dict, dictEntries, dictGet, dictHas, dictSet, Fun, Rule, Substitution, Symb, Term, TRS, Var } from "../Parser/Types";
 import { every, gen, some, traverseNames } from "../Parser/Utils";
 import { Ok } from "../Types";
-import { check, checkArity, checkLeftLinearity, checkNoDuplicates, checkNoFreeVars } from "./Passes/Checks";
+import { check, warn, checkArity, checkLeftLinearity, checkNoDuplicates, checkNoFreeVars } from "./Passes/Checks";
 import { CompilerPass } from "./Passes/CompilerPass";
 import { lazify } from "./Passes/Lazify";
 import { orderBySpecificity } from "./Passes/OrderBy";
@@ -26,6 +26,10 @@ export const defaultPasses: CompilerPass[] = [
     checkNoDuplicates,
     checkLeftLinearity
   ),
+  warn(
+    (warnings: string[]) => { for (const w of warnings) console.warn(w); },
+    // checkTailRecursive
+  ),
   // currify,
   lazify,
   // leftLinearize,
@@ -33,10 +37,8 @@ export const defaultPasses: CompilerPass[] = [
   // logTRS,
 ];
 
-const importPath = '../../examples';
-
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-export const defaultFileReader: FileReader = async (path: string) => {
+export const defaultFileReader = (importPath: string): FileReader => async (path: string) => {
   ///@ts-ignore
   const dep = await import(`${importPath}/${path}`);
   return dep.default;

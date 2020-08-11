@@ -46,7 +46,7 @@ export abstract class Translator<Target extends Targets, Exts extends string> {
 	abstract translateTerm(term: Term): string;
 	abstract translateRules(name: string, rules: Rule[]): string;
 
-	protected isDefined(f: Symb): boolean {
+	public isDefined(f: Symb): boolean {
 		return this.trs.has(f) || this.definedSymbols.has(f) ||
 			dictHas(this.externals, f.substr(1));
 	}
@@ -59,7 +59,7 @@ export abstract class Translator<Target extends Targets, Exts extends string> {
 		return v;
 	}
 
-	private renameTerm(term: Term): Term {
+	public renameTerm(term: Term): Term {
 		if (isVar(term)) return this.renameVar(term);
 		if (!this.isDefined(term.name)) {
 			return fun(term.name, ...term.args.map(t => this.renameTerm(t)));

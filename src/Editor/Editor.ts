@@ -5,9 +5,8 @@ import * as monaco from 'monaco-editor';
 ///@ts-ignore
 import trs from "../../examples/test.grf";
 import {
-    isNothing,
-
-    showTerm
+    defaultFileReader,
+    isNothing, showTerm
 } from "../Compiler/Utils";
 import { arithmeticExternals } from '../Externals/Arithmetic';
 import { listExternals } from '../Externals/Lists';
@@ -127,12 +126,20 @@ const makeExternals = (): [JSExternals, string[]] => {
     }, trace];
 };
 
+const importPath = '../../examples';
+
 const run = async () => {
     const queryT = parseTerm(query.value);
     if (isNothing(queryT)) return;
 
     const [externals, trace] = makeExternals();
-    const res = await normalizeQuery(queryT, editor.getValue(), externals);
+    const res = await normalizeQuery(
+        queryT,
+        editor.getValue(),
+        externals,
+        defaultFileReader(importPath)
+    );
+
     if (isNothing(res)) return;
 
     const out = showTerm(res.normalForm);

@@ -22,8 +22,9 @@ export class DecisionTreeNormalizer implements StepNormalizer {
 
     public oneStepReduce(term: Term): Maybe<Term> {
         if (isVar(term)) return term;
-        if (this.rules.has(term.name)) {
-            const dt = this.rules.get(term.name);
+        const dt = this.rules.get(term.name);
+
+        if (dt) {
             return evaluate(term.args, dt);
         }
     }

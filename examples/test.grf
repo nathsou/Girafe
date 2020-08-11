@@ -32,22 +32,27 @@ Len'(:(h, tl), n) -> Len'(tl, +(n, 1))
 Divisible(a, b) -> =(%(a, b), 0)
 
 IsPrime(2) -> True
-IsPrime(n) -> If(Or(<(n, 2), Divisible(n, 2)), False, IsPrime'(n, 3))
+IsPrime(n) -> If(Or(<(n, 2), Divisible(n, 2)), False, IsPrime'(n, 3, Maybe))
 
-IsPrime'(n, i) ->
+IsPrime'(n, i, Maybe) -> IsPrime'(
+    n,
+    +(i, 2),
     If(>(*(i, i), n),
         True,
         If(Divisible(n, i),
             False,
-            IsPrime'(n, +(i, 2))
+            Maybe
         )
     )
+)
+
+IsPrime'(n, i, ans) -> ans
 
 Factorize(2) -> :(2, Nil)
 Factorize(n) -> 
         If(Divisible(n, 2),
             :(2, Factorize(/(n, 2))),
-            Factorize'(n, 3)
+            Factorize'(n, 3, Nil)
         )
 
 Factorize'(n, i) ->
@@ -58,7 +63,7 @@ Factorize'(n, i) ->
         ),
         :(n, Nil) // n is prime
     )
-
+    
 PrevOdd(n) -> If(Divisible(n, 2), -(n, 1), n)
 
 PrimesLessThan(n) -> If(<(n, 2), Nil, PrimesLessThan'(PrevOdd(n), Nil))

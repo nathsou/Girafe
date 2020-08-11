@@ -1,14 +1,22 @@
-import { isVar, Maybe, replaceTermAt, defaultPasses, defaultFileReader, isNothing, vars, uniq, fun, showRule } from "../Compiler/Utils";
+import { defaultPasses, fun, isNothing, isVar, Maybe, replaceTermAt, showRule, uniq, vars } from "../Compiler/Utils";
+import { FileReader } from "../Parser/Preprocessor/Import";
 import { dictHas, Fun, JSExternals, Term } from "../Parser/Types";
 import { mapMut, time } from "../Parser/Utils";
-import { compileRules } from "./Unification";
 import { DecisionTreeNormalizer } from "./DecisionTreeNormalizer";
+import { compileRules } from "./Unification";
 
 export interface StepNormalizer {
     /**
      * Performs one step of reduction when a rule applies
      */
     oneStepReduce: (query: Term) => Maybe<Term>
+}
+
+export interface OneShotNormalizer {
+    /**
+     * Normalizes query
+     */
+    normalize: (query: Term) => Promise<string>
 }
 
 export type Normalizer = (query: Term) => Term;
@@ -91,8 +99,8 @@ export const normalizeQuery = async <Externals extends string = string>(
     query: Term,
     source: string,
     externals: JSExternals<Externals>,
-    passes = defaultPasses,
-    fileReader = defaultFileReader
+    fileReader: FileReader,
+    passes = defaultPasses
 ): Promise<Maybe<{ duration: number, normalForm: Term }>> => {
     const querySymb = "___query";
     const queryVars = uniq(vars(query));

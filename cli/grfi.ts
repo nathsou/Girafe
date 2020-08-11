@@ -2,7 +2,7 @@
 
 import { readFileSync } from "fs";
 import * as readline from 'readline';
-import { defaultPasses, showTerm } from "../src/Compiler/Utils";
+import { showTerm } from "../src/Compiler/Utils";
 import { arithmeticExternals } from "../src/Externals/Arithmetic";
 import { metaExternals } from "../src/Externals/Meta";
 import { normalizeQuery } from "../src/Normalizer/Normalizer";
@@ -27,7 +27,6 @@ const normalize = async (query: Term): Promise<Term> => {
         query,
         source,
         externals,
-        defaultPasses,
         async path => {
             return new Promise(resolve => {
                 const contents = readFileSync(`./examples/${path}`).toString();
@@ -75,7 +74,7 @@ const repl = (): void => {
             const queryTerm = parseTerm(q);
 
             if (queryTerm) {
-                const nf = await normalize(q);
+                const nf = await normalize(queryTerm);
                 console.log(showTerm(nf));
             } else {
                 console.log(`Could not parse query: "${q}"`);
@@ -88,9 +87,8 @@ const repl = (): void => {
 };
 
 (async () => {
-    updateSource(src);
-
     if (src !== undefined) {
+        updateSource(src);
         if (query !== undefined) {
             const q = parseTerm(query);
 
