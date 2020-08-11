@@ -1,6 +1,8 @@
-import { isVar, Maybe, replaceTermAt } from "../Compiler/Utils";
+import { isVar, Maybe, replaceTermAt, defaultPasses, defaultFileReader, isNothing, vars, uniq, fun, showRule } from "../Compiler/Utils";
 import { dictHas, Fun, JSExternals, Term } from "../Parser/Types";
-import { mapMut } from "../Parser/Utils";
+import { mapMut, time } from "../Parser/Utils";
+import { compileRules } from "./Unification";
+import { DecisionTreeNormalizer } from "./DecisionTreeNormalizer";
 
 export interface StepNormalizer {
     /**
@@ -83,4 +85,27 @@ export const buildNormalizer = (
     externals: JSExternals<string> = {}
 ): Normalizer => (query: Term): Term => {
     return normalize(query, evaluator, externals);
+};
+
+export const normalizeQuery = async <Externals extends string = string>(
+    query: Term,
+    source: string,
+    externals: JSExternals<Externals>,
+    passes = defaultPasses,
+    fileReader = defaultFileReader
+): Promise<Maybe<{ duration: number, normalForm: Term }>> => {
+    const querySymb = "___query";
+    const queryVars = uniq(vars(query));
+    const queryLhs = fun(querySymb, ...queryVars);
+    const queryRule = showRule([queryLhs, query]);
+    const sourceWithQuery = `${source}\n${queryRule}`;
+
+    const trs = await compileRules(sourceWithQuery, passes, fileReader);
+    if (isNothing(trs)) return;
+
+    const normalize = new DecisionTreeNormalizer(trs).asNormalizer(externals);
+
+    const [delta, nf] = time(() => normalize(queryLhs));
+
+    return { duration: delta, normalForm: nf };
 };

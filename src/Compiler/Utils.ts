@@ -5,6 +5,7 @@ import { check, checkArity, checkLeftLinearity, checkNoDuplicates, checkNoFreeVa
 import { CompilerPass } from "./Passes/CompilerPass";
 import { lazify } from "./Passes/Lazify";
 import { orderBySpecificity } from "./Passes/OrderBy";
+import { FileReader } from "../Parser/Preprocessor/Import";
 
 export type Maybe<T> = T | void;
 
@@ -31,6 +32,15 @@ export const defaultPasses: CompilerPass[] = [
   orderBySpecificity,
   // logTRS,
 ];
+
+const importPath = '../../examples';
+
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+export const defaultFileReader: FileReader = async (path: string) => {
+  ///@ts-ignore
+  const dep = await import(`${importPath}/${path}`);
+  return dep.default;
+};
 
 export function isFun(term: Term, name?: Symb): term is Fun {
   if (name) {

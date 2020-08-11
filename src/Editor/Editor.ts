@@ -5,25 +5,17 @@ import * as monaco from 'monaco-editor';
 ///@ts-ignore
 import trs from "../../examples/test.grf";
 import {
-    defaultPasses, fun,
     isNothing,
-    showRule,
-    showTerm,
-    uniq,
-    vars
-} from "../Compiler/Utils";
-import { arithmeticExternals } from "../Externals/Arithmetic";
-import { listExternals } from "../Externals/Lists";
-import { metaExternals } from "../Externals/Meta";
-import { DecisionTreeNormalizer } from "../Normalizer/DecisionTreeNormalizer";
-import { compileRules } from "../Normalizer/Unification";
-import { parseTerm } from '../Parser/Parser';
-import { FileReader } from "../Parser/Preprocessor/Import";
-import { JSExternals } from "../Parser/Types";
-import { time } from "../Parser/Utils";
-import { girafeMonarch } from './syntax';
 
-const importPath = '../../examples';
+    showTerm
+} from "../Compiler/Utils";
+import { arithmeticExternals } from '../Externals/Arithmetic';
+import { listExternals } from '../Externals/Lists';
+import { metaExternals } from '../Externals/Meta';
+import { normalizeQuery } from '../Normalizer/Normalizer';
+import { parseTerm } from '../Parser/Parser';
+import { JSExternals } from '../Parser/Types';
+import { girafeMonarch } from './syntax';
 
 document.body.style.margin = "0px";
 document.body.style.padding = "0px";
@@ -112,10 +104,9 @@ const output = monaco.editor.create(outputDiv, {
     wordWrap: "on"
 });
 
-const defaultFileReader: FileReader = async (path: string) => {
-    ///@ts-ignore
-    const dep = await import(`${importPath}/${path}`);
-    return dep.default;
+const log = (msg: string): void => {
+    output.setValue(msg);
+    console.log(msg);
 };
 
 const traceLogger = (): [(t: string) => void, string[]] => {
@@ -125,11 +116,6 @@ const traceLogger = (): [(t: string) => void, string[]] => {
         trace.push(t);
         console.log(t);
     }, trace];
-};
-
-const log = (msg: string): void => {
-    output.setValue(msg);
-    console.log(msg);
 };
 
 const makeExternals = (): [JSExternals, string[]] => {
@@ -142,22 +128,14 @@ const makeExternals = (): [JSExternals, string[]] => {
 };
 
 const run = async () => {
-    const querySymb = "___query";
     const queryT = parseTerm(query.value);
     if (isNothing(queryT)) return;
-    const queryVars = uniq(vars(queryT));
-    const queryLhs = fun(querySymb, ...queryVars);
-    const queryRule = showRule([queryLhs, queryT]);
-    const source = `${editor.getValue()}\n${queryRule}`;
-
-    const trs = await compileRules(source, defaultPasses, defaultFileReader);
-    if (isNothing(trs)) return;
 
     const [externals, trace] = makeExternals();
-    const normalize = new DecisionTreeNormalizer(trs).asNormalizer(externals);
+    const res = await normalizeQuery(queryT, editor.getValue(), externals);
+    if (isNothing(res)) return;
 
-    const [delta, nf] = time(() => normalize(queryLhs));
-    const out = showTerm(nf);
+    const out = showTerm(res.normalForm);
 
     if (trace.length > 0) {
         output.setValue(trace.join('\n'));
@@ -165,7 +143,7 @@ const run = async () => {
         log(out);
     }
 
-    console.log(`took ${delta} ms`);
+    console.log(`took ${res.duration} ms`);
 };
 
 query.addEventListener("keypress", async (e: KeyboardEvent) => {

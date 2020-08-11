@@ -1,15 +1,13 @@
 // Girafe interpreter using decision trees
 
 import { readFileSync } from "fs";
-import { compileRules } from "../src/Normalizer/Unification";
-import { defaultPasses, showTerm } from "../src/Compiler/Utils";
-import { DecisionTreeNormalizer } from "../src/Normalizer/DecisionTreeNormalizer";
-import { arithmeticExternals } from "../src/Externals/Arithmetic";
-import { Normalizer } from "../src/Normalizer/Normalizer";
-import { parseTerm } from "../src/Parser/Parser";
 import * as readline from 'readline';
+import { defaultPasses, showTerm } from "../src/Compiler/Utils";
+import { arithmeticExternals } from "../src/Externals/Arithmetic";
 import { metaExternals } from "../src/Externals/Meta";
-import { JSExternals } from "../src/Parser/Types";
+import { normalizeQuery } from "../src/Normalizer/Normalizer";
+import { parseTerm } from "../src/Parser/Parser";
+import { JSExternals, Term } from "../src/Parser/Types";
 
 const [src, query] = process.argv.slice(2);
 
@@ -18,10 +16,17 @@ const externals: JSExternals = {
     ...metaExternals(console.log)
 };
 
-const buildNormalizer = async (path: string): Promise<Normalizer> => {
-    const source = readFileSync(path).toString();
-    const trs = await compileRules(
+let source = '';
+
+const updateSource = (path: string): void => {
+    source = readFileSync(path).toString();
+};
+
+const normalize = async (query: Term): Promise<Term> => {
+    const res = await normalizeQuery(
+        query,
         source,
+        externals,
         defaultPasses,
         async path => {
             return new Promise(resolve => {
@@ -31,15 +36,14 @@ const buildNormalizer = async (path: string): Promise<Normalizer> => {
         },
     );
 
-    if (trs) {
-        return new DecisionTreeNormalizer(trs)
-            .asNormalizer(externals);
+    if (res) {
+        return res.normalForm;
     } else {
         console.log("Transpilation failed");
     }
 };
 
-const repl = (norm: Normalizer): void => {
+const repl = (): void => {
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
@@ -49,7 +53,7 @@ const repl = (norm: Normalizer): void => {
     process.stdin.setRawMode(true);
 
     const next = (): void => {
-        rl.question('> ', (q: string) => {
+        rl.question('> ', async (q: string) => {
             switch (q) {
                 case 'quit':
                     return;
@@ -59,9 +63,7 @@ const repl = (norm: Normalizer): void => {
                     next();
                     break;
                 case 'reload':
-                    buildNormalizer(src).then(updatedNorm => {
-                        norm = updatedNorm;
-                    });
+                    updateSource(src);
                     next();
                     break;
                 case '':
@@ -73,7 +75,8 @@ const repl = (norm: Normalizer): void => {
             const queryTerm = parseTerm(q);
 
             if (queryTerm) {
-                console.log(showTerm(norm(queryTerm)));
+                const nf = await normalize(q);
+                console.log(showTerm(nf));
             } else {
                 console.log(`Could not parse query: "${q}"`);
             }
@@ -85,19 +88,20 @@ const repl = (norm: Normalizer): void => {
 };
 
 (async () => {
-    if (src !== undefined) {
-        const norm = await buildNormalizer(src);
+    updateSource(src);
 
+    if (src !== undefined) {
         if (query !== undefined) {
             const q = parseTerm(query);
 
             if (q) {
-                console.log(showTerm(norm(q)));
+                const nf = await normalize(q);
+                console.log(showTerm(nf));
             } else {
                 console.log(`Could not parse query: "${query}"`);
             }
         } else {
-            repl(norm);
+            repl();
         }
     } else {
         console.log("usage: grfi [src.grf] [query]");
