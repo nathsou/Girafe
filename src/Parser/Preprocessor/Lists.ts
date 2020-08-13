@@ -3,17 +3,6 @@ import { stringListOf } from "../../Externals/Lists";
 import { Source } from "../Source";
 import { PrepocessorPass } from "./Preprocessor";
 
-// const parseListShorthand = (line: string): string => {
-
-//     const lists: string[] = [];
-
-//     for (const [char, i] of indexed(line.split(''))) {
-//         if (char === '[') {
-
-//         }
-//     }
-// };
-
 export const consLists: PrepocessorPass = async (source: Source) => {
     // eslint-disable-next-line prefer-const
     for (let [line, idx] of source.linesReversed()) {

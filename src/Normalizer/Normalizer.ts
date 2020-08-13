@@ -1,8 +1,7 @@
 import { defaultPasses, fun, isNothing, isVar, Maybe, replaceTermAt, showRule, uniq, vars } from "../Compiler/Utils";
 import { FileReader } from "../Parser/Preprocessor/Import";
-import { dictHas, Fun, JSExternals, Term } from "../Parser/Types";
-import { mapMut, time } from "../Parser/Utils";
-import { DecisionTreeNormalizer } from "./DecisionTreeNormalizer";
+import { AnyExternals, dictHas, Fun, JSExternals, Term, TRS } from "../Parser/Types";
+import { mapMut } from "../Parser/Utils";
 import { compileRules } from "./Unification";
 
 export interface StepNormalizer {
@@ -16,10 +15,11 @@ export interface OneShotNormalizer {
     /**
      * Normalizes query
      */
-    normalize: (query: Term) => Promise<string>
+    normalize: (query: Term) => Promise<Term>
 }
 
 export type Normalizer = (query: Term) => Term;
+export type AsyncNormalizer = (query: Term) => Promise<Term>;
 
 // handles externals
 export const oneStepReduceWithExternals = (
@@ -95,10 +95,20 @@ export const buildNormalizer = (
     return normalize(query, evaluator, externals);
 };
 
-export const normalizeQuery = async <Externals extends string = string>(
+export type NormalizerFactory<Exts extends AnyExternals> = (
+    trs: TRS,
+    externals: Exts
+) => AsyncNormalizer;
+
+export const makeNormalizerAsync = (normalizer: Normalizer): AsyncNormalizer => {
+    return (query: Term) => Promise.resolve(normalizer(query));
+};
+
+export const normalizeQuery = async <Exts extends AnyExternals>(
     query: Term,
     source: string,
-    externals: JSExternals<Externals>,
+    externals: Exts,
+    normalizerFactory: NormalizerFactory<Exts>,
     fileReader: FileReader,
     passes = defaultPasses
 ): Promise<Maybe<{ duration: number, normalForm: Term }>> => {
@@ -110,10 +120,10 @@ export const normalizeQuery = async <Externals extends string = string>(
 
     const trs = await compileRules(sourceWithQuery, passes, fileReader);
     if (isNothing(trs)) return;
-
-    const normalize = new DecisionTreeNormalizer(trs).asNormalizer(externals);
-
-    const [delta, nf] = time(() => normalize(queryLhs));
+    const normalize = normalizerFactory(trs, externals);
+    const start = Date.now();
+    const nf = await normalize(queryLhs);
+    const delta = Date.now() - start;
 
     return { duration: delta, normalForm: nf };
 };

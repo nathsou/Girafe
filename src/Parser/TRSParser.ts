@@ -2,7 +2,7 @@ import { lazyAnnotationSymb } from "../Compiler/Passes/Lazify";
 import { fun, Maybe } from "../Compiler/Utils";
 import { Err, isError, Ok, Result, unwrap } from "../Types";
 import { Lexer, LexerError } from "./Lexer/Lexer";
-import { PositionInfo, Token } from "./Lexer/Token";
+import { Token, WithPos } from "./Lexer/Token";
 import { Fun, Rule, Term } from "./Types";
 
 export type ParserError =
@@ -11,26 +11,11 @@ export type ParserError =
     | ExpectedArrow
     | UnexpectedToken;
 
-export type ExpectedLeftParen = {
-    type: 'ExpectedLeftParen',
-    position: PositionInfo
-};
+export type ExpectedLeftParen = WithPos<'ExpectedLeftParen'>;
+export type ExpectedRightParen = WithPos<'ExpectedRightParen'>;
+export type ExpectedArrow = WithPos<'ExpectedArrow'>;
+export type UnexpectedToken = WithPos<'UnexpectedToken', { token: Token }>;
 
-export type ExpectedRightParen = {
-    type: 'ExpectedLeftParen',
-    position: PositionInfo
-};
-
-export type ExpectedArrow = {
-    type: 'ExpectedArrow',
-    position: PositionInfo
-};
-
-export type UnexpectedToken = {
-    type: 'UnexpectedToken',
-    token: Token,
-    position: PositionInfo
-};
 
 export class TRSParser {
     private pos = 0;

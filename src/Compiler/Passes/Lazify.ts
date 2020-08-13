@@ -11,6 +11,8 @@ export const lazyAnnotationSymb = 'Lazy';
 export const instSymb = 'inst';
 export const thunkSymb = 'Θ';
 
+export const Lazy = (term: Term): Fun => fun(lazyAnnotationSymb, term);
+export const MaybeLazy = (term: Term, lazy = true): Term => lazy ? fun(lazyAnnotationSymb, term) : term;
 export const Inst = (...args: Term[]): Fun => fun(instSymb, ...args);
 export const Thunk = (name: Symb, ...args: Term[]): Fun => fun(`${thunkSymb}${name}`, ...args);
 

@@ -3,10 +3,10 @@ import { CompilerPass, CompilationResult } from "./CompilerPass";
 import { arity, genVars, mostGeneralFun, fun, addRules, head, decons } from "../Utils";
 import { Ok } from "../../Types";
 
-const appSymb = 'App';
+export const appSymb = 'App';
 
 const Arity = (name: Symb, ar: number): Rule => [fun('Arity', fun(name)), fun(`${ar}`)];
-const App = (name: Symb, arg: Term) => fun(appSymb, fun(name), arg);
+export const App = (name: Symb, arg: Term): Fun => fun(appSymb, fun(name), arg);
 
 export const currify: CompilerPass = (trs: TRS): CompilationResult => {
     const newRules: Rule[] = [];
@@ -39,8 +39,5 @@ const curryFunAux = (name: string, args: Term[]): Fun => {
     if (args.length === 1) return App(name, head(args));
 
     const [h, tl] = decons(args);
-    return {
-        name: appSymb,
-        args: [curryFunAux(name, tl), h]
-    };
+    return fun(appSymb, curryFunAux(name, tl), h);
 };

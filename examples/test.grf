@@ -1,8 +1,19 @@
 If(True, a?, b?) -> a
 If(False, a?, b?) -> b
 
-Or(a, b?) -> If(a, True, b)
-And(a, b?) -> If(a, b, False)
+// If(bool?, a, a) -> a
+// should compile to
+// If(bool?, a, b) -> if(@equ(a, b), a, If_'(bool, a, b))
+// If_'(True, a?, b?) -> a
+// If_'(False, a?, b?) -> b
+
+Or(True, b?) -> True
+Or(a?, True) -> True
+Or(a?, b?) -> If(a, True, b)
+
+And(a?, False) -> False
+And(False, b?) -> False
+And(a?, b?) -> If(a, b, False)
 
 Not(True?) -> False
 Not(False?) -> True
@@ -63,7 +74,7 @@ Factorize'(n, i) ->
         ),
         :(n, Nil) // n is prime
     )
-    
+
 PrevOdd(n) -> If(Divisible(n, 2), -(n, 1), n)
 
 PrimesLessThan(n) -> If(<(n, 2), Nil, PrimesLessThan'(PrevOdd(n), Nil))

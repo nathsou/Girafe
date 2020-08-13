@@ -1,6 +1,7 @@
 import { Externals, Term, TRS } from "../Parser/Types";
 import { JSTranslator, stringifyJSExpr } from "../Translator/JSTranslator";
 import { OneShotNormalizer } from "./Normalizer";
+import { parseTerm } from "../Parser/Parser";
 
 export class WebWorkerNormalizer<Exts extends string> implements OneShotNormalizer {
     private trs: TRS;
@@ -18,7 +19,7 @@ export class WebWorkerNormalizer<Exts extends string> implements OneShotNormaliz
         self.onmessage = () => { postMessage(showTerm(__res)); };`;
     }
 
-    public normalize(query: Term): Promise<string> {
+    public normalize(query: Term): Promise<Term> {
         const jst = new JSTranslator(this.trs, this.externals);
         const source = jst.translate();
         const sourceWithQuery = `${source}\n${this.getWorkerTask(query, jst)}`;
@@ -26,9 +27,9 @@ export class WebWorkerNormalizer<Exts extends string> implements OneShotNormaliz
         const uri = URL.createObjectURL(blob);
         const worker = new Worker(uri);
 
-        return new Promise<string>(resolve => {
+        return new Promise<Term>(resolve => {
             worker.onmessage = (msg: MessageEvent) => {
-                resolve(msg.data as string);
+                resolve(parseTerm(msg.data as string) as Term);
             };
 
             worker.postMessage(null);

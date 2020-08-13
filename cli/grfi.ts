@@ -3,9 +3,9 @@
 import { readFileSync } from "fs";
 import * as readline from 'readline';
 import { showTerm } from "../src/Compiler/Utils";
+import { normalizeQueryWith } from "../src/Editor/EditorNormalizers";
 import { arithmeticExternals } from "../src/Externals/Arithmetic";
 import { metaExternals } from "../src/Externals/Meta";
-import { normalizeQuery } from "../src/Normalizer/Normalizer";
 import { parseTerm } from "../src/Parser/Parser";
 import { JSExternals, Term } from "../src/Parser/Types";
 
@@ -23,7 +23,7 @@ const updateSource = (path: string): void => {
 };
 
 const normalize = async (query: Term): Promise<Term> => {
-    const res = await normalizeQuery(
+    const res = await normalizeQueryWith('decision-trees')(
         query,
         source,
         externals,
@@ -32,7 +32,7 @@ const normalize = async (query: Term): Promise<Term> => {
                 const contents = readFileSync(`./examples/${path}`).toString();
                 resolve(contents);
             });
-        },
+        }
     );
 
     if (res) {

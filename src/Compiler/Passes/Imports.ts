@@ -1,5 +1,6 @@
 import { TRS, Rule, Term, Fun } from "../../Parser/Types";
 import { addRules, fun } from "../Utils";
+import { MaybeLazy } from "./Lazify";
 
 export const eqSymb = '@equ';
 export const ifSymb = 'if';
@@ -26,10 +27,13 @@ export const use = (trs: TRS, rules: Rule[]): void => {
     addRules(trs, ...rules);
 };
 
-export const useIf = (trs: TRS): void => {
+export const useIf = (trs: TRS, lazy = true): void => {
+    const a = MaybeLazy('a', lazy);
+    const b = MaybeLazy('b', lazy);
+
     const ifRules: Rule[] = [
-        [If(True(), 'a', 'b'), 'a'],
-        [If(False(), 'a', 'b'), 'b']
+        [If(True(), a, b), 'a'],
+        [If(False(), a, b), 'b']
     ];
 
     use(trs, ifRules);

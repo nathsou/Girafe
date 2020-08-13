@@ -8,12 +8,11 @@ import {
     defaultFileReader,
     isNothing, showTerm
 } from "../Compiler/Utils";
-import { arithmeticExternals } from '../Externals/Arithmetic';
+import { arithmeticExternals, jsArithmeticExternals } from '../Externals/Arithmetic';
 import { listExternals } from '../Externals/Lists';
 import { metaExternals } from '../Externals/Meta';
-import { normalizeQuery } from '../Normalizer/Normalizer';
 import { parseTerm } from '../Parser/Parser';
-import { JSExternals } from '../Parser/Types';
+import { ExternalsMap, normalizeQueryWith, Normalizers, normalizersList } from './EditorNormalizers';
 import { girafeMonarch } from './syntax';
 
 document.body.style.margin = "0px";
@@ -86,10 +85,36 @@ const query = h("input", {
     placeholder: "IsPrime(1789)",
 }, {
     fontSize: "26px",
-    width: editorDiv.style.width,
+    width: "80vw",
+    border: '1px solid black'
 });
 
-document.body.appendChild(query);
+const createNormalizerSelect = () => {
+    const chooseNormalizer = h('select', {}, {
+        width: '150px',
+        height: '35px',
+        backgroundColor: 'white',
+        fontSize: '18px',
+        fontWeight: 'bold',
+        color: 'black',
+        borderRadius: '0px',
+        border: '1px solid black',
+        padding: '1px 2px'
+    });
+
+    for (const n of normalizersList) {
+        chooseNormalizer.appendChild(h('option', {
+            value: n,
+            text: n
+        }));
+    }
+
+    return chooseNormalizer;
+};
+
+const chooseNormalizer = createNormalizerSelect();
+
+document.body.appendChild(div({}, query, chooseNormalizer));
 
 const outputDiv = div({ width: "100vw", height: "calc(20vh - 37px)" });
 document.body.appendChild(outputDiv);
@@ -117,13 +142,16 @@ const traceLogger = (): [(t: string) => void, string[]] => {
     }, trace];
 };
 
-const makeExternals = (): [JSExternals, string[]] => {
+const makeExternals = <N extends Normalizers>(normalizer: N): [ExternalsMap[N], string[]] => {
     const [log, trace] = traceLogger();
-    return [{
-        ...arithmeticExternals,
-        ...listExternals,
-        ...metaExternals(log)
-    }, trace];
+
+    return [(normalizer === 'web-worker' ?
+        jsArithmeticExternals : {
+            ...arithmeticExternals,
+            ...listExternals,
+            ...metaExternals(log)
+        }
+    ) as ExternalsMap[N], trace];
 };
 
 const importPath = '../../examples';
@@ -132,8 +160,11 @@ const run = async () => {
     const queryT = parseTerm(query.value);
     if (isNothing(queryT)) return;
 
-    const [externals, trace] = makeExternals();
-    const res = await normalizeQuery(
+    const chosenNormalizer = chooseNormalizer.value as Normalizers;
+
+    const [externals, trace] = makeExternals(chosenNormalizer);
+
+    const res = await normalizeQueryWith(chosenNormalizer)(
         queryT,
         editor.getValue(),
         externals,
@@ -154,7 +185,7 @@ const run = async () => {
 };
 
 query.addEventListener("keypress", async (e: KeyboardEvent) => {
-    if (e.keyCode === 13) { // Enter
+    if (e.keyCode === 13) { // Enters
         await run();
     }
 });

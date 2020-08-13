@@ -3,15 +3,16 @@ import { Source } from "../Source";
 import { Either, Err, Ok } from "../../Types";
 import { ParserError } from "../TRSParser";
 import { LexerError } from "../Lexer/Lexer";
+import { EmptyObject } from "../Types";
 
 export type PreprocessorResult = Maybe<Array<LexerError | ParserError>>;
-export type PrepocessorPass<Info = Record<string, unknown>> = (
+export type PrepocessorPass<Info = EmptyObject> = (
     source: Source,
     passes: PrepocessorPass<Info>[],
     info: Partial<Info>
 ) => Promise<PreprocessorResult>;
 
-export async function preprocess<Info extends Record<string, unknown> = Record<string, unknown>>(
+export async function preprocess<Info extends EmptyObject = EmptyObject>(
     source: string | Source,
     passes: PrepocessorPass<Info>[],
     info: Partial<Info> = {}
