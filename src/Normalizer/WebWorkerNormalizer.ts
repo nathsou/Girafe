@@ -1,7 +1,18 @@
+import { replaceVars } from "../Compiler/Passes/LeftLinearize";
+import { isFun, vars } from "../Compiler/Utils";
+import { parseTerm } from "../Parser/Parser";
 import { Externals, Term, TRS } from "../Parser/Types";
 import { JSTranslator, stringifyJSExpr } from "../Translator/JSTranslator";
 import { OneShotNormalizer } from "./Normalizer";
-import { parseTerm } from "../Parser/Parser";
+
+// query variables are free
+const stringifyQueryVars = (t: Term): Term => {
+    if (isFun(t)) {
+        return replaceVars(t, vars(t).map(v => `"${v}"`));
+    }
+
+    return t;
+};
 
 export class WebWorkerNormalizer<Exts extends string> implements OneShotNormalizer {
     private trs: TRS;
@@ -14,7 +25,7 @@ export class WebWorkerNormalizer<Exts extends string> implements OneShotNormaliz
 
     private getWorkerTask(query: Term, jst: JSTranslator<Exts>): string {
         return `
-        const __res = ${stringifyJSExpr(jst.callTerm(jst.renameTerm(query)))};
+        const __res = ${stringifyJSExpr(jst.callTerm(jst.renameTerm(stringifyQueryVars(query))))};
 
         self.onmessage = () => { postMessage(showTerm(__res)); };`;
     }
