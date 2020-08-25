@@ -1,7 +1,7 @@
 import { Rule, Term, TRS } from "../../Parser/Types";
 import { Ok } from "../../Types";
+import { emptyTRS, isFun, isVar, lhs, zip, hasDuplicates, vars } from "../Utils";
 import { CompilationResult, CompilerPass } from "./CompilerPass";
-import { emptyTRS, isFun, isVar, lhs, zip } from "../Utils";
 
 export type TotalOrder = (s: Term, t: Term) => boolean;
 
@@ -38,6 +38,11 @@ export const lessSpecific: TotalOrder = (s: Term, t: Term): boolean => {
 
         for (const [a, b] of zip(s.args, t.args)) {
             if (lessSpecific(a, b)) return true;
+        }
+
+        // left-linear rules are less specific than non-left-linear ones
+        if (!hasDuplicates(vars(s)) && hasDuplicates(vars(t))) {
+            return true;
         }
 
         return s.name > t.name;

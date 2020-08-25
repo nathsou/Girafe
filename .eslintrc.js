@@ -12,6 +12,7 @@ module.exports = {
         "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
         "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
         "no-unneeded-ternary": "error",
-        "no-constant-condition": ["error", { "checkLoops": false }]
+        "no-constant-condition": ["error", { "checkLoops": false }],
+        "@typescript-eslint/ban-ts-comment": false
     }
 };

@@ -365,7 +365,7 @@ const compileClauseMatrixAux = (
         return makeLeaf(matrix.actions[0]);
     }
 
-    const colIdx = selectColumn(matrix);
+    const colIdx = selectColumn(matrix) ?? 0;
 
     if (colIdx !== 0) {
         swapMut(occurences, 0, colIdx);

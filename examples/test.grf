@@ -1,12 +1,6 @@
 If(True, a?, b?) -> a
 If(False, a?, b?) -> b
 
-// If(bool?, a, a) -> a
-// should compile to
-// If(bool?, a, b) -> if(@equ(a, b), a, If_'(bool, a, b))
-// If_'(True, a?, b?) -> a
-// If_'(False, a?, b?) -> b
-
 Or(True, b?) -> True
 Or(a?, True) -> True
 Or(a?, b?) -> If(a, True, b)

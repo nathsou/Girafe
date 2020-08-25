@@ -1,4 +1,4 @@
-import { isVar } from "../Compiler/Utils";
+import { isVar, Maybe } from "../Compiler/Utils";
 import { Symb, Term } from "./Types";
 
 export function* reverse<T>(elems: T[]): IterableIterator<T> {
@@ -36,6 +36,12 @@ export function every<T>(it: IterableIterator<T>, pred: (val: T) => boolean): bo
     }
 
     return true;
+}
+
+export function find<T>(it: IterableIterator<T>, pred: (val: T) => boolean): Maybe<T> {
+    for (const val of it) {
+        if (pred(val)) return val;
+    }
 }
 
 export function* indexed<T>(vals: T[]): IterableIterator<[T, number]> {

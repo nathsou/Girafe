@@ -1,10 +1,11 @@
 import { FileReader } from "../Parser/Preprocessor/Import";
 import { Dict, dictEntries, dictGet, dictHas, dictSet, Fun, Rule, Substitution, Symb, Term, TRS, Var } from "../Parser/Types";
-import { every, gen, some, traverseNames } from "../Parser/Utils";
+import { every, gen, range, some, traverseNames } from "../Parser/Utils";
 import { Ok } from "../Types";
-import { check, checkArity, checkLeftLinearity, checkNoDuplicates, checkNoFreeVars, warn } from "./Passes/Checks";
+import { check, checkArity, checkNoDuplicates, checkNoFreeVars, warn } from "./Passes/Checks";
 import { CompilerPass } from "./Passes/CompilerPass";
 import { lazify } from "./Passes/Lazify";
+import { leftLinearize } from "./Passes/LeftLinearize";
 import { orderBySpecificity } from "./Passes/OrderBy";
 
 export type Maybe<T> = T | void;
@@ -24,16 +25,16 @@ export const defaultPasses: CompilerPass[] = [
     checkNoFreeVars,
     checkArity,
     checkNoDuplicates,
-    checkLeftLinearity
+    // checkLeftLinearity
   ),
   warn(
     (warnings: string[]) => warnings.forEach(w => console.warn(w)),
     // checkTailRecursive
   ),
   // currify,
-  lazify,
-  // leftLinearize,
   orderBySpecificity,
+  leftLinearize,
+  lazify,
   // logTRS,
 ];
 
@@ -72,6 +73,33 @@ export function vars(term: Term, acc: Var[] = []): Var[] {
 
   return term.args.reduce((acc, t) => vars(t, acc), acc);
 }
+
+export const rule = (lhs: Fun, rhs: Term): Rule => [lhs, rhs];
+
+export const terms = (trs: TRS): Term[] => {
+  const terms = [];
+  for (const rules of trs.values()) {
+    for (const [lhs, rhs] of rules) {
+      terms.push(lhs, rhs);
+    }
+  }
+
+  return terms;
+};
+
+export const funs = (trs: TRS): Term[] => {
+  const terms = [];
+  for (const rules of trs.values()) {
+    for (const [lhs, rhs] of rules) {
+      terms.push(lhs);
+      if (isFun(rhs)) {
+        terms.push(rhs);
+      }
+    }
+  }
+
+  return terms;
+};
 
 export function occurs(x: Var, t: Term): boolean {
   return vars(t).includes(x);
@@ -485,4 +513,12 @@ const alphaEquivAux = (
 
 export const rulesAlphaEquiv = (rule1: Rule, rule2: Rule): boolean => {
   return alphaEquiv(lhs(rule1), lhs(rule2));
+};
+
+export const freshPrefixedSymb = (prefix: string, symbs: Set<Symb>): Symb => {
+  for (const i of range(0, Infinity)) {
+    if (!symbs.has(`${prefix}${i}`)) {
+      return `${prefix}${i}`;
+    }
+  }
 };

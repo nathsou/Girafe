@@ -1,53 +1,83 @@
-import { Fun, Rule, Term, TRS, Var } from "../../Parser/Types";
+import { collectSymbols } from "../../Normalizer/Matchers/ClosureMatcher/Closure";
+import { Fun, Rule, Term, TRS, Var, Symb } from "../../Parser/Types";
+import { find, indexed } from "../../Parser/Utils";
 import { Ok } from "../../Types";
 import { And, Eq, If, True, useAnd, useIf } from '../Passes/Imports';
-import { addRules, decons, fun, genVars, head, isVar, lhs, occurrences, removeRules, rhs, vars } from "../Utils";
+import { decons, freshPrefixedSymb, fun, funs, genVars, head, isVar, occurrences, rule, split, tail, vars, ruleName } from "../Utils";
 import { isLeftLinear } from "./Checks";
 import { CompilationResult, CompilerPass } from "./CompilerPass";
 
 // transforms a general TRS into a left-linear one
 // requires a structural equality external function (eqSymb)
 export const leftLinearize: CompilerPass = (trs: TRS): CompilationResult => {
-    const removedRules: Rule[] = [];
-    const newRules: Rule[] = [];
+    const symbs = collectSymbols(funs(trs));
 
-    for (const rules of trs.values()) {
-        for (const rule of rules) {
+    const notLeftLinear = find(trs.keys(), name => trs.get(name).some(rule => !isLeftLinear(rule)));
+
+    if (notLeftLinear) {
+        const rules = trs.get(notLeftLinear);
+        for (const [rule, index] of indexed(rules)) {
             if (!isLeftLinear(rule)) {
-                const lhsVars = vars(lhs(rule));
-                const rhsVars = vars(rhs(rule));
-                const uniqueVars = genVars(lhsVars.length);
-                const counts = occurrences(lhsVars);
-                const eqs: Fun[] = [];
+                const [prev, rem] = split(rules, index);
+                const {
+                    updatedRule,
+                    remainingRulesName,
+                    remainingRules
+                } = leftLinearizeRule(rule, tail(rem), symbs);
 
-                for (const occs of counts.values()) {
-                    if (occs.length > 1) {
-                        eqs.push(allEq(occs.map(idx => uniqueVars[idx])));
-                    }
+                trs.set(notLeftLinear, [...prev, updatedRule]);
+
+                if (remainingRules.length > 0) {
+                    trs.set(remainingRulesName, remainingRules);
                 }
-
-                const newRhsVars = rhsVars.map(v => uniqueVars[lhsVars.indexOf(v)]);
-
-                const newRule: Rule = [
-                    replaceVars(lhs(rule), uniqueVars),
-                    If(conjunction(eqs), replaceVars(rhs(rule), newRhsVars), fun('.'))
-                ];
-
-                removedRules.push(rule);
-                newRules.push(newRule);
             }
         }
-    }
 
-    removeRules(trs, ...removedRules);
-    addRules(trs, ...newRules);
-
-    if (newRules.length > 0) {
         useIf(trs);
         useAnd(trs);
+
+        // left linearize the remaining rules
+        return leftLinearize(trs);
     }
 
     return Ok(trs);
+};
+
+const leftLinearizeRule = (
+    [lhs, rhs]: Rule,
+    remainingRules: Rule[],
+    symbs: Set<string>
+): {
+    updatedRule: Rule,
+    remainingRulesName: Symb,
+    remainingRules: Rule[]
+} => {
+    const lhsVars = vars(lhs);
+    const rhsVars = vars(rhs);
+    const uniqueVars = genVars(lhsVars.length);
+    const counts = occurrences(lhsVars);
+    const eqs: Fun[] = [];
+
+    for (const occs of counts.values()) {
+        if (occs.length > 1) {
+            eqs.push(allEq(occs.map(idx => uniqueVars[idx])));
+        }
+    }
+
+    const newRhsVars = rhsVars.map(v => uniqueVars[lhsVars.indexOf(v)]);
+
+    const remName = freshPrefixedSymb(lhs.name, symbs);
+
+    const updatedRule: Rule = [
+        replaceVars(lhs, uniqueVars),
+        If(conjunction(eqs), replaceVars(rhs, newRhsVars), fun(remName, ...uniqueVars))
+    ];
+
+    return {
+        updatedRule,
+        remainingRulesName: remName,
+        remainingRules: remainingRules.map(([lhs, rhs]) => rule(fun(remName, ...lhs.args), rhs))
+    };
 };
 
 export function replaceVars<T extends Term>(t: Term, newVars: Var[], i = { offset: 0 }): T {
