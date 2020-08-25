@@ -1,6 +1,6 @@
 import { Fun, Rule, Symb, Term, TRS, Var } from "../../Parser/Types";
 import { Ok } from "../../Types";
-import { addRules, arity, emptyTRS, fill, fun, genVars, isEmpty, isFun, isVar, replaceTerms, ruleVars, isConst } from "../Utils";
+import { addRules, arity, emptyTRS, fill, fun, genVars, isConst, isEmpty, isFun, isVar, replaceTerms, ruleVars } from "../Utils";
 import { CompilationResult, CompilerPass } from "./CompilerPass";
 
 export type LazinessAnnotations = Map<Symb, boolean[]>;
@@ -175,15 +175,16 @@ const thunkifyAll = (ts: Term[], ann: LazinessAnnotations): Term[] => (
 const thunkify = <T extends Term>(t: T, ann: LazinessAnnotations): T => {
     if (isVar(t) || isConst(t)) return t;
 
+    const name = (t as Fun).name;
     const args = (t as Fun).args.map((arg, i) => {
-        if (isFun(arg) && isLazy((t as Fun).name, i, ann) && !isConst(arg)) {
+        if (isFun(arg) && isLazy(name, i, ann) && !isConst(arg)) {
             return thunkify(Thunk(arg.name, ...thunkifyAll(arg.args, ann)), ann);
         }
 
-        return arg;
+        return thunkify(arg, ann);
     });
 
-    return { name: (t as Fun).name, args } as T;
+    return { name, args } as T;
 };
 
 const instantiateMigrants = (rule: Rule, ann: LazinessAnnotations): Rule => {

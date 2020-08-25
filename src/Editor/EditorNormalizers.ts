@@ -3,6 +3,7 @@ import { NormalizerFactory, buildNormalizer, normalizeQuery, makeNormalizerAsync
 import { WebWorkerNormalizer } from "../Normalizer/WebWorkerNormalizer";
 import { unificationNormalizer } from "../Normalizer/Unification";
 import { headMatcher } from "../Normalizer/Matchers/HeadMatcher";
+import { ClosureMatcher } from "../Normalizer/Matchers/ClosureMatcher/ClosureMatcher";
 import { Term, JSExternals, Externals } from "../Parser/Types";
 import { defaultPasses } from "../Compiler/Utils";
 import { FileReader } from "../Parser/Preprocessor/Import";
@@ -46,7 +47,7 @@ export const normalizeQueryWith = <N extends Normalizers>(normalizer: N): (
             break;
         case 'closure-matcher':
             factory = (trs, externals) => makeNormalizerAsync(
-                buildNormalizer(unificationNormalizer(headMatcher(trs)), externals as JSExternals)
+                new ClosureMatcher(trs).asNormalizer(externals as JSExternals)
             );
             break;
         case 'web-worker':

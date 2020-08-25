@@ -1,11 +1,11 @@
+import { FileReader } from "../Parser/Preprocessor/Import";
 import { Dict, dictEntries, dictGet, dictHas, dictSet, Fun, Rule, Substitution, Symb, Term, TRS, Var } from "../Parser/Types";
 import { every, gen, some, traverseNames } from "../Parser/Utils";
 import { Ok } from "../Types";
-import { check, warn, checkArity, checkLeftLinearity, checkNoDuplicates, checkNoFreeVars } from "./Passes/Checks";
+import { check, checkArity, checkLeftLinearity, checkNoDuplicates, checkNoFreeVars, warn } from "./Passes/Checks";
 import { CompilerPass } from "./Passes/CompilerPass";
 import { lazify } from "./Passes/Lazify";
 import { orderBySpecificity } from "./Passes/OrderBy";
-import { FileReader } from "../Parser/Preprocessor/Import";
 
 export type Maybe<T> = T | void;
 
@@ -27,7 +27,7 @@ export const defaultPasses: CompilerPass[] = [
     checkLeftLinearity
   ),
   warn(
-    (warnings: string[]) => { for (const w of warnings) console.warn(w); },
+    (warnings: string[]) => warnings.forEach(w => console.warn(w)),
     // checkTailRecursive
   ),
   // currify,
@@ -440,13 +440,12 @@ export const replaceTermAt = (parent: Term, t: Term, pos: number[]): Term => {
   const copy = cloneTerm(parent);
   let q = copy;
 
-  const lastIdx = last(pos);
   for (let i = 0; i < pos.length - 1; i++) {
     q = q.args[pos[i]] as Fun;
     if (isVar(q)) return copy;
   }
 
-  q.args[lastIdx] = t;
+  q.args[last(pos)] = t;
   return copy;
 };
 
