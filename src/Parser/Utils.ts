@@ -1,28 +1,28 @@
 import { isVar, Maybe } from "../Compiler/Utils";
 import { Symb, Term } from "./Types";
 
-export function* reverse<T>(elems: T[]): IterableIterator<T> {
+export function* reverse<T>(elems: T[]): Iterable<T> {
     for (let i = elems.length - 1; i >= 0; i--) {
         yield elems[i];
     }
 }
 
-export function* join<T>(as: IterableIterator<T>, bs: IterableIterator<T>): IterableIterator<T> {
+export function* join<T>(as: Iterable<T>, bs: Iterable<T>): Iterable<T> {
     for (const a of as) yield a;
     for (const b of bs) yield b;
 }
 
-export function* once<T>(val: T): IterableIterator<T> {
+export function* once<T>(val: T): Iterable<T> {
     yield val;
 }
 
-export function* iter<T>(vals: T[]): IterableIterator<T> {
+export function* iter<T>(vals: T[]): Iterable<T> {
     for (const val of vals) {
         yield val;
     }
 }
 
-export function some<T>(it: IterableIterator<T>, pred: (val: T) => boolean): boolean {
+export function some<T>(it: Iterable<T>, pred: (val: T) => boolean): boolean {
     for (const val of it) {
         if (pred(val)) return true;
     }
@@ -30,7 +30,7 @@ export function some<T>(it: IterableIterator<T>, pred: (val: T) => boolean): boo
     return false;
 }
 
-export function every<T>(it: IterableIterator<T>, pred: (val: T) => boolean): boolean {
+export function every<T>(it: Iterable<T>, pred: (val: T) => boolean): boolean {
     for (const val of it) {
         if (!pred(val)) return false;
     }
@@ -38,32 +38,47 @@ export function every<T>(it: IterableIterator<T>, pred: (val: T) => boolean): bo
     return true;
 }
 
-export function find<T>(it: IterableIterator<T>, pred: (val: T) => boolean): Maybe<T> {
+export function find<T>(it: Iterable<T>, pred: (val: T) => boolean): Maybe<T> {
     for (const val of it) {
         if (pred(val)) return val;
     }
 }
 
-export function* indexed<T>(vals: T[]): IterableIterator<[T, number]> {
+export function partition<T>(it: Iterable<T>, pred: (val: T) => boolean): [T[], T[]] {
+    const as = [];
+    const bs = [];
+
+    for (const val of it) {
+        if (pred(val)) {
+            as.push(val);
+        } else {
+            bs.push(val);
+        }
+    }
+
+    return [as, bs];
+}
+
+export function* indexed<T>(vals: T[]): Iterable<[T, number]> {
     let i = 0;
     for (const val of vals) {
         yield [val, i++];
     }
 }
 
-export function* range(from: number, to: number, step = 1): IterableIterator<number> {
+export function* range(from: number, to: number, step = 1): Iterable<number> {
     for (let i = from; i <= to; i += step) {
         yield i;
     }
 }
 
-export function* map<U, V>(it: Iterable<U>, f: (val: U) => V): IterableIterator<V> {
+export function* map<U, V>(it: Iterable<U>, f: (val: U) => V): Iterable<V> {
     for (const val of it) {
         yield f(val);
     }
 }
 
-export function* repeat<T>(val: T, count: number): IterableIterator<T> {
+export function* repeat<T>(val: T, count: number): Iterable<T> {
     for (let i = 0; i < count; i++) {
         yield val;
     }
@@ -130,7 +145,7 @@ export function time<T>(f: () => T): [number, T] {
     return [Date.now() - start, res];
 }
 
-export function* traverse(term: Term): IterableIterator<Term> {
+export function* traverse(term: Term): Iterable<Term> {
     if (isVar(term)) {
         yield term;
     } else {
@@ -143,7 +158,7 @@ export function* traverse(term: Term): IterableIterator<Term> {
     }
 }
 
-export function* traverseNames(term: Term): IterableIterator<Symb> {
+export function* traverseNames(term: Term): Iterable<Symb> {
     for (const t of traverse(term)) {
         if (isVar(t)) {
             yield t;
@@ -163,7 +178,7 @@ export function pop<T>(elems: T[], count = 1): T[] {
     return popped;
 }
 
-export function* gen<T>(count: number, f: (idx: number) => T): IterableIterator<T> {
+export function* gen<T>(count: number, f: (idx: number) => T): Iterable<T> {
     for (let i = 0; i < count; i++) {
         yield f(i);
     }

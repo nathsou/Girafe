@@ -1,11 +1,12 @@
 import { collectSymbols } from "../../Normalizer/Matchers/ClosureMatcher/Closure";
-import { Fun, Rule, Term, TRS, Var, Symb } from "../../Parser/Types";
-import { find, indexed } from "../../Parser/Utils";
+import { Fun, Rule, Symb, Term, TRS, Var } from "../../Parser/Types";
+import { find, indexed, partition } from "../../Parser/Utils";
 import { Ok } from "../../Types";
 import { And, Eq, If, True, useAnd, useIf } from '../Passes/Imports';
-import { decons, freshPrefixedSymb, fun, funs, genVars, head, isVar, occurrences, rule, split, tail, vars, ruleName } from "../Utils";
+import { decons, freshPrefixedSymb, fun, funs, genVars, head, isVar, occurrences, rule, split, tail, vars, isSomething } from "../Utils";
 import { isLeftLinear } from "./Checks";
 import { CompilationResult, CompilerPass } from "./CompilerPass";
+import { ruleBasedUnify } from "../../Normalizer/RuleBasedUnify";
 
 // transforms a general TRS into a left-linear one
 // requires a structural equality external function (eqSymb)
@@ -21,14 +22,15 @@ export const leftLinearize: CompilerPass = (trs: TRS): CompilationResult => {
                 const [prev, rem] = split(rules, index);
                 const {
                     updatedRule,
-                    remainingRulesName,
-                    remainingRules
+                    changedRulesName,
+                    changedRules,
+                    unchangedRules
                 } = leftLinearizeRule(rule, tail(rem), symbs);
 
-                trs.set(notLeftLinear, [...prev, updatedRule]);
+                trs.set(notLeftLinear, [...prev, updatedRule, ...unchangedRules]);
 
-                if (remainingRules.length > 0) {
-                    trs.set(remainingRulesName, remainingRules);
+                if (changedRules.length > 0) {
+                    trs.set(changedRulesName, changedRules);
                 }
             }
         }
@@ -45,12 +47,13 @@ export const leftLinearize: CompilerPass = (trs: TRS): CompilationResult => {
 
 const leftLinearizeRule = (
     [lhs, rhs]: Rule,
-    remainingRules: Rule[],
+    remainingRules: Rule[], // less specific rules with the same head symbol
     symbs: Set<string>
 ): {
     updatedRule: Rule,
-    remainingRulesName: Symb,
-    remainingRules: Rule[]
+    changedRulesName: Symb,
+    unchangedRules: Rule[],
+    changedRules: Rule[]
 } => {
     const lhsVars = vars(lhs);
     const rhsVars = vars(rhs);
@@ -65,18 +68,25 @@ const leftLinearizeRule = (
     }
 
     const newRhsVars = rhsVars.map(v => uniqueVars[lhsVars.indexOf(v)]);
-
     const remName = freshPrefixedSymb(lhs.name, symbs);
+    const newLhs = replaceVars<Fun>(lhs, uniqueVars);
 
     const updatedRule: Rule = [
-        replaceVars(lhs, uniqueVars),
-        If(conjunction(eqs), replaceVars(rhs, newRhsVars), fun(remName, ...uniqueVars))
+        newLhs,
+        If(conjunction(eqs), replaceVars(rhs, newRhsVars), fun(remName, ...newLhs.args))
     ];
+
+    // only change the head symbol of matching rules
+    const [
+        matchingRules,
+        unchangedRules
+    ] = partition(remainingRules, ([lhs2, _]) => isSomething(ruleBasedUnify(lhs, lhs2)));
 
     return {
         updatedRule,
-        remainingRulesName: remName,
-        remainingRules: remainingRules.map(([lhs, rhs]) => rule(fun(remName, ...lhs.args), rhs))
+        changedRulesName: remName,
+        changedRules: matchingRules.map(([lhs, rhs]) => rule(fun(remName, ...lhs.args), rhs)),
+        unchangedRules
     };
 };
 
