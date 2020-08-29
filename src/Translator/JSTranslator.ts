@@ -2,11 +2,12 @@
 import { DecisionTree, isOccurence } from "../Compiler/DecisionTrees/DecisionTree";
 import { OccTerm, _ } from "../Compiler/DecisionTrees/DecisionTreeCompiler";
 import { DecisionTreeTranslator } from "../Compiler/DecisionTrees/DecisionTreeTranslator";
-import { fun, isVar, zip } from "../Compiler/Utils";
+import { fun, isVar, Maybe, zip } from "../Compiler/Utils";
 import { repeatString } from "../Normalizer/Matchers/ClosureMatcher/Closure";
-import { SpecialCharacters } from "../Parser/Lexer/SpecialChars";
+import { parseTerm } from "../Parser/Parser";
 import { Dict, dictHas, Externals, Term, TRS } from "../Parser/Types";
 import { map, mapString } from "../Parser/Utils";
+import { symbolMap } from "./Translator";
 
 const translateTerm = (term: Term): string => {
     if (isVar(term)) return term;
@@ -29,32 +30,6 @@ export const stringifyJSExpr = (exp: JSExpr): string => {
 function isFunCall(val: unknown): val is FunCall {
     return typeof val === 'object' && dictHas(val as Dict<unknown>, 'funName');
 }
-
-export const symbolMap: { [key in SpecialCharacters]: string } = {
-    '.': '_dot_',
-    '-': '_minus_',
-    '~': '_tilde_',
-    '+': '_plus_',
-    '*': '_star_',
-    '&': '_ampersand_',
-    '|': '_pipe_',
-    '/': '_slash_',
-    '\\': '_backslash_',
-    '^': '_caret_',
-    '%': '_percent_',
-    '°': '_num_',
-    '$': '_dollar_',
-    '@': '_at_',
-    '#': '_hash_',
-    ';': '_semicolon_',
-    ':': '_colon_',
-    '_': '_',
-    '=': '_eq_',
-    "'": '_prime_',
-    '>': '_gtr_',
-    '<': '_lss_',
-    '!': '_exclamation_mark_'
-};
 
 const tabs = (count: number): string => repeatString('   ', count);
 
@@ -264,12 +239,6 @@ export class JSTranslator<Exts extends string>
             body,
             '}'
         );
-    }
-
-    public rename(name: string): string {
-        const noSymbols = mapString(name, c => symbolMap[c] ?? c);
-
-        return `grf_${noSymbols}`;
     }
 
     public translateTerm(term: Term): string {

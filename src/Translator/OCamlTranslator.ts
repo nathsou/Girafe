@@ -1,8 +1,7 @@
 import { arity, fun, genVars, hasMostGeneralRule, isVar, substitute, unusedRuleVars, zip } from "../Compiler/Utils";
 import { Fun, Rule, Substitution, Symb, Term } from "../Parser/Types";
 import { mapString } from "../Parser/Utils";
-import { symbolMap } from "./JSTranslator";
-import { Translator } from "./Translator";
+import { Translator, symbolMap } from "./Translator";
 
 export class OCamlTranslator<Exts extends string>
     extends Translator<'ocaml', Exts> {
@@ -35,7 +34,7 @@ export class OCamlTranslator<Exts extends string>
         ];
     }
 
-    rename(name: Symb): Symb {
+    withoutSpecialChars(name: string): Symb {
         const noSymbols = mapString(name, c => symbolMap[c] ?? c);
         return `grf_${noSymbols}`;
     }

@@ -38,7 +38,7 @@ export const leftLinearize: CompilerPass = (trs: TRS): CompilationResult => {
         useIf(trs);
         useAnd(trs);
 
-        // left linearize the remaining rules
+        // left linearize the updated TRS
         return leftLinearize(trs);
     }
 

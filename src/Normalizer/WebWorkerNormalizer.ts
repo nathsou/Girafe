@@ -40,7 +40,7 @@ export class WebWorkerNormalizer<Exts extends string> implements OneShotNormaliz
 
         return new Promise<Term>(resolve => {
             worker.onmessage = (msg: MessageEvent) => {
-                resolve(parseTerm(msg.data as string) as Term);
+                resolve(jst.parseRenamedTerm(msg.data as string) as Term);
             };
 
             worker.postMessage(null);

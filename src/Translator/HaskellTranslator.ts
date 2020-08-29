@@ -1,8 +1,7 @@
 import { arity, fun, genVars, hasMostGeneralRule, isVar } from "../Compiler/Utils";
 import { Externals, Rule, Symb, Term, TRS } from "../Parser/Types";
 import { mapString } from "../Parser/Utils";
-import { symbolMap } from "./JSTranslator";
-import { Translator } from "./Translator";
+import { Translator, symbolMap } from "./Translator";
 
 export class HaskellTranslator<Exts extends string>
 	extends Translator<'haskell', Exts> {
@@ -29,7 +28,7 @@ export class HaskellTranslator<Exts extends string>
 		];
 	}
 
-	rename(name: Symb): Symb {
+	withoutSpecialChars(name: Symb): Symb {
 		const noSymbols = mapString(name, c => symbolMap[c] ?? c);
 		return `grf_${noSymbols}`;
 	}

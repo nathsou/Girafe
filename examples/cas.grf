@@ -8,11 +8,84 @@ Or(a, b) -> If(a, True, b)
 Not(True) -> False
 Not(False) -> True
 
+Trace(query?) -> @trace(query?)
+
+-(a, Nat(0)) -> a
+-(Nat(a), Nat(b)) -> Nat(@sub(a, b))
+
+*(a, Nat(0)) -> Nat(0)
+*(Nat(0), b) -> Nat(0)
+*(a, Nat(1)) -> a
+*(Nat(1), b) -> b
+*(Nat(a), Nat(b)) -> Nat(@mult(a, b))
+ 
 **(a, Nat(0)) -> Nat(1)
 **(a, Nat(1)) -> a
-Expand(**(a, Nat(n))) -> *(a, Expand(**(a, Nat(@sub(n, 1)))))
-Expand(exp) -> exp 
+**(Nat(a), Nat(b)) -> *(Nat(a), **(Nat(a), Nat(@sub(b, 1))))
+Expand(+(a, b)) -> +(Expand(a), Expand(b))
+Expand(**(a, Nat(n))) -> Expand(*(a, Expand(**(a, Nat(@sub(n, 1))))))
+Expand(exp) -> exp
 
-Simpl(*(x, x)) -> 1
-Simpl(*(a, b)) -> *(Simpl(a), Simpl(b)) 
+Expand(**(+(a, b), Nat(n))) -> Sum(ExpandSumPow(a, b, Nat(n)))
+
+Expand(*(+(a, b), c)) -> Expand(+(*(a, c), *(b, c)))
+Expand(*(c, +(a, b))) -> Expand(+(*(a, c), *(b, c)))
+
+Simpl(+(a, b)) -> +(Simpl(a), Simpl(b))
+
+Simpl(*(x, x)) -> **(x, Nat(2))
+Simpl(*(a, b)) -> *(Simpl(a), Simpl(b))
+Simpl(*(a, *(a, b))) -> Simpl(*(**(a, Nat(2)), Simpl(b)))
+
++(a, Nat(0)) -> a
++(Nat(0), b) -> b
++(Nat(a), Nat(b)) -> Nat(@add(a, b))
+
+Simpl(*(**(n, a), **(n, b))) -> Simpl(**(n, +(a, b)))
+Simpl(**(**(n, a), b)) -> Simpl(**(n, **(a, b)))
+Simpl(*(**(n, Nat(a)), n)) -> **(n, Nat(@add(a, 1)))
+
 Simpl(exp) -> exp
+
+Range(n) -> Range'(n, Nil)
+Range'(0, rng) -> :(0, rng)
+Range'(n, rng) -> Range'(@sub(n, 1), :(n, rng))
+
+Map(lst, f) -> Map'(lst, f, Nil)
+Map'(Nil, f, acc) -> Rev(acc)
+Map'(:(h, tl), f, acc) -> Map'(tl, f, :(App(f, h), acc))
+
+App(App(C, n), k) -> Binomial(n, k)
+
+SumPowCoeffs(n) -> Map(Range(n), App(C, n))
+ExpandSumPow(a, b, Nat(n)) ->
+    ExpandSumPow'(a, b, Nat(n), Nat(0), SumPowCoeffs(n), Nil)
+
+ExpandSumPow'(a, b, n, i, Nil, acc) -> Rev(acc)
+ExpandSumPow'(a, b, n, i, :(c, cs), acc) -> 
+    ExpandSumPow'(
+        a,
+        b,
+        -(n, Nat(1)),
+        +(i, Nat(1)),
+        cs,
+        :(*(Nat(c), *(**(a, n), **(b, i))), acc)
+    )
+
+Sum(Nil) -> 0
+Sum(:(h, tl)) -> Sum'(tl, h)
+Sum'(Nil, sum) -> sum
+Sum'(:(h, tl), sum) -> Sum'(tl, +(h, sum))
+
+Rev(lst) -> Rev'(lst, Nil)
+Rev'(Nil, rev) -> rev
+Rev'(:(h, tl), rev) -> Rev'(tl, :(h, rev))
+
+Zip(as, bs) -> Zip'(as, bs, Nil)
+Zip'(Nil, bs, acc) -> Rev(acc)
+Zip'(as, Nil, acc) -> Rev(acc)
+Zip'(:(a, as), :(b, bs), acc) -> Zip'(as, bs, :(Pair(a, b), acc))
+
+Binomial(n, k) -> Binomial'(n, k, 1, 1)
+Binomial'(n, 0, ns, ks) -> @div(ns, ks)
+Binomial'(n, k, ns, ks) -> Binomial'(@sub(n, 1), @sub(k, 1), @mult(ns, n), @mult(ks, k))
