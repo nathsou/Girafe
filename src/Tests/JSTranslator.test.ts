@@ -1,8 +1,8 @@
 import { readFileSync } from "fs";
 import { defined } from "../Compiler/Utils";
 import { parseRules } from "../Parser/Parser";
-import { Externals } from "../Parser/Types";
 import { JSTranslator } from "../Translator/JSTranslator";
+import { Externals } from "../Externals/Externals";
 
 const tests = [
     { // peano addition
