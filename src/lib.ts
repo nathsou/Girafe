@@ -1,12 +1,12 @@
 export * from "./Types";
 
 export * from "./Compiler/Utils";
-export * from "./Compiler/Passes/Checks";
-export * from "./Compiler/Passes/CompilerPass";
-export * from "./Compiler/Passes/Currify";
 export * from "./Compiler/DecisionTrees/DecisionTree";
 export * from "./Compiler/DecisionTrees/DecisionTreeCompiler";
 export * from "./Compiler/DecisionTrees/DecisionTreeTranslator";
+export * from "./Compiler/Passes/Checks";
+export * from "./Compiler/Passes/CompilerPass";
+export * from "./Compiler/Passes/Currify";
 export * from "./Compiler/Passes/Imports";
 export * from "./Compiler/Passes/Lazify";
 export * from "./Compiler/Passes/LeftLinearize";
@@ -25,6 +25,10 @@ export * from "./Normalizer/DecisionTreeNormalizer";
 
 export * from "./Externals/Arithmetic";
 export * from "./Externals/Lists";
+export * from "./Externals/Externals";
+export * from "./Externals/Meta";
+
+export * from "./Editor/Normalizers";
 
 export * from "./Parser/Utils";
 export * from "./Parser/Parser";
@@ -35,6 +39,7 @@ export * from "./Parser/Preprocessor/Import";
 export * from "./Parser/Preprocessor/RemoveComments";
 
 export * from "./Translator/Translator";
+export * from "./Translator/Translate";
 export * from "./Translator/JSTranslator";
 export * from "./Translator/OCamlTranslator";
 export * from "./Translator/HaskellTranslator";
