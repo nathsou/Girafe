@@ -1,7 +1,8 @@
 import { fun, decons, isFun } from "../Compiler/Utils";
-import { Term, Fun, JSExternals } from "../Parser/Types";
+import { Term, Fun } from "../Parser/Types";
 import { symb } from "./Arithmetic";
 import { mapMut } from "../Parser/Utils";
+import { NativeExternals } from "./Externals";
 
 export const stringListOf = (elems: string[]): string => {
     if (elems.length === 0) return 'Nil';
@@ -26,6 +27,6 @@ const splitHead = (t: Fun) => {
 
 export type ListExternals = 'splitHead';
 
-export const listExternals: JSExternals<ListExternals> = {
+export const listExternals: NativeExternals<ListExternals> = {
     'splitHead': splitHead
 };

@@ -522,3 +522,13 @@ export const freshPrefixedSymb = (prefix: string, symbs: Set<Symb>): Symb => {
     }
   }
 };
+
+export const replaceSubstrings = (str: string, substrings: { [key: string]: string }): string => {
+  let replaced = str;
+
+  for (const [symb, replacement] of Object.entries(substrings)) {
+    replaced = replaced.replace(new RegExp(replacement, 'g'), symb);
+  }
+
+  return replaced;
+};

@@ -1,5 +1,5 @@
 import { matches, unificationNormalizer } from "../../Unification";
-import { Rule, Symb, Term, TRS, JSExternals } from "../../../Parser/Types";
+import { Rule, Symb, Term, TRS } from "../../../Parser/Types";
 import { indexed } from "../../../Parser/Utils";
 import { closure, collectArities, stringify, unstringify, genSymbolSplitter } from "./Closure";
 import { isEmpty, isFun, isVar, lhs, Maybe, zip } from "../../../Compiler/Utils";
@@ -7,6 +7,7 @@ import { ω } from './Closure';
 import { Matcher } from "../Matcher";
 import { Unificator } from "../../Unificator";
 import { buildNormalizer, Normalizer } from "../../Normalizer";
+import { NativeExternals } from "../../../Externals/Externals";
 
 type Node = {
     symbol: Symb,
@@ -119,7 +120,7 @@ export class ClosureMatcher {
         };
     }
 
-    public asNormalizer<Exts extends string>(externals: JSExternals<Exts>): Normalizer {
+    public asNormalizer<Exts extends string>(externals: NativeExternals<Exts>): Normalizer {
         return buildNormalizer(unificationNormalizer(this.asMatcher()), externals);
     }
 }

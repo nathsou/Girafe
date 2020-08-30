@@ -34,11 +34,6 @@ export class OCamlTranslator<Exts extends string>
         ];
     }
 
-    withoutSpecialChars(name: string): Symb {
-        const noSymbols = mapString(name, c => symbolMap[c] ?? c);
-        return `grf_${noSymbols}`;
-    }
-
     translateTerm(term: Term): string {
         if (isVar(term)) return this.renameVar(term);
         return `(Fun ("${term.name}", [${

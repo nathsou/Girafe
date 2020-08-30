@@ -10,19 +10,6 @@ export type Rule = [Fun, Term];
 export type TRS = Map<Symb, Rule[]>;
 export type EmptyObject = Record<string, unknown>;
 
-export type Targets = 'js' | 'ocaml' | 'haskell';
-export const supportedTargets: Targets[] = ['js', 'ocaml', 'haskell'];
-
-export type JSExternals<Exts extends string = string> = {
-    [name in Exts]: (t: Fun, normalizer: StepNormalizer, externals: JSExternals<string>) => Term
-};
-
-export type AnyExternals<Exts extends string = string> = Externals<Targets, Exts> | JSExternals<Exts>;
-
-export type Externals<Target extends Targets, Exts extends string = string> = {
-    [key in Exts]: (name: string) => string
-};
-
 export function dictSet<T>(dict: Dict<T>, key: string, value: T): Dict<T> {
     dict[key] = value;
     return dict;

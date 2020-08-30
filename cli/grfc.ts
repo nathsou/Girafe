@@ -1,8 +1,8 @@
 import { readFileSync, writeFileSync } from "fs";
 import { defaultPasses } from "../src/Compiler/Utils";
 import { compileRules } from "../src/Normalizer/Unification";
-import { Targets, supportedTargets } from "../src/Parser/Types";
 import { translate } from "../src/Translator/Translate";
+import { Targets, supportedTargets } from "../src/Externals/Externals";
 
 const src = process.argv[2];
 const outFile = process.argv[3];

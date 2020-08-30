@@ -2,8 +2,9 @@ import { DecisionTree, evaluate } from "../Compiler/DecisionTrees/DecisionTree";
 import { clauseMatrixOf, compileClauseMatrix } from "../Compiler/DecisionTrees/DecisionTreeCompiler";
 import { collectTRSArities } from "../Compiler/Passes/Lazify";
 import { arity, isVar, Maybe } from "../Compiler/Utils";
-import { JSExternals, Symb, Term, TRS } from "../Parser/Types";
+import { Symb, Term, TRS } from "../Parser/Types";
 import { buildNormalizer, Normalizer, StepNormalizer } from "./Normalizer";
+import { NativeExternals } from "../Externals/Externals";
 
 export class DecisionTreeNormalizer implements StepNormalizer {
     private rules: Map<Symb, DecisionTree>;
@@ -30,7 +31,7 @@ export class DecisionTreeNormalizer implements StepNormalizer {
     }
 
     public asNormalizer<Exts extends string>(
-        externals: JSExternals<Exts>
+        externals: NativeExternals<Exts>
     ): Normalizer {
         return buildNormalizer(this, externals);
     }

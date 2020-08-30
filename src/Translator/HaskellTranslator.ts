@@ -1,7 +1,7 @@
 import { arity, fun, genVars, hasMostGeneralRule, isVar } from "../Compiler/Utils";
-import { Externals, Rule, Symb, Term, TRS } from "../Parser/Types";
-import { mapString } from "../Parser/Utils";
-import { Translator, symbolMap } from "./Translator";
+import { Externals } from "../Externals/Externals";
+import { Rule, Term, TRS } from "../Parser/Types";
+import { Translator } from "./Translator";
 
 export class HaskellTranslator<Exts extends string>
 	extends Translator<'haskell', Exts> {
@@ -26,11 +26,6 @@ export class HaskellTranslator<Exts extends string>
             show (Fun f ts) = f ++ "(" ++ (intercalate ", " (map show ts)) ++ ")"
         `,
 		];
-	}
-
-	withoutSpecialChars(name: Symb): Symb {
-		const noSymbols = mapString(name, c => symbolMap[c] ?? c);
-		return `grf_${noSymbols}`;
 	}
 
 	translateTerm(term: Term): string {

@@ -1,5 +1,5 @@
 import { defined, mapify, fun } from "../Compiler/Utils";
-import { arithmeticExternals, jsArithmeticExternals } from "../Externals/Arithmetic";
+import { arithmeticExternals } from "../Externals/Arithmetic";
 import { DecisionTreeNormalizer } from "../Normalizer/DecisionTreeNormalizer";
 import { headMatcher } from "../Normalizer/Matchers/HeadMatcher";
 import { ClosureMatcher } from "../Normalizer/Matchers/ClosureMatcher/ClosureMatcher";
@@ -8,6 +8,8 @@ import { unificationNormalizer } from "../Normalizer/Unification";
 import { parseRule, parseTerm } from "../Parser/Parser";
 import { Term, TRS } from "../Parser/Types";
 import { JSTranslator } from "../Translator/JSTranslator";
+import { metaExternals } from "../Externals/Meta";
+import { mergeExternals } from "../Externals/Externals";
 
 const trs: TRS = mapify([
     "=(a, b) -> @equ(a, b)",
@@ -27,19 +29,22 @@ const trs: TRS = mapify([
     "Peano+(S(a), b) -> S(Peano+(a, b))",
 ].map(rule => defined(parseRule(rule))));
 
+const log = (msg: string) => { console.log(msg); };
+const externals = mergeExternals(arithmeticExternals, metaExternals(log));
+
 const normalizers = [
     headMatcher(trs),
     new ClosureMatcher(trs).asMatcher()
-].map(matcher => buildNormalizer(unificationNormalizer(matcher), arithmeticExternals));
+].map(matcher => buildNormalizer(unificationNormalizer(matcher), externals('native')));
 
 const jsTranslatorNormalizer = (query: Term): Term => {
     trs.set('JSTranslatorQuery', [[fun('JSTranslatorQuery'), query]]);
-    let asJS = new JSTranslator(trs, jsArithmeticExternals).translate();
+    let asJS = new JSTranslator(trs, externals('js')).translate();
     asJS += '\nshowTerm(grf_JSTranslatorQuery());';
     return defined(parseTerm(eval(asJS)));
 };
 
-normalizers.push(new DecisionTreeNormalizer(trs).asNormalizer(arithmeticExternals));
+normalizers.push(new DecisionTreeNormalizer(trs).asNormalizer(externals('native')));
 normalizers.push(jsTranslatorNormalizer);
 
 const tests: Array<[Term, Term]> = [

@@ -1,10 +1,11 @@
 import { False, True } from "../Compiler/Passes/Imports";
-import { isFun, termsEq } from "../Compiler/Utils";
-import { Externals, Fun, JSExternals, Term } from "../Parser/Types";
+import { isFun } from "../Compiler/Utils";
+import { Fun } from "../Parser/Types";
+import { Externals, ExternalsFactory, NativeExternals, Targets, ExternalsFactoryMap } from "./Externals";
 
 export const symb = (f: string): Fun => ({ name: f, args: [] });
 
-export const arithbinop = (t: Fun, op: (a: bigint, b: bigint) => bigint): Fun => {
+const arithbinop = (t: Fun, op: (a: bigint, b: bigint) => bigint): Fun => {
     const [a, b] = t.args;
     if (isFun(a) && isFun(b)) {
         try {
@@ -22,7 +23,7 @@ export const arithbinop = (t: Fun, op: (a: bigint, b: bigint) => bigint): Fun =>
     return t;
 };
 
-export const boolbinop = (t: Fun, op: (a: bigint, b: bigint) => boolean): Fun => {
+const boolbinop = (t: Fun, op: (a: bigint, b: bigint) => boolean): Fun => {
     const [a, b] = t.args;
     if (isFun(a) && isFun(b)) {
         const an = BigInt(a.name);
@@ -36,21 +37,16 @@ export const boolbinop = (t: Fun, op: (a: bigint, b: bigint) => boolean): Fun =>
     return t;
 };
 
-const equ = (s: Term, t: Term): Fun => {
-    return termsEq(s, t) ? True() : False();
-};
-
 export type ArithmeticExternals = 'add' | 'sub' | 'mult' | 'div' |
-    'mod' | 'pow' | 'equ' | 'gtr' | 'geq' | 'lss' | 'leq';
+    'mod' | 'pow' | 'gtr' | 'geq' | 'lss' | 'leq';
 
-export const arithmeticExternals: JSExternals<ArithmeticExternals> = {
+const nativeArithmeticExternals: NativeExternals<ArithmeticExternals> = {
     'add': t => arithbinop(t, (a, b) => a + b),
     'sub': t => arithbinop(t, (a, b) => a - b),
     'mult': t => arithbinop(t, (a, b) => a * b),
     'div': t => arithbinop(t, (a, b) => a / b),
     'mod': t => arithbinop(t, (a, b) => a % b),
     'pow': t => arithbinop(t, (a, b) => a ** b),
-    'equ': t => { const [a, b] = t.args; return equ(a, b); },
     'gtr': t => boolbinop(t, (a, b) => a > b),
     'geq': t => boolbinop(t, (a, b) => a >= b),
     'lss': t => boolbinop(t, (a, b) => a < b),
@@ -68,12 +64,12 @@ const jsarithbinop = (op: string) => {
                     const res = (an ${op} bn).toString();
                     return { name: res, args: [] };
                 } catch (e) {
-                    return { name: name, args: [a, b] };
+                    return { name: ${name}, args: [a, b] };
                 }
         
             }
         
-            return { name: name, args: [a, b] };
+            return { name: ${name}, args: [a, b] };
         }`
     );
 };
@@ -89,26 +85,25 @@ const jsboolbinop = (op: string) => {
                 return { name: res ? 'True' : 'False', args: [] };
             }
         
-            return { name: name, args: [a, b] };
+            return { name: ${name}, args: [a, b] };
         }`
     );
 };
 
-export const jsArithmeticExternals: Externals<'js', ArithmeticExternals> = {
+const jsArithmeticExternals: Externals<'js', ArithmeticExternals> = {
     'add': jsarithbinop('+'),
     'sub': jsarithbinop('-'),
     'mult': jsarithbinop('*'),
     'div': jsarithbinop('/'),
     'mod': jsarithbinop('%'),
     'pow': jsarithbinop('**'),
-    'equ': jsboolbinop('==='),
     'gtr': jsboolbinop('>'),
     'geq': jsboolbinop('>='),
     'lss': jsboolbinop('<'),
     'leq': jsboolbinop('<=')
 };
 
-export const haskellArithmeticExternals: Externals<'haskell', ArithmeticExternals> = {
+const haskellArithmeticExternals: Externals<'haskell', ArithmeticExternals> = {
     "sub": name =>
         `${name} (Fun a []) (Fun b []) =
           Fun (show ((read a :: Int) - (read b :: Int))) []`,
@@ -127,9 +122,6 @@ export const haskellArithmeticExternals: Externals<'haskell', ArithmeticExternal
     "pow": name =>
         `${name} (Fun a []) (Fun b []) =
           Fun (show ((read a :: Int) ^ (read b :: Int))) []`,
-    "equ": name =>
-        `${name} (Fun a []) (Fun b []) =
-          Fun (show ((read a :: Int) == (read b :: Int))) []`,
     "lss": name =>
         `${name} (Fun a []) (Fun b []) =
           Fun (show ((read a :: Int) < (read b :: Int))) []`,
@@ -165,7 +157,7 @@ const ocamlBoolBinop = (op: string) => {
         '   | _ -> Fun ("@' + name + '", []);;';
 };
 
-export const ocamlArithmeticExternals: Externals<'ocaml', ArithmeticExternals> = {
+const ocamlArithmeticExternals: Externals<'ocaml', ArithmeticExternals> = {
     "sub": ocamlIntBinop('-'),
     "add": ocamlIntBinop('+'),
     "mult": ocamlIntBinop('*'),
@@ -181,9 +173,17 @@ let rec pow a = function
     
       ${ocamlIntBinop('pow', true)(name)}
 `.trim().trimEnd(),
-    "equ": ocamlBoolBinop('='),
     "lss": ocamlBoolBinop('<'),
     "leq": ocamlBoolBinop('<='),
     "gtr": ocamlBoolBinop('>'),
     "geq": ocamlBoolBinop('>=')
+};
+
+export const arithmeticExternals: ExternalsFactory<ArithmeticExternals> = target => {
+    return {
+        'native': nativeArithmeticExternals,
+        'js': jsArithmeticExternals,
+        'ocaml': ocamlArithmeticExternals,
+        'haskell': haskellArithmeticExternals
+    }[target];
 };

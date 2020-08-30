@@ -3,17 +3,18 @@
 import { readFileSync } from "fs";
 import * as readline from 'readline';
 import { showTerm } from "../src/Compiler/Utils";
-import { normalizeQueryWith } from "../src/Editor/EditorNormalizers";
+import { normalizeQueryWith } from "../src/Editor/Normalizers";
 import { arithmeticExternals } from "../src/Externals/Arithmetic";
 import { metaExternals } from "../src/Externals/Meta";
 import { parseTerm } from "../src/Parser/Parser";
-import { JSExternals, Term } from "../src/Parser/Types";
+import { NativeExternals } from "../src/Externals/Externals";
+import { Term } from "../src/Parser/Types";
 
 const [src, query] = process.argv.slice(2);
 
-const externals: JSExternals = {
-    ...arithmeticExternals,
-    ...metaExternals(console.log)
+const externals: NativeExternals = {
+    ...arithmeticExternals('native'),
+    ...metaExternals(console.log)('native')
 };
 
 let source = '';

@@ -8,6 +8,8 @@ import { isLeftLinear } from "./Checks";
 import { CompilationResult, CompilerPass } from "./CompilerPass";
 import { ruleBasedUnify } from "../../Normalizer/RuleBasedUnify";
 
+export const symbolNameSimulationSuffix = /_(sim)[0-9]+/g;
+
 // transforms a general TRS into a left-linear one
 // requires a structural equality external function (eqSymb)
 export const leftLinearize: CompilerPass = (trs: TRS): CompilationResult => {
@@ -68,7 +70,7 @@ const leftLinearizeRule = (
     }
 
     const newRhsVars = rhsVars.map(v => uniqueVars[lhsVars.indexOf(v)]);
-    const remName = freshPrefixedSymb(lhs.name, symbs);
+    const remName = freshPrefixedSymb(`${lhs.name}_sim`, symbs);
     const newLhs = replaceVars<Fun>(lhs, uniqueVars);
 
     const updatedRule: Rule = [
@@ -109,4 +111,8 @@ const allEq = (terms: Term[]): Fun => {
 
     const [h, tl] = decons(terms);
     return And(Eq(h, head(tl)), allEq(tl));
+};
+
+export const removeSimSuffixes = (term: string): string => {
+    return term.replace(symbolNameSimulationSuffix, '');
 };

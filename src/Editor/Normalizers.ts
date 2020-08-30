@@ -4,16 +4,17 @@ import { WebWorkerNormalizer } from "../Normalizer/WebWorkerNormalizer";
 import { unificationNormalizer } from "../Normalizer/Unification";
 import { headMatcher } from "../Normalizer/Matchers/HeadMatcher";
 import { ClosureMatcher } from "../Normalizer/Matchers/ClosureMatcher/ClosureMatcher";
-import { Term, JSExternals, Externals } from "../Parser/Types";
+import { Term, TRS } from "../Parser/Types";
 import { defaultPasses } from "../Compiler/Utils";
 import { FileReader } from "../Parser/Preprocessor/Import";
 import { CompilerPass } from "../Compiler/Passes/CompilerPass";
+import { NativeExternals, Externals } from "../Externals/Externals";
 
 
 export type ExternalsMap<Exts extends string = string> = {
-    'decision-trees': JSExternals<Exts>,
-    'head-matcher': JSExternals<Exts>,
-    'closure-matcher': JSExternals<Exts>,
+    'decision-trees': NativeExternals<Exts>,
+    'head-matcher': NativeExternals<Exts>,
+    'closure-matcher': NativeExternals<Exts>,
     'web-worker': Externals<'js', Exts>
 };
 
@@ -32,29 +33,19 @@ export const normalizeQueryWith = <N extends Normalizers>(normalizer: N): (
     fileReader: FileReader,
     passes?: CompilerPass[]
 ) => ReturnType<typeof normalizeQuery> => {
-    let factory: NormalizerFactory<ExternalsMap[N]>;
-
-    switch (normalizer) {
-        case 'decision-trees':
-            factory = (trs, externals) => makeNormalizerAsync(
-                new DecisionTreeNormalizer(trs).asNormalizer(externals as JSExternals)
-            );
-            break;
-        case 'head-matcher':
-            factory = (trs, externals) => makeNormalizerAsync(
-                buildNormalizer(unificationNormalizer(headMatcher(trs)), externals as JSExternals)
-            );
-            break;
-        case 'closure-matcher':
-            factory = (trs, externals) => makeNormalizerAsync(
-                new ClosureMatcher(trs).asNormalizer(externals as JSExternals)
-            );
-            break;
-        case 'web-worker':
-            factory = (trs, externals) => (query: Term) =>
-                new WebWorkerNormalizer(trs, externals as Externals<'js'>).normalize(query);
-            break;
-    }
+    const factory: NormalizerFactory<ExternalsMap[N]> = {
+        'decision-trees': (trs: TRS, externals) => makeNormalizerAsync(
+            new DecisionTreeNormalizer(trs).asNormalizer(externals)
+        ),
+        'head-matcher': (trs: TRS, externals) => makeNormalizerAsync(
+            buildNormalizer(unificationNormalizer(headMatcher(trs)), externals)
+        ),
+        'closure-matcher': (trs: TRS, externals) => makeNormalizerAsync(
+            new ClosureMatcher(trs).asNormalizer(externals)
+        ),
+        'web-worker': (trs: TRS, externals) => (query: Term) =>
+            new WebWorkerNormalizer(trs, externals).normalize(query)
+    }[normalizer];
 
     return (
         query: Term,

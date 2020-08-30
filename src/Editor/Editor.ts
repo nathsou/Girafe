@@ -8,12 +8,13 @@ import {
     defaultFileReader,
     isNothing, showTerm
 } from "../Compiler/Utils";
-import { arithmeticExternals, jsArithmeticExternals } from '../Externals/Arithmetic';
-import { listExternals } from '../Externals/Lists';
+import { arithmeticExternals } from '../Externals/Arithmetic';
 import { metaExternals } from '../Externals/Meta';
 import { parseTerm } from '../Parser/Parser';
-import { ExternalsMap, normalizeQueryWith, Normalizers, normalizersList } from './EditorNormalizers';
+import { ExternalsMap, normalizeQueryWith, Normalizers, normalizersList } from './Normalizers';
 import { girafeMonarch } from './syntax';
+import { removeSimSuffixes } from '../Compiler/Passes/LeftLinearize';
+import { mergeExternals } from '../Externals/Externals';
 
 document.body.style.margin = "0px";
 document.body.style.padding = "0px";
@@ -144,14 +145,10 @@ const traceLogger = (): [(t: string) => void, string[]] => {
 
 const makeExternals = <N extends Normalizers>(normalizer: N): [ExternalsMap[N], string[]] => {
     const [log, trace] = traceLogger();
+    const target = normalizer === 'web-worker' ? 'js' : 'native';
+    const exts = mergeExternals(arithmeticExternals, metaExternals(log))(target);
 
-    return [(normalizer === 'web-worker' ?
-        jsArithmeticExternals : {
-            ...arithmeticExternals,
-            ...listExternals,
-            ...metaExternals(log)
-        }
-    ) as ExternalsMap[N], trace];
+    return [exts as ExternalsMap[N], trace];
 };
 
 const importPath = '../../examples';
@@ -173,7 +170,7 @@ const run = async () => {
 
     if (isNothing(res)) return;
 
-    const out = showTerm(res.normalForm);
+    const out = removeSimSuffixes(showTerm(res.normalForm));
 
     if (trace.length > 0) {
         output.setValue(trace.join('\n'));

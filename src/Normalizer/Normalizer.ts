@@ -1,8 +1,9 @@
 import { defaultPasses, fun, isNothing, isVar, Maybe, replaceTermAt, showRule, uniq, vars } from "../Compiler/Utils";
 import { FileReader } from "../Parser/Preprocessor/Import";
-import { AnyExternals, dictHas, Fun, JSExternals, Term, TRS } from "../Parser/Types";
+import { dictHas, Fun, Term, TRS } from "../Parser/Types";
 import { mapMut } from "../Parser/Utils";
 import { compileRules } from "./Unification";
+import { NativeExternals, AnyExternals } from "../Externals/Externals";
 
 export interface StepNormalizer {
     /**
@@ -25,7 +26,7 @@ export type AsyncNormalizer = (query: Term) => Promise<Term>;
 export const oneStepReduceWithExternals = (
     query: Fun,
     normalizer: StepNormalizer,
-    externals: JSExternals<string> = {}
+    externals: NativeExternals<string> = {}
 ): Maybe<Term> => {
     if (query.name.charAt(0) === '@') {
         const f = query.name.substr(1);
@@ -46,7 +47,7 @@ export const oneStepReduceWithExternals = (
 export const normalize = <Externals extends string = string>(
     query: Term,
     normalizer: StepNormalizer,
-    externals: JSExternals<Externals>
+    externals: NativeExternals<Externals>
 ): Term => {
     let reduced = query;
 
@@ -62,7 +63,7 @@ export const normalize = <Externals extends string = string>(
 export const traceNormalize = <Externals extends string = string>(
     query: Term,
     normalizer: StepNormalizer,
-    externals: JSExternals<Externals>,
+    externals: NativeExternals<Externals>,
     trace: (t: Term) => void
 ): Term => {
     let reduced = query;
@@ -90,7 +91,7 @@ export const traceNormalize = <Externals extends string = string>(
 
 export const buildNormalizer = (
     evaluator: StepNormalizer,
-    externals: JSExternals<string> = {}
+    externals: NativeExternals<string> = {}
 ): Normalizer => (query: Term): Term => {
     return normalize(query, evaluator, externals);
 };

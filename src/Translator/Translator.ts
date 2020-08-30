@@ -1,18 +1,16 @@
-import { isVar, fun, Maybe } from "../Compiler/Utils";
+import { fun, isVar, Maybe, replaceSubstrings } from "../Compiler/Utils";
+import { SpecialCharacters } from "../Parser/Lexer/SpecialChars";
+import { parseTerm } from "../Parser/Parser";
 import {
-	Externals,
-	Fun,
+	dictHas, Fun,
 	Rule,
 	Symb,
-	Targets,
 	Term,
 	TRS,
-	dictHas,
-	Var,
+	Var
 } from "../Parser/Types";
-import { SpecialCharacters } from "../Parser/Lexer/SpecialChars";
 import { mapString } from "../Parser/Utils";
-import { parseTerm } from "../Parser/Parser";
+import { Targets, Externals } from "../Externals/Externals";
 
 export const symbolMap: { [key in SpecialCharacters]: string } = {
 	'.': '_dot_',
@@ -70,24 +68,19 @@ export abstract class Translator<Target extends Targets, Exts extends string> {
 		this.reservedKeywords = kw;
 	}
 
-	public withSpecialChars(name: string): string {
-		let withSymbols = name;
-		for (const [symb, replacement] of Object.entries(symbolMap)) {
-			withSymbols = withSymbols.replace(new RegExp(replacement, 'g'), symb);
-		}
-
-		return withSymbols;
+	public withSpecialChars(str: string): string {
+		return replaceSubstrings(str, symbolMap);
 	}
 
-	public withPrefix(name: Symb): Symb {
+	private withPrefix(name: Symb): Symb {
 		return `grf_${name}`;
 	}
 
-	public withoutPrefix(str: string): string {
+	private withoutPrefix(str: string): string {
 		return str.replace(new RegExp('grf_', 'g'), '');
 	}
 
-	public withoutSpecialChars(name: string): string {
+	private withoutSpecialChars(name: string): string {
 		const noSymbols = mapString(name, c => symbolMap[c] ?? c);
 		return this.withPrefix(noSymbols);
 	}

@@ -2,12 +2,11 @@
 import { DecisionTree, isOccurence } from "../Compiler/DecisionTrees/DecisionTree";
 import { OccTerm, _ } from "../Compiler/DecisionTrees/DecisionTreeCompiler";
 import { DecisionTreeTranslator } from "../Compiler/DecisionTrees/DecisionTreeTranslator";
-import { fun, isVar, Maybe, zip } from "../Compiler/Utils";
+import { fun, isVar, zip } from "../Compiler/Utils";
 import { repeatString } from "../Normalizer/Matchers/ClosureMatcher/Closure";
-import { parseTerm } from "../Parser/Parser";
-import { Dict, dictHas, Externals, Term, TRS } from "../Parser/Types";
-import { map, mapString } from "../Parser/Utils";
-import { symbolMap } from "./Translator";
+import { Dict, dictHas, Term, TRS } from "../Parser/Types";
+import { map } from "../Parser/Utils";
+import { Externals } from "../Externals/Externals";
 
 const translateTerm = (term: Term): string => {
     if (isVar(term)) return term;

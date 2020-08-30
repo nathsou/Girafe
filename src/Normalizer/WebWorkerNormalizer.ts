@@ -1,7 +1,7 @@
-import { replaceVars } from "../Compiler/Passes/LeftLinearize";
+import { removeSimSuffixes, replaceVars } from "../Compiler/Passes/LeftLinearize";
 import { isFun, vars } from "../Compiler/Utils";
-import { parseTerm } from "../Parser/Parser";
-import { Externals, Term, TRS } from "../Parser/Types";
+import { Externals } from "../Externals/Externals";
+import { Term, TRS } from "../Parser/Types";
 import { JSTranslator, stringifyJSExpr } from "../Translator/JSTranslator";
 import { OneShotNormalizer } from "./Normalizer";
 

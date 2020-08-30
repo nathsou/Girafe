@@ -1,11 +1,12 @@
 import { collectTRSArities } from "../../Compiler/Passes/Lazify";
-import { Externals, Fun, Rule, Substitution, Symb, Targets, Term, TRS, Var } from "../../Parser/Types";
+import { Fun, Rule, Substitution, Symb, Term, TRS, Var } from "../../Parser/Types";
 import { indexed } from "../../Parser/Utils";
 import { Translator } from "../../Translator/Translator";
 import { Arities } from "../Passes/Lazify";
 import { arity, genVars, isVar, substitute } from "../Utils";
 import { DecisionTree } from "./DecisionTree";
 import { clauseMatrixOf, compileClauseMatrix } from "./DecisionTreeCompiler";
+import { Externals, Targets } from "../../Externals/Externals";
 
 export abstract class DecisionTreeTranslator<Target extends Targets, Exts extends string>
     extends Translator<Target, Exts> {
