@@ -1,17 +1,16 @@
-import { defined, fun } from "../Compiler/Utils";
+import { readFileSync } from "fs";
+import { defined, fun, showTerm } from "../Compiler/Utils";
 import { arithmeticExternals } from "../Externals/Arithmetic";
 import { mergeExternals } from "../Externals/Externals";
 import { metaExternals } from "../Externals/Meta";
 import { DecisionTreeNormalizer } from "../Normalizer/DecisionTreeNormalizer";
-import { ClosureMatcher } from "../Normalizer/Matchers/ClosureMatcher/ClosureMatcher";
 import { headMatcher } from "../Normalizer/Matchers/HeadMatcher";
 import { buildNormalizer, Normalizer } from "../Normalizer/Normalizer";
 import { unificationNormalizer } from "../Normalizer/Unification";
-import { parseTerm } from "../Parser/Parser";
+import { parseRules, parseTerm } from "../Parser/Parser";
 import { Term, TRS } from "../Parser/Types";
 import { JSTranslator } from "../Translator/JSTranslator";
 import { parseTermPairs, parseTRS } from "./TestUtils";
-import { showTerm } from '../Compiler/Utils';
 
 type NormalizationTestSuite = {
     trs: TRS,
@@ -48,15 +47,26 @@ const suite1: NormalizationTestSuite = {
     ])
 };
 
+const suite2: NormalizationTestSuite = {
+    trs: defined(parseRules(readFileSync('./src/Tests/TRSs/primes.grf', 'utf-8'))),
+    tests: parseTermPairs([
+        ['IsPrime(|(1, 7))', 'True'],
+        ['IsPrime(|(2, 1))', 'False'],
+        ['Query2', ":(1', :(0', Nil))"],
+    ])
+};
+
+const suite3: NormalizationTestSuite = {
+    trs: defined(parseRules(readFileSync('./src/Tests/TRSs/curried.grf', 'utf-8'))),
+    tests: parseTermPairs([
+        ['App(CollatzLen, 7)', '17'],
+        ['App(CollatzLen, 6171)', '262'],
+        ['Query', '119'],
+    ])
+};
+
 const genNormalizers = (trs: TRS): Normalizer[] => {
     const externals = mergeExternals(arithmeticExternals, metaExternals());
-
-    const normalizers = [
-        headMatcher(trs),
-        new ClosureMatcher(trs).asMatcher()
-    ].map(matcher => buildNormalizer(unificationNormalizer(matcher), externals('native')));
-
-    normalizers.push(new DecisionTreeNormalizer(trs).asNormalizer(externals('native')));
 
     const jsTranslatorNormalizer = (query: Term): Term => {
         trs.set('JSTranslatorQuery', [[fun('JSTranslatorQuery'), query]]);
@@ -65,13 +75,18 @@ const genNormalizers = (trs: TRS): Normalizer[] => {
         return defined(parseTerm(eval(asJS)));
     };
 
-    normalizers.push(jsTranslatorNormalizer);
-
-    return normalizers;
+    return [
+        buildNormalizer(unificationNormalizer(headMatcher(trs)), externals('native')),
+        // new ClosureMatcher(trs).asNormalizer(externals('native')),
+        new DecisionTreeNormalizer(trs).asNormalizer(externals('native')),
+        jsTranslatorNormalizer
+    ];
 };
 
 const testSuites: NormalizationTestSuite[] = [
-    suite1
+    suite1,
+    suite2,
+    suite3
 ];
 
 test('Each normalizer should give the same output', () => {

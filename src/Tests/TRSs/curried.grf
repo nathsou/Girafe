@@ -1,7 +1,6 @@
 If(True, a, b) -> Inst(a)
 If(False, a, b) -> Inst(b)
 
-// externals
 +(a, b) -> @add(a, b)
 -(a, b) -> @sub(a, b)
 *(a, b) -> @mult(a, b)

@@ -153,3 +153,4 @@ N(:(h, tl)) -> :(N(h), N(tl))
 Inst(x) -> x
 
 Query -> N(Len(Primes(**(10, 2))))
+Query2 -> N(Len(Primes(*(10, 3))))
