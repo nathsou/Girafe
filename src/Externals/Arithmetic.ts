@@ -1,23 +1,18 @@
 import { False, True } from "../Compiler/Passes/Imports";
 import { isFun } from "../Compiler/Utils";
 import { Fun } from "../Parser/Types";
-import { Externals, ExternalsFactory, NativeExternals, Targets, ExternalsFactoryMap } from "./Externals";
+import { Externals, ExternalsFactory, NativeExternals } from "./Externals";
 
 export const symb = (f: string): Fun => ({ name: f, args: [] });
 
 const arithbinop = (t: Fun, op: (a: bigint, b: bigint) => bigint): Fun => {
     const [a, b] = t.args;
     if (isFun(a) && isFun(b)) {
-        try {
-            const an = BigInt(a.name);
-            const bn = BigInt(b.name);
+        const an = BigInt(a.name);
+        const bn = BigInt(b.name);
 
-            const res = op(an, bn);
-            return symb(`${res}`);
-        } catch (e) {
-            return t;
-        }
-
+        const res = op(an, bn);
+        return symb(`${res}`);
     }
 
     return t;
@@ -30,7 +25,6 @@ const boolbinop = (t: Fun, op: (a: bigint, b: bigint) => boolean): Fun => {
         const bn = BigInt(b.name);
 
         const res = op(an, bn);
-
         return res ? True() : False();
     }
 
@@ -57,16 +51,11 @@ const jsarithbinop = (op: string) => {
     return (name: string) => (
         `function ${name}(a, b) {
             if (isFun(a) && isFun(b)) {
-                try {
-                    const an = BigInt(a.name);
-                    const bn = BigInt(b.name);
-        
-                    const res = (an ${op} bn).toString();
-                    return { name: res, args: [] };
-                } catch (e) {
-                    return { name: ${name}, args: [a, b] };
-                }
-        
+                const an = BigInt(a.name);
+                const bn = BigInt(b.name);
+    
+                const res = (an ${op} bn).toString();
+                return { name: res, args: [] };
             }
         
             return { name: ${name}, args: [a, b] };

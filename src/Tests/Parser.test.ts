@@ -4,13 +4,15 @@ import { Lexer } from '../Parser/Lexer/Lexer';
 import { TRSParser } from '../Parser/TRSParser';
 import { gen } from '../Parser/Utils';
 import { isError, isOk, unwrap } from '../Types';
-import { randomSymb, randomTerm, randomTRS, randomVar, testRNG } from './TestUtils';
+import { randomSymb, randomTerm, randomTRS, randomVar, testPrng } from './TestUtils';
 
-const rnd = testRNG;
+const rnd = testPrng;
+
+const runs = 100;
 
 test('Lex vars', () => {
     const lexer = new Lexer();
-    for (const varName of gen(100, () => randomVar(rnd))) {
+    for (const varName of gen(runs, () => randomVar(rnd))) {
         const lexVar = lexer.tokenize(varName);
         expect(isOk(lexVar)).toBe(true);
         expect(unwrap(lexVar)).toStrictEqual([{
@@ -26,7 +28,7 @@ test('Lex vars', () => {
 
 test('Lex symbols', () => {
     const lexer = new Lexer();
-    for (const symb of gen(100, () => randomSymb(rnd))) {
+    for (const symb of gen(runs, () => randomSymb(rnd))) {
         const lexSpecialSymb = lexer.tokenize(symb);
         expect(isOk(lexSpecialSymb)).toBe(true);
         expect(unwrap(lexSpecialSymb)).toStrictEqual([{
@@ -41,7 +43,7 @@ test('Lex symbols', () => {
 });
 
 test('showTerm', () => {
-    for (const t of gen(100, () => randomTerm(rnd, new Map()))) {
+    for (const t of gen(runs, () => randomTerm(rnd, new Map()))) {
         expect(showTerm(t)).toBe(showTermRec(t));
     }
 });
@@ -49,7 +51,7 @@ test('showTerm', () => {
 test('Parse terms', () => {
     const parser = TRSParser.getInstance();
     const arities: Arities = new Map();
-    for (const term of gen(100, () => randomTerm(rnd, arities))) {
+    for (const term of gen(runs, () => randomTerm(rnd, arities))) {
         const lexerErr = parser.tokenize(showTerm(term));
         expect(lexerErr).toBe(undefined);
         const parsedTerm = parser.parseTerm();
@@ -61,7 +63,7 @@ test('Parse terms', () => {
 test('Parse rules', () => {
     const parser = TRSParser.getInstance();
     const arities: Arities = new Map();
-    for (const rules of gen(100, () => randomTRS(rnd, arities))) {
+    for (const rules of gen(runs, () => randomTRS(rnd, arities))) {
         const asStr = rules.map(rule => showRule(rule)).join('\n');
         const parsedTRS = parser.parse(asStr);
         if (isError(parsedTRS)) console.error(JSON.stringify(parsedTRS));

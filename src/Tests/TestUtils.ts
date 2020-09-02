@@ -1,9 +1,10 @@
 import { isFunLeftLinear } from "../Compiler/Passes/Checks";
-import { substitute, vars, occurs } from "../Compiler/Utils";
+import { substitute, vars, occurs, mapify, defined } from "../Compiler/Utils";
 import { specialCharacters } from "../Parser/Lexer/SpecialChars";
-import { Fun, dictGet, dictHas, dictKeys, Rule, Substitution, Symb, Term, Var } from "../Parser/Types";
+import { Fun, dictGet, dictHas, dictKeys, Rule, Substitution, Symb, Term, Var, TRS } from "../Parser/Types";
 import { gen } from "../Parser/Utils";
 import { Arities } from "../Compiler/Passes/Lazify";
+import { parseRule, parseTerm } from "../Parser/Parser";
 
 export const digits = [...gen(10, i => `${i}`)];
 export const lowerCaseLetters = [...gen(26, i => String.fromCharCode(97 + i))];
@@ -25,6 +26,12 @@ export const allowedChars = [
     ...lowerCaseLetters,
     ...symbChars
 ];
+
+export const parseTRS = (rules: string[]): TRS => mapify(rules.map(rule => defined(parseRule(rule))));
+
+export const parseTermPairs = (pairs: Array<[string, string]>): Array<[Term, Term]> => {
+    return pairs.map(([input, output]) => [defined(parseTerm(input)), defined(parseTerm(output))]);
+};
 
 export const randomSymb = (rnd: RandomGenerator, eps = 0.1): Symb => {
     let symb = randomElem(rnd, symbChars);
@@ -205,6 +212,6 @@ export const prng = (seed: number): RandomGenerator => {
     };
 };
 
-const seed = randomInt(Math.random, 1000, 1000000);
-// console.info(`seed: ${seed}`);
-export const testRNG = prng(seed);
+declare const JEST_PRNG_SEED: number;
+
+export const testPrng = prng(JEST_PRNG_SEED);

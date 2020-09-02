@@ -1,0 +1,34 @@
+If(True, a, b) -> Inst(a)
+If(False, a, b) -> Inst(b)
+
+// externals
++(a, b) -> @add(a, b)
+-(a, b) -> @sub(a, b)
+*(a, b) -> @mult(a, b)
+%(a, b) -> @mod(a, b)
+/(a, b) -> @div(a, b)
+=(a, b) -> @equ(a, b)
+>(a, b) -> @gtr(a, b)
+
+App(Collatz, 1) -> :(1, Nil)
+App(Collatz, n) -> :(n, App(Collatz, If(=(%(n, 2), 0), /(n, 2), +(*(3, n), 1))))
+
+App(Len, Nil) -> 0
+App(Len, :(h, tl)) -> +(App(Len, tl), 1)
+
+App(App(Range, n), to) -> If(=(n, to), :(to, Nil), :(n, #Range(+(n, 1), to)))
+Inst(#Range(from, to)) -> App(App(Range, from), to)
+
+App(App(Map, f), Nil) -> Nil
+App(App(Map, f), :(h, tl)) -> :(App(f, h), App(App(Map, f), tl))
+
+App(CollatzLen, n) -> App(Len, App(Collatz, n))
+
+App(Max, :(h, tl)) -> App(App(Max', tl), h)
+App(App(Max', Nil), max) -> max
+App(App(Max', :(h, tl)), m) -> App(App(Max', tl), If(>(h, m), h, m))
+
+Inst(:(h, tl)) -> :(h, Inst(tl))
+Inst(x) -> x
+
+Query -> App(Max, App(App(Map, CollatzLen), App(App(Range, 1), 99)))

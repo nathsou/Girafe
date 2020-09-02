@@ -57,7 +57,9 @@ const ocamlMetaExternals: Externals<'ocaml', MetaExternals> = {
     equ: (name: string) => `let ${name} a b = a = b;;`
 };
 
-export const metaExternals = (nativeLog: (str: string) => void): ExternalsFactory<MetaExternals> => target => {
+const log = (msg: string) => { console.log(msg); };
+
+export const metaExternals = (nativeLog = log): ExternalsFactory<MetaExternals> => target => {
     return {
         'native': nativeMetaExternals(nativeLog),
         'js': jsMetaExternals,

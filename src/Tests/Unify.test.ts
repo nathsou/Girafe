@@ -1,12 +1,12 @@
+import { Arities } from "../Compiler/Passes/Lazify";
 import { fun, isSomething } from "../Compiler/Utils";
 import { ruleBasedUnify as unify } from '../Normalizer/RuleBasedUnify';
 import { parseTerm } from "../Parser/Parser";
 import { Substitution, Term } from "../Parser/Types";
 import { gen } from "../Parser/Utils";
-import { mutateTerm, randomLeftLinearFun, substIn, substsEq, testRNG } from "./TestUtils";
-import { Arities } from "../Compiler/Passes/Lazify";
+import { mutateTerm, randomLeftLinearFun, substIn, substsEq, testPrng } from "./TestUtils";
 
-const rnd = testRNG;
+const rnd = testPrng;
 
 test('substIn', () => {
     expect(substIn({ 'a': 'b', 'c': 'd' }, { 'c': 'd', 'a': 'b' })).toBe(true);
