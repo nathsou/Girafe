@@ -1,0 +1,5 @@
+name: 'Jest tests'
+description: 'runs jest tests in a container'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
