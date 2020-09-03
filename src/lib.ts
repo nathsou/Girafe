@@ -22,6 +22,9 @@ export * from "./Normalizer/Unification";
 export * from "./Normalizer/Unificator";
 export * from "./Normalizer/RuleBasedUnify";
 export * from "./Normalizer/DecisionTreeNormalizer";
+export * from "./Normalizer/JSNormalizer/JSNormalizer";
+export * from "./Normalizer/JSNormalizer/WebWorkerNormalizer";
+export * from "./Normalizer/JSNormalizer/NodeWorkerNormalizer";
 
 export * from "./Externals/Arithmetic";
 export * from "./Externals/Lists";

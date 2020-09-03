@@ -1,8 +1,8 @@
 import { readFileSync } from "fs";
-import { defined } from "../Compiler/Utils";
-import { parseRules } from "../Parser/Parser";
-import { JSTranslator } from "../Translator/JSTranslator";
+import { defined, showTerm } from "../Compiler/Utils";
 import { Externals } from "../Externals/Externals";
+import { nodeWorkerNormalizer } from '../Normalizer/JSNormalizer/NodeWorkerNormalizer';
+import { parseRules, parseTerm } from "../Parser/Parser";
 
 const tests = [
     { // peano addition
@@ -51,17 +51,16 @@ const tests = [
 ].map(({ rules, query, output, externals }) =>
     ({
         rules: defined(parseRules(rules)),
-        query, output,
+        query: defined(parseTerm(query)),
+        output,
         externals: externals as Externals<'js', string>
     })
 );
 
-it('should produce expected output when evaluated', () => {
+it('should produce expected output when evaluated', async () => {
     for (const { rules, query, output, externals } of tests) {
-        const translator = new JSTranslator(rules, externals);
-        let asJS = translator.translate();
-        asJS += `\nshowTerm(grf_${query}());`;
-        // eval should not be too evil here
-        expect(eval(asJS)).toBe(output);
+        const normalize = nodeWorkerNormalizer(rules, externals);
+        const res = await normalize(query);
+        expect(showTerm(res)).toBe(output);
     }
 });

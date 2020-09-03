@@ -1,15 +1,15 @@
 import { readFileSync } from "fs";
-import { defined, fun, showTerm } from "../Compiler/Utils";
+import { defined, showTerm } from "../Compiler/Utils";
 import { arithmeticExternals } from "../Externals/Arithmetic";
 import { mergeExternals } from "../Externals/Externals";
 import { metaExternals } from "../Externals/Meta";
 import { DecisionTreeNormalizer } from "../Normalizer/DecisionTreeNormalizer";
+import { nodeWorkerNormalizer } from "../Normalizer/JSNormalizer/NodeWorkerNormalizer";
 import { headMatcher } from "../Normalizer/Matchers/HeadMatcher";
-import { buildNormalizer, Normalizer } from "../Normalizer/Normalizer";
+import { AsyncNormalizer, buildNormalizer, makeNormalizerAsync } from "../Normalizer/Normalizer";
 import { unificationNormalizer } from "../Normalizer/Unification";
-import { parseRules, parseTerm } from "../Parser/Parser";
+import { parseRules } from "../Parser/Parser";
 import { Term, TRS } from "../Parser/Types";
-import { JSTranslator } from "../Translator/JSTranslator";
 import { parseTermPairs, parseTRS } from "./TestUtils";
 
 type NormalizationTestSuite = {
@@ -47,40 +47,38 @@ const suite1: NormalizationTestSuite = {
     ])
 };
 
+const parseTRSFromFile = (path: string) => defined(parseRules(readFileSync(path, 'utf-8')));
+
 const suite2: NormalizationTestSuite = {
-    trs: defined(parseRules(readFileSync('./src/Tests/TRSs/primes.grf', 'utf-8'))),
+    trs: parseTRSFromFile('./src/Tests/TRSs/primes.grf'),
     tests: parseTermPairs([
         ['IsPrime(|(1, 7))', 'True'],
         ['IsPrime(|(2, 1))', 'False'],
-        ['Query2', ":(1', :(0', Nil))"],
+        ['N(Len(Primes(*(10, 3))))', ":(1', :(0', Nil))"],
     ])
 };
 
 const suite3: NormalizationTestSuite = {
-    trs: defined(parseRules(readFileSync('./src/Tests/TRSs/curried.grf', 'utf-8'))),
+    trs: parseTRSFromFile('./src/Tests/TRSs/curried.grf'),
     tests: parseTermPairs([
         ['App(CollatzLen, 7)', '17'],
         ['App(CollatzLen, 6171)', '262'],
-        ['Query', '119'],
+        ['App(Max, App(App(Map, CollatzLen), App(App(Range, 1), 99)))', '119'],
     ])
 };
 
-const genNormalizers = (trs: TRS): Normalizer[] => {
+const genNormalizers = (trs: TRS): AsyncNormalizer[] => {
     const externals = mergeExternals(arithmeticExternals, metaExternals());
 
-    const jsTranslatorNormalizer = (query: Term): Term => {
-        trs.set('JSTranslatorQuery', [[fun('JSTranslatorQuery'), query]]);
-        let asJS = new JSTranslator(trs, externals('js')).translate();
-        asJS += '\nshowTerm(grf_JSTranslatorQuery());';
-        return defined(parseTerm(eval(asJS)));
-    };
-
-    return [
+    const normalizers = [
         buildNormalizer(unificationNormalizer(headMatcher(trs)), externals('native')),
         // new ClosureMatcher(trs).asNormalizer(externals('native')),
-        new DecisionTreeNormalizer(trs).asNormalizer(externals('native')),
-        jsTranslatorNormalizer
-    ];
+        new DecisionTreeNormalizer(trs).asNormalizer(externals('native'))
+    ].map(makeNormalizerAsync);
+
+    normalizers.push(nodeWorkerNormalizer(trs, externals('js')));
+
+    return normalizers;
 };
 
 const testSuites: NormalizationTestSuite[] = [
@@ -89,11 +87,12 @@ const testSuites: NormalizationTestSuite[] = [
     suite3
 ];
 
-test('Each normalizer should give the same output', () => {
+test('Each normalizer should give the same output', async () => {
     for (const { trs, tests } of testSuites) {
         for (const normalize of genNormalizers(trs)) {
             for (const [input, output] of tests) {
-                expect(showTerm(normalize(input))).toStrictEqual(showTerm(output));
+                const res = await normalize(input);
+                expect(showTerm(res)).toStrictEqual(showTerm(output));
             }
         }
     }

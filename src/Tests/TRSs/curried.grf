@@ -44,5 +44,3 @@ Inst(Thunk@div(v1, v2)) -> @div(Inst(v1), Inst(v2))
 Inst(Thunk@mult(v1, v2)) -> @mult(Inst(v1), Inst(v2))
 Inst(ThunkAnd(v1, v2)) -> And(Inst(v1), Inst(v2))
 Inst(x) -> x
-
-Query -> App(Max, App(App(Map, CollatzLen), App(App(Range, 1), 99)))

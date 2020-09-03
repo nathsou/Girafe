@@ -1,6 +1,6 @@
 import { DecisionTreeNormalizer } from "../Normalizer/DecisionTreeNormalizer";
 import { NormalizerFactory, buildNormalizer, normalizeQuery, makeNormalizerAsync } from "../Normalizer/Normalizer";
-import { WebWorkerNormalizer } from "../Normalizer/WebWorkerNormalizer";
+import { webWorkerNormalizer } from "../Normalizer/JSNormalizer/WebWorkerNormalizer";
 import { unificationNormalizer } from "../Normalizer/Unification";
 import { headMatcher } from "../Normalizer/Matchers/HeadMatcher";
 import { ClosureMatcher } from "../Normalizer/Matchers/ClosureMatcher/ClosureMatcher";
@@ -44,7 +44,7 @@ export const normalizeQueryWith = <N extends Normalizers>(normalizer: N): (
             new ClosureMatcher(trs).asNormalizer(externals)
         ),
         'web-worker': (trs: TRS, externals) => (query: Term) =>
-            new WebWorkerNormalizer(trs, externals).normalize(query)
+            webWorkerNormalizer(trs, externals)(query)
     }[normalizer];
 
     return (
