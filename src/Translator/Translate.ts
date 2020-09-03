@@ -1,31 +1,35 @@
-import { ArithmeticExternals, arithmeticExternals } from "../Externals/Arithmetic";
+import { ArithmeticExternals } from "../Externals/Arithmetic";
+import { ExternalsFactory, Targets } from "../Externals/Externals";
 import { TRS } from "../Parser/Types";
 import { HaskellTranslator } from "./HaskellTranslator";
+import { JSTranslator } from "./JSTranslator";
 import { OCamlTranslator } from "./OCamlTranslator";
 import { Translator } from "./Translator";
-import { JSTranslator } from "./JSTranslator";
-import { Targets } from "../Externals/Externals";
 
-export function translate<Target extends Targets>(trs: TRS, target: Target): string {
+export function translate<Target extends Targets>(
+    trs: TRS,
+    target: Target,
+    externals: ExternalsFactory<string>
+): string {
     let translator: Translator<Target, ArithmeticExternals>;
 
     switch (target) {
         case 'ocaml':
             translator = new OCamlTranslator(
                 trs,
-                arithmeticExternals(target)
+                externals(target)
             );
             break;
         case 'haskell':
             translator = new HaskellTranslator(
                 trs,
-                arithmeticExternals(target)
+                externals(target)
             );
             break;
         case 'js':
             translator = new JSTranslator(
                 trs,
-                arithmeticExternals(target)
+                externals(target)
             );
             break;
     }

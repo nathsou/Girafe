@@ -1,7 +1,6 @@
 import { arity, fun, genVars, hasMostGeneralRule, isVar, substitute, unusedRuleVars, zip } from "../Compiler/Utils";
-import { Fun, Rule, Substitution, Symb, Term } from "../Parser/Types";
-import { mapString } from "../Parser/Utils";
-import { Translator, symbolMap } from "./Translator";
+import { Fun, Rule, Substitution, Term } from "../Parser/Types";
+import { Translator } from "./Translator";
 
 export class OCamlTranslator<Exts extends string>
     extends Translator<'ocaml', Exts> {
@@ -54,8 +53,10 @@ export class OCamlTranslator<Exts extends string>
     }
 
     translateRules(name: string, rules: Rule[]): string {
-        const newVars = genVars(arity(rules));
+        const newVars = genVars(arity(rules)).map(v => `${v}_${name}`);
         const args = `(${newVars.join(', ')})`;
+
+        // make all functions mutually recursive
         const res: string[] = [
             `${this.firstRule ? 'let rec' : 'and'} ${name} ${args} =
                 match ${args} with

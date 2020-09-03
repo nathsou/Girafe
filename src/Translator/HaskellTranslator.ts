@@ -18,7 +18,7 @@ export class HaskellTranslator<Exts extends string>
 		this.header = [
 			"import Data.List (intercalate, map)",
 
-			"data Term = Var String | Fun String [Term]",
+			"data Term = Var String | Fun String [Term] deriving (Eq)",
 
 			`instance Show Term where
             show (Var x) = x

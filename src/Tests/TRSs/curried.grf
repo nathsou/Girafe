@@ -1,33 +1,48 @@
-If(True, a, b) -> Inst(a)
-If(False, a, b) -> Inst(b)
-
-+(a, b) -> @add(a, b)
--(a, b) -> @sub(a, b)
-*(a, b) -> @mult(a, b)
-%(a, b) -> @mod(a, b)
-/(a, b) -> @div(a, b)
-=(a, b) -> @equ(a, b)
->(a, b) -> @gtr(a, b)
-
-App(Collatz, 1) -> :(1, Nil)
-App(Collatz, n) -> :(n, App(Collatz, If(=(%(n, 2), 0), /(n, 2), +(*(3, n), 1))))
-
-App(Len, Nil) -> 0
-App(Len, :(h, tl)) -> +(App(Len, tl), 1)
-
-App(App(Range, n), to) -> If(=(n, to), :(to, Nil), :(n, #Range(+(n, 1), to)))
-Inst(#Range(from, to)) -> App(App(Range, from), to)
-
-App(App(Map, f), Nil) -> Nil
-App(App(Map, f), :(h, tl)) -> :(App(f, h), App(App(Map, f), tl))
-
-App(CollatzLen, n) -> App(Len, App(Collatz, n))
-
-App(Max, :(h, tl)) -> App(App(Max', tl), h)
+App(App(App(Map', f), :(h, tl)), acc) -> App(App(App(Map', f), tl), :(App(f, h), acc))
+App(App(Collatz', 1), acc) -> App(Rev, :(1, acc))
+App(App(Collatz', n), acc) -> App(App(Collatz', App(NextCollatz, n)), :(n, acc))
+App(App(Len', :(h, tl)), len) -> App(App(Len', tl), @add(len, 1))
+App(App(Rev', :(h, tl)), acc) -> App(App(Rev', tl), :(h, acc))
+App(App(App(Map', f), Nil), acc) -> App(Rev, acc)
+App(App(Rev', Nil), rev) -> rev
+App(App(App(Range', v1), v2), v3) -> If(@equ(v1, v2), ThunkApp(Rev, Thunk:(v1, v3)), ThunkApp_sim0(ThunkApp(ThunkApp(Range', v1), v2), v3))
+App(App(CollatzLen', 1), len) -> len
+App(App(Len', Nil), len) -> len
+App(App(CollatzLen', n), len) -> App(App(CollatzLen', App(NextCollatz, n)), @add(len, 1))
+App(App(Map, f), lst) -> App(App(App(Map', f), lst), Nil)
+App(App(Max', :(h, tl)), m) -> App(App(Max', tl), If(@gtr(h, m), h, m))
 App(App(Max', Nil), max) -> max
-App(App(Max', :(h, tl)), m) -> App(App(Max', tl), If(>(h, m), h, m))
+App(App(Range, from), to) -> App(App(App(Range', from), to), Nil)
+App(Collatz, n) -> App(App(Collatz', n), Nil)
+App(CollatzLen, n) -> App(App(CollatzLen', n), 1)
+App(Len, lst) -> App(App(Len', lst), 0)
+App(Max, :(h, tl)) -> App(App(Max', tl), h)
+App(NextCollatz, n) -> If(@equ(@mod(n, 2), 0), Thunk@div(n, 2), Thunk@add(Thunk@mult(3, n), 1))
+App(Rev, lst) -> App(App(Rev', lst), Nil)
 
-Inst(:(h, tl)) -> :(h, Inst(tl))
+Main -> App(Len, App(Collatz, 837799))
+
+If(False, a, b) -> Inst(b)
+If(True, a, b) -> Inst(a)
+
+App_sim0(App(App(Range', from), to), acc) -> App(App(App(Range', @add(from, 1)), to), :(from, acc))
+
+And(False, False) -> False
+And(False, True) -> False
+And(True, False) -> False
+And(True, True) -> True
+
+Inst(ThunkApp(v1, v2)) -> App(Inst(v1), Inst(v2))
+Inst(Thunk:(v1, v2)) -> :(Inst(v1), Inst(v2))
+Inst(Thunk@add(v1, v2)) -> @add(Inst(v1), Inst(v2))
+Inst(ThunkIf(v1, v2, v3)) -> If(Inst(v1), v2, v3)
+Inst(Thunk@equ(v1, v2)) -> @equ(Inst(v1), Inst(v2))
+Inst(ThunkApp_sim0(v1, v2)) -> App_sim0(Inst(v1), Inst(v2))
+Inst(Thunk@gtr(v1, v2)) -> @gtr(Inst(v1), Inst(v2))
+Inst(Thunk@mod(v1, v2)) -> @mod(Inst(v1), Inst(v2))
+Inst(Thunk@div(v1, v2)) -> @div(Inst(v1), Inst(v2))
+Inst(Thunk@mult(v1, v2)) -> @mult(Inst(v1), Inst(v2))
+Inst(ThunkAnd(v1, v2)) -> And(Inst(v1), Inst(v2))
 Inst(x) -> x
 
 Query -> App(Max, App(App(Map, CollatzLen), App(App(Range, 1), 99)))

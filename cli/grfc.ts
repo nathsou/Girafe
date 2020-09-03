@@ -2,7 +2,9 @@ import { readFileSync, writeFileSync } from "fs";
 import { defaultPasses } from "../src/Compiler/Utils";
 import { compileRules } from "../src/Normalizer/Unification";
 import { translate } from "../src/Translator/Translate";
-import { Targets, supportedTargets } from "../src/Externals/Externals";
+import { Targets, supportedTargets, mergeExternals } from "../src/Externals/Externals";
+import { arithmeticExternals } from "../src/Externals/Arithmetic";
+import { metaExternals } from "../src/Externals/Meta";
 
 const src = process.argv[2];
 const outFile = process.argv[3];
@@ -22,7 +24,8 @@ const transpile = async (path: string, target: Targets): Promise<string> => {
   );
 
   if (trs) {
-    return translate(trs, target);
+    const externals = mergeExternals(arithmeticExternals, metaExternals());
+    return translate(trs, target, externals);
   } else {
     console.log("Transpilation failed");
   }

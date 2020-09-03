@@ -12,6 +12,10 @@ export type Maybe<T> = T | void;
 
 // Used when we know for sure that a maybe is defined
 export function defined<T>(mb: Maybe<T>): T {
+  if (isNothing(mb)) {
+    throw new Error(`Called 'defined' on Nothing`);
+  }
+
   return mb as T;
 }
 

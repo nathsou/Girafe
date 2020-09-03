@@ -49,12 +49,12 @@ const jsMetaExternals: Externals<'js', MetaExternals> = {
 
 const haskellMetaExternals: Externals<'haskell', MetaExternals> = {
     trace: (name: string) => `${name} = error "${traceNotAvailableMsg}"`,
-    equ: (name: string) => `${name} a b = a == b`
+    equ: (name: string) => `${name} a b = if a == b then (Fun "True" []) else (Fun "False" [])`
 };
 
 const ocamlMetaExternals: Externals<'ocaml', MetaExternals> = {
-    trace: (name: string) => `let ${name} = failwith "${traceNotAvailableMsg};;"`,
-    equ: (name: string) => `let ${name} a b = a = b;;`
+    trace: (name: string) => `let ${name} () = failwith "${traceNotAvailableMsg}";;`,
+    equ: (name: string) => `let ${name} (a, b) = if a = b then Fun ("True", []) else Fun ("False", []);;`
 };
 
 const log = (msg: string) => { console.log(msg); };
