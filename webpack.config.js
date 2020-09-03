@@ -14,7 +14,7 @@ const unif = {
         exclude: [
           /node_modules/,
           /lib/,
-          /dist/,
+          /dist/
         ],
       },
       {
@@ -101,8 +101,7 @@ const grfc = {
         exclude: [
           /node_modules/,
           /lib/,
-          /dist/,
-          /TRSs/,
+          /dist/
         ],
       },
     ],
@@ -133,8 +132,7 @@ const grfi = {
         exclude: [
           /node_modules/,
           /lib/,
-          /dist/,
-          /TRSs/,
+          /dist/
         ],
       },
     ],

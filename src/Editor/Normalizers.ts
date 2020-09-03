@@ -43,8 +43,7 @@ export const normalizeQueryWith = <N extends Normalizers>(normalizer: N): (
         'closure-matcher': (trs: TRS, externals) => makeNormalizerAsync(
             new ClosureMatcher(trs).asNormalizer(externals)
         ),
-        'web-worker': (trs: TRS, externals) => (query: Term) =>
-            webWorkerNormalizer(trs, externals)(query)
+        'web-worker': (trs: TRS, externals) => webWorkerNormalizer(trs, externals)
     }[normalizer];
 
     return (

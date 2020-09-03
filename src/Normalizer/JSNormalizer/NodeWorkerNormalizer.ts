@@ -1,21 +1,32 @@
 import { Externals } from "../../Externals/Externals";
 import { TRS, Term } from "../../Parser/Types";
 import { JSNormalizer } from "./JSNormalizer";
-import { Worker } from 'worker_threads';
 import { AsyncNormalizer } from "../Normalizer";
 
-const nodeWorkerExecutor = (source: string, outputExpr: string): Promise<string> => {
+declare const __non_webpack_require__: (name: string) => any;
+
+const nodeWorkerExecutor = async (source: string, outputExpr: string): Promise<string> => {
     const sourceWithQuery = [
         source,
         "const { parentPort } = require('worker_threads');",
         `parentPort.once('message', () => { parentPort.postMessage(${outputExpr}); });`
     ].join('\n');
 
+    const req = typeof __non_webpack_require__ !== 'undefined' ? __non_webpack_require__ : require;
+
+    const { Worker } = req('worker_threads');
     const worker = new Worker(sourceWithQuery, { eval: true });
 
-    return new Promise<string>(resolve => {
+    return new Promise<string>((resolve, reject) => {
         worker.on('message', out => {
             resolve(out);
+        });
+
+        worker.on('error', reject);
+        worker.on('exit', code => {
+            if (code !== 0) {
+                reject(new Error(`Worker stopped with exit code ${code}`));
+            }
         });
 
         worker.postMessage(null);
