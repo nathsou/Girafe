@@ -1,5 +1,15 @@
-name: 'Jest tests'
-description: 'runs jest tests in a container'
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    runs:
+      using: 'docker'
+      image: 'Dockerfile'
