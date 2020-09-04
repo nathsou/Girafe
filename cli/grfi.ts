@@ -5,17 +5,14 @@ import * as readline from 'readline';
 import { showTerm } from "../src/Compiler/Utils";
 import { normalizeQueryWith } from "../src/Editor/Normalizers";
 import { arithmeticExternals } from "../src/Externals/Arithmetic";
+import { mergeExternals } from "../src/Externals/Externals";
 import { metaExternals } from "../src/Externals/Meta";
 import { parseTerm } from "../src/Parser/Parser";
-import { NativeExternals } from "../src/Externals/Externals";
 import { Term } from "../src/Parser/Types";
 
 const [src, query] = process.argv.slice(2);
 
-const externals: NativeExternals = {
-    ...arithmeticExternals('native'),
-    ...metaExternals(console.log)('native')
-};
+const externals = mergeExternals(arithmeticExternals, metaExternals());
 
 let source = '';
 

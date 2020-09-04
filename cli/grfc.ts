@@ -1,20 +1,22 @@
 import { readFileSync, writeFileSync } from "fs";
 import { defaultPasses } from "../src/Compiler/Utils";
+import { arithmeticExternals } from "../src/Externals/Arithmetic";
+import { mergeExternals, supportedTargets, Targets } from "../src/Externals/Externals";
+import { metaExternals } from "../src/Externals/Meta";
 import { compileRules } from "../src/Normalizer/Unification";
 import { translate } from "../src/Translator/Translate";
-import { Targets, supportedTargets, mergeExternals } from "../src/Externals/Externals";
-import { arithmeticExternals } from "../src/Externals/Arithmetic";
-import { metaExternals } from "../src/Externals/Meta";
 
 const src = process.argv[2];
 const outFile = process.argv[3];
 const target = process.argv[4];
 
+const externals = mergeExternals(arithmeticExternals, metaExternals());
+
 const transpile = async (path: string, target: Targets): Promise<string> => {
   const source = readFileSync(path).toString();
   const trs = await compileRules(
     source,
-    defaultPasses,
+    defaultPasses(externals('native')),
     async path => {
       return new Promise(resolve => {
         const contents = readFileSync(`./examples/${path}`).toString();
@@ -24,7 +26,6 @@ const transpile = async (path: string, target: Targets): Promise<string> => {
   );
 
   if (trs) {
-    const externals = mergeExternals(arithmeticExternals, metaExternals());
     return translate(trs, target, externals);
   } else {
     console.log("Transpilation failed");

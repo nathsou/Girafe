@@ -1,0 +1,29 @@
++(a, b) -> @add(a, b)
+*(a, b) -> @mult(a, b)
+/(a, b) -> @div(a, b)
+%(a, b) -> @mod(a, b)
+=(a, b) -> @equ(a, b)
+<=(a, b) -> @leq(a, b)
+
+Divisible(a, b) -> =(%(a, b), 0)
+
+Factorize(1) -> Nil
+Factorize(2) -> :(2, Nil)
+Factorize(n) -> If0(Divisible(n, 2), n)
+
+If0(True, n) -> :(2, Factorize(/(n, 2)))
+If0(False, n) -> Factorize'(n, 3, Nil)
+
+Factorize'(n, i) -> If1(<=(*(i, i), n), n, i)
+
+If1(True, n, i) -> If2(Divisible(n, i), n, i)
+If1(False, n, i) -> :(n, Nil)
+
+If2(True, n, i) -> :(i, Factorize(/(n, i)))
+If2(False, n, i) -> Factorize'(n, +(i, 2))
+
+Prod(Nil) -> 1
+Prod(:(h, tl)) -> *(h, Prod(tl))
+
+IsFactorizationOf1998(Factorize(1998)) -> True
+IsFactorizationOf1998(x) -> False

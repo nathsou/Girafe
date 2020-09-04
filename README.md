@@ -8,10 +8,10 @@ Girafe provides a set of tools based on a minimal [term rewriting systems](https
 
 See the examples/ folder for small demos.
 
-Various preprocessors and transformations can be applied to support laziness, imports, currying, non-linearity etc.. see src/Compiler/Passes/
+Multiple preprocessors and transformations can be applied to support laziness, imports, currying, non-linearity etc.. see src/Compiler/Passes/
 
 ## Compiling
-Girafe programs can be compiled to various targets using:
+Girafe programs can be compiled to javascript, ocaml or haskell using:
 ```bash
 $ grfc src.grf out.ext js/ocaml/haskell
 ```

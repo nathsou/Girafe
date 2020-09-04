@@ -14,7 +14,7 @@ import { parseTerm } from '../Parser/Parser';
 import { ExternalsMap, normalizeQueryWith, Normalizers, normalizersList } from './Normalizers';
 import { girafeMonarch } from './syntax';
 import { removeSimSuffixes } from '../Compiler/Passes/LeftLinearize';
-import { mergeExternals } from '../Externals/Externals';
+import { mergeExternals, ExternalsFactory } from '../Externals/Externals';
 
 document.body.style.margin = "0px";
 document.body.style.padding = "0px";
@@ -143,12 +143,11 @@ const traceLogger = (): [(t: string) => void, string[]] => {
     }, trace];
 };
 
-const makeExternals = <N extends Normalizers>(normalizer: N): [ExternalsMap[N], string[]] => {
+const makeExternals = (): [ExternalsFactory<string>, string[]] => {
     const [log, trace] = traceLogger();
-    const target = normalizer === 'web-worker' ? 'js' : 'native';
-    const exts = mergeExternals(arithmeticExternals, metaExternals(log))(target);
+    const exts = mergeExternals(arithmeticExternals, metaExternals(log));
 
-    return [exts as ExternalsMap[N], trace];
+    return [exts, trace];
 };
 
 const importPath = '../../examples';
@@ -159,7 +158,7 @@ const run = async () => {
 
     const chosenNormalizer = chooseNormalizer.value as Normalizers;
 
-    const [externals, trace] = makeExternals(chosenNormalizer);
+    const [externals, trace] = makeExternals();
 
     const res = await normalizeQueryWith(chosenNormalizer)(
         queryT,
