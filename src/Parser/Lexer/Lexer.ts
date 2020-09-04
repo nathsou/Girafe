@@ -4,10 +4,12 @@ import { specialCharacters } from "./SpecialChars";
 import { PositionInfo, SymbToken, Token, VarToken } from "./Token";
 import { unreachable } from "../Types";
 import { ifSymb } from "../../Compiler/Passes/Imports";
+import { appSymb } from "../../Compiler/Passes/Currify";
+import { instSymb } from "../../Compiler/Passes/Lazify";
 
 const specialCharsSet = new Set<string>(specialCharacters);
 const whitespaces = new Set([' ', '\n', '\r', '\t']);
-export const lowerCaseSymbols = [ifSymb]; // keywords
+export const lowerCaseSymbols = [ifSymb, appSymb, instSymb]; // keywords
 
 export type LexerError =
     | InvalidCharError

@@ -2,14 +2,23 @@
 import { DecisionTree, isOccurence } from "../Compiler/DecisionTrees/DecisionTree";
 import { OccTerm, _ } from "../Compiler/DecisionTrees/DecisionTreeCompiler";
 import { DecisionTreeTranslator } from "../Compiler/DecisionTrees/DecisionTreeTranslator";
+import { collectTRSArities } from "../Compiler/Passes/Lazify";
 import { fun, isVar, zip } from "../Compiler/Utils";
+import { Externals } from "../Externals/Externals";
 import { repeatString } from "../Normalizer/Matchers/ClosureMatcher/Closure";
 import { Dict, dictHas, Term, TRS } from "../Parser/Types";
-import { map } from "../Parser/Utils";
-import { Externals } from "../Externals/Externals";
+import { map, mapString } from "../Parser/Utils";
+import { symbolMap } from "./Translator";
+
+const nullarySymbolsPrefix = 'symb_';
+
+const nullaryVarName = (f: string): string => {
+    return `${nullarySymbolsPrefix}${mapString(f, c => symbolMap[c] ?? c)}`;
+};
 
 const translateTerm = (term: Term): string => {
     if (isVar(term)) return term;
+    if (term.args.length === 0) return nullaryVarName(term.name);
     return `{ name: "${term.name}", args: [${term.args.map(translateTerm).join(', ')}] }`;
 };
 
@@ -61,6 +70,22 @@ export class JSTranslator<Exts extends string>
 
     constructor(trs: TRS, externals: Externals<'js', Exts>) {
         super(trs, externals);
+        this.declareNullarySymbols();
+    }
+
+    private declareNullarySymbols() {
+        const symbs = collectTRSArities(this.trs);
+        const nullaries: string[] = [];
+
+        for (const [symb, ar] of symbs) {
+            if (ar === 0) {
+                nullaries.push(symb);
+            }
+        }
+
+        const decl = nullaries.map(f => `const ${nullaryVarName(f)} = { name: "${f}", args: [] };`);
+
+        this.header.push(...decl);
     }
 
     public accessSubterm(parent: string, childIndex: number): string {
