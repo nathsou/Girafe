@@ -1,9 +1,11 @@
-FROM node:12
+FROM node:12-alpine
 
-WORKDIR /usr/src/app
+WORKDIR /usr/src/app/
 
 COPY package.json package-lock.json tsconfig.json jest.config.js ./
 COPY src/ ./src/
 
+RUN apk add ghc=8.6.5-r3
 RUN npm install
-RUN npm run test
+
+CMD [ "npm", "run", "test" ]

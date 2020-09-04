@@ -10,7 +10,7 @@ import { AsyncNormalizer, buildNormalizer, makeNormalizerAsync } from "../Normal
 import { unificationNormalizer } from "../Normalizer/Unification";
 import { parseRules } from "../Parser/Parser";
 import { Term, TRS } from "../Parser/Types";
-import { parseTermPairs, parseTRS } from "./TestUtils";
+import { parseTermPairs, parseTRS, ghcNormalizer } from "./TestUtils";
 
 type NormalizationTestSuite = {
     trs: TRS,
@@ -58,6 +58,7 @@ const suite2: NormalizationTestSuite = {
     ])
 };
 
+
 const suite3: NormalizationTestSuite = {
     trs: parseTRSFromFile('./src/Tests/TRSs/curried.grf'),
     tests: parseTermPairs([
@@ -77,6 +78,7 @@ const genNormalizers = (trs: TRS): AsyncNormalizer[] => {
     ].map(makeNormalizerAsync);
 
     normalizers.push(nodeWorkerNormalizer(trs, externals('js')));
+    normalizers.push(ghcNormalizer(trs, externals('haskell')));
 
     return normalizers;
 };
@@ -88,11 +90,17 @@ const testSuites: NormalizationTestSuite[] = [
 ];
 
 test('Each normalizer should give the same output', async () => {
+    jest.setTimeout(2 * 60000);
+
     for (const { trs, tests } of testSuites) {
         for (const normalize of genNormalizers(trs)) {
             for (const [input, output] of tests) {
-                const res = await normalize(input);
-                expect(showTerm(res)).toStrictEqual(showTerm(output));
+                try {
+                    const res = await normalize(input);
+                    expect(showTerm(res)).toStrictEqual(showTerm(output));
+                } catch (e) {
+                    throw e;
+                }
             }
         }
     }

@@ -1,10 +1,15 @@
+import { spawn } from 'child_process';
+import { unlinkSync, writeFileSync } from 'fs';
 import { isFunLeftLinear } from "../Compiler/Passes/Checks";
-import { substitute, vars, occurs, mapify, defined } from "../Compiler/Utils";
-import { specialCharacters } from "../Parser/Lexer/SpecialChars";
-import { Fun, dictGet, dictHas, dictKeys, Rule, Substitution, Symb, Term, Var, TRS } from "../Parser/Types";
-import { gen } from "../Parser/Utils";
 import { Arities } from "../Compiler/Passes/Lazify";
+import { defined, mapify, occurs, stringifyQueryVars, substitute, vars } from "../Compiler/Utils";
+import { Externals } from "../Externals/Externals";
+import { AsyncNormalizer } from "../Normalizer/Normalizer";
+import { specialCharacters } from "../Parser/Lexer/SpecialChars";
 import { parseRule, parseTerm } from "../Parser/Parser";
+import { dictGet, dictHas, dictKeys, Fun, Rule, Substitution, Symb, Term, TRS, Var } from "../Parser/Types";
+import { gen } from "../Parser/Utils";
+import { HaskellTranslator } from "../Translator/HaskellTranslator";
 
 export const digits = [...gen(10, i => `${i}`)];
 export const lowerCaseLetters = [...gen(26, i => String.fromCharCode(97 + i))];
@@ -215,3 +220,45 @@ export const prng = (seed: number): RandomGenerator => {
 declare const JEST_PRNG_SEED: number;
 
 export const testPrng = prng(JEST_PRNG_SEED);
+
+export const ghcNormalizer = (trs: TRS, externals: Externals<'haskell'>): AsyncNormalizer => {
+    const hst = new HaskellTranslator(trs, externals);
+    const tmpFile = 'grf_tmp.hs';
+
+    const source = hst.translate();
+
+    return (query: Term) => {
+        const sourceWithQuery = [
+            source,
+            `main = putStr (show ${hst.callTerm(hst.renameTerm(stringifyQueryVars(query)))})`
+        ].join('\n');
+
+        // create a tempory file with the generated haskell program
+        writeFileSync(tmpFile, sourceWithQuery, 'utf-8');
+
+        // run ghc on this file
+        return new Promise<Term>((resolve, reject) => {
+            const ghc = spawn('runghc', [tmpFile]);
+
+            let out = '';
+            let err = '';
+
+            ghc.stdout.on('data', (data: Buffer) => {
+                out += data.toString('utf-8');
+            });
+
+            ghc.stderr.on('data', (data: Buffer) => {
+                err += data.toString('utf-8');
+            });
+
+            ghc.on('close', () => {
+                unlinkSync(tmpFile);
+                if (err !== '') {
+                    reject(err);
+                } else {
+                    resolve(defined(hst.parseRenamedTerm(out)));
+                }
+            });
+        });
+    };
+};

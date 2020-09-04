@@ -53,10 +53,10 @@ Inst(#~'(n, acc)) -> ~'(n, acc)
 
 +(a, 0) -> a
 +(0, b) -> b
-+(a, S(b)) -> S(+(a, b))
-+(S(a), b) -> S(+(a, b))
 +(S(a), P(b)) -> +(a, b)
 +(P(a), S(b)) -> +(a, b)
++(a, S(b)) -> S(+(a, b))
++(S(a), b) -> S(+(a, b))
 
 -(a, b) -> +(a, ~(b))
 
@@ -142,13 +142,13 @@ N(S(S(S(S(S(S(S(0)))))))) -> 7'
 N(S(S(S(S(S(S(S(S(0))))))))) -> 8'
 N(S(S(S(S(S(S(S(S(S(0)))))))))) -> 9'
 
+N(Nil) -> Nil
+N(:(h, tl)) -> :(N(h), N(tl))
 N(n) -> Reverse(N'(n, Nil))
 N'(0, acc) -> acc
 N'(n, acc) -> N''(/(n, S(9)), acc)
 N''(DivRes(q, r), acc) -> :(N(r), N'(q, acc))
 
-N(Nil) -> Nil
-N(:(h, tl)) -> :(N(h), N(tl))
 
 Inst(x) -> x
 

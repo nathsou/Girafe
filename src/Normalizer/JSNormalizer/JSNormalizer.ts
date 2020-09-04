@@ -1,18 +1,8 @@
-import { replaceVars } from "../../Compiler/Passes/LeftLinearize";
-import { isFun, vars, defined } from "../../Compiler/Utils";
+import { defined, stringifyQueryVars } from "../../Compiler/Utils";
 import { Externals } from "../../Externals/Externals";
 import { Term, TRS } from "../../Parser/Types";
 import { JSTranslator, stringifyJSExpr } from "../../Translator/JSTranslator";
 import { OneShotNormalizer } from "./../Normalizer";
-
-// query variables are free
-const stringifyQueryVars = (t: Term): Term => {
-    if (isFun(t)) {
-        return replaceVars(t, vars(t).map(v => `"${v}"`));
-    }
-
-    return t;
-};
 
 export class JSNormalizer<Exts extends string> implements OneShotNormalizer {
     constructor(

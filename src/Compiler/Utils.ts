@@ -5,7 +5,7 @@ import { Ok } from "../Types";
 import { check, checkArity, checkNoDuplicates, checkNoFreeVars, warn } from "./Passes/Checks";
 import { CompilerPass } from "./Passes/CompilerPass";
 import { lazify } from "./Passes/Lazify";
-import { leftLinearize } from "./Passes/LeftLinearize";
+import { leftLinearize, replaceVars } from "./Passes/LeftLinearize";
 import { orderBySpecificity } from "./Passes/OrderBy";
 
 export type Maybe<T> = T | void;
@@ -535,4 +535,13 @@ export const replaceSubstrings = (str: string, substrings: { [key: string]: stri
   }
 
   return replaced;
+};
+
+// query variables are free
+export const stringifyQueryVars = (q: Term): Term => {
+  if (isFun(q)) {
+    return replaceVars(q, vars(q).map(v => `"${v}"`));
+  }
+
+  return q;
 };
