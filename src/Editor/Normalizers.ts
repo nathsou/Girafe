@@ -34,16 +34,17 @@ export const normalizeQueryWith = <N extends Normalizers>(normalizer: N): (
     passes?: CompilerPass[]
 ) => ReturnType<typeof normalizeQuery> => {
     const factory: NormalizerFactory<string> = {
-        'decision-trees': (trs: TRS, externals) => makeNormalizerAsync(
-            new DecisionTreeNormalizer(trs).asNormalizer(externals)
+        'decision-trees': (trs: TRS, externals: ExternalsFactory<string>) => makeNormalizerAsync(
+            new DecisionTreeNormalizer(trs).asNormalizer(externals('native'))
         ),
-        'head-matcher': (trs: TRS, externals) => makeNormalizerAsync(
-            buildNormalizer(unificationNormalizer(headMatcher(trs)), externals)
+        'head-matcher': (trs: TRS, externals: ExternalsFactory<string>) => makeNormalizerAsync(
+            buildNormalizer(unificationNormalizer(headMatcher(trs)), externals('native'))
         ),
-        'closure-matcher': (trs: TRS, externals) => makeNormalizerAsync(
-            new ClosureMatcher(trs).asNormalizer(externals)
+        'closure-matcher': (trs: TRS, externals: ExternalsFactory<string>) => makeNormalizerAsync(
+            new ClosureMatcher(trs).asNormalizer(externals('native'))
         ),
-        'web-worker': (trs: TRS, externals) => webWorkerNormalizer(trs, externals)
+        'web-worker': (trs: TRS, externals: ExternalsFactory<string>) =>
+            webWorkerNormalizer(trs, externals('js'))
     }[normalizer];
 
     return (

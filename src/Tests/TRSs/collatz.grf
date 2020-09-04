@@ -1,0 +1,13 @@
+Collatz(1) -> :(1, Nil)
+Collatz(n) -> :(n, Collatz(NextCollatz(n)))
+
+NextCollatz(n) -> if(=(%(n, 2), 0), /(n, 2), +(*(3, n), 1))
+
+Len(Nil) -> 0
+Len(:(h, tl)) -> +(Len(tl), 1)
+
++(a, b) -> @add(a, b)
+*(a, b) -> @mult(a, b)
+%(a, b) -> @mod(a, b)
+=(a, b) -> @equ(a, b)
+/(a, b) -> @div(a, b)

@@ -1,6 +1,6 @@
 import { Arities } from '../Compiler/Passes/Lazify';
 import { showRule, showTerm, showTermRec } from '../Compiler/Utils';
-import { Lexer } from '../Parser/Lexer/Lexer';
+import { Lexer, lowerCaseSymbols } from '../Parser/Lexer/Lexer';
 import { TRSParser } from '../Parser/TRSParser';
 import { gen } from '../Parser/Utils';
 import { isError, isOk, unwrap } from '../Types';
@@ -42,6 +42,24 @@ test('Lex symbols', () => {
     }
 });
 
+
+
+test('Lex keywords', () => {
+    const lexer = new Lexer();
+    for (const symb of lowerCaseSymbols) {
+        const lexSymb = lexer.tokenize(symb);
+        expect(isOk(lexSymb)).toBe(true);
+        expect(unwrap(lexSymb)).toStrictEqual([{
+            type: 'Symb',
+            name: symb,
+            position: {
+                line: 1,
+                col: 1
+            }
+        }]);
+    }
+});
+
 test('showTerm', () => {
     for (const t of gen(runs, () => randomTerm(rnd, new Map()))) {
         expect(showTerm(t)).toBe(showTermRec(t));
@@ -66,7 +84,10 @@ test('Parse rules', () => {
     for (const rules of gen(runs, () => randomTRS(rnd, arities))) {
         const asStr = rules.map(rule => showRule(rule)).join('\n');
         const parsedTRS = parser.parse(asStr);
-        if (isError(parsedTRS)) console.error(JSON.stringify(parsedTRS));
+        if (isError(parsedTRS)) {
+            console.error(JSON.stringify(parsedTRS));
+            console.log(asStr);
+        }
         expect(isOk(parsedTRS)).toBe(true);
         expect(unwrap(parsedTRS)).toStrictEqual(rules);
     }

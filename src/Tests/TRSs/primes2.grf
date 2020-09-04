@@ -1,0 +1,31 @@
++(a, b) -> @add(a, b)
+*(a, b) -> @mult(a, b)
+%(a, b) -> @mod(a, b)
+=(a, b) -> @equ(a, b)
+/(a, b) -> @div(a, b)
+<(a, b) -> @lss(a, b)
+>(a, b) -> @gtr(a, b)
+
+Divisible(a, b) -> =(%(a, b), 0)
+
+Or(False, False) -> False
+Or(True, False) -> True
+Or(False, True) -> True
+Or(True, True) -> True
+
+IsPrime(2) -> True
+IsPrime(n) -> if(Or(<(n, 2), Divisible(n, 2)), False, IsPrime'(n, 3, Maybe))
+
+IsPrime'(n, i, Maybe) -> IsPrime'(
+    n,
+    +(i, 2),
+    if(>(*(i, i), n),
+        True,
+        if(Divisible(n, i),
+            False,
+            Maybe
+        )
+    )
+)
+
+IsPrime'(n, i, ans) -> ans

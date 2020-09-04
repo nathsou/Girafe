@@ -11,6 +11,7 @@ import { dictGet, dictHas, dictKeys, Fun, Rule, Substitution, Symb, Term, TRS, V
 import { gen } from "../Parser/Utils";
 import { HaskellTranslator } from "../Translator/HaskellTranslator";
 import { OCamlTranslator } from '../Translator/OCamlTranslator';
+import { lowerCaseSymbols } from '../Parser/Lexer/Lexer';
 
 export const digits = [...gen(10, i => `${i}`)];
 export const lowerCaseLetters = [...gen(26, i => String.fromCharCode(97 + i))];
@@ -63,6 +64,10 @@ export const randomVar = (rnd: RandomGenerator, eps = 0.1): Var => {
     let name = randomElem(rnd, lowerCaseLetters);
     while (rnd() > eps) {
         name += randomElem(rnd, alphaNum);
+    }
+
+    if (lowerCaseSymbols.includes(name)) {
+        return randomVar(rnd, eps);
     }
 
     return name;

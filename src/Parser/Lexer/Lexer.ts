@@ -3,9 +3,11 @@ import { Err, Ok, Result } from "../../Types";
 import { specialCharacters } from "./SpecialChars";
 import { PositionInfo, SymbToken, Token, VarToken } from "./Token";
 import { unreachable } from "../Types";
+import { ifSymb } from "../../Compiler/Passes/Imports";
 
 const specialCharsSet = new Set<string>(specialCharacters);
 const whitespaces = new Set([' ', '\n', '\r', '\t']);
+export const lowerCaseSymbols = [ifSymb]; // keywords
 
 export type LexerError =
     | InvalidCharError
@@ -104,10 +106,20 @@ export class Lexer {
         };
     }
 
+    private match(str: string): boolean {
+        return this.source.substr(this.pos, str.length) === str &&
+            !this.isAllowedChar(this.source[this.pos + str.length]);
+    }
+
+    private matchLowercaseSymb(): boolean {
+        return lowerCaseSymbols.some(s => this.match(s));
+    }
+
     private tokenizeVar(): Maybe<VarToken> {
         if (
             this.isAlpha(this.currentChar()) &&
-            this.isLowerCase(this.currentChar())
+            this.isLowerCase(this.currentChar()) &&
+            !this.matchLowercaseSymb()
         ) {
             const pos = this.position();
             let name = this.currentChar();
@@ -124,7 +136,10 @@ export class Lexer {
     private tokenizeSymb(): Maybe<SymbToken> {
         if (
             this.isAllowedChar(this.currentChar()) &&
-            this.isUpperCase(this.currentChar())
+            (
+                this.isUpperCase(this.currentChar()) ||
+                this.matchLowercaseSymb()
+            )
         ) {
             const pos = this.position();
             let symb = this.currentChar();
@@ -200,6 +215,6 @@ export class Lexer {
 
     private isAllowedChar(c: string): boolean {
         if (c === undefined) return false;
-        return specialCharsSet.has(c) || this.isAlphaNum(c);
+        return this.isAlphaNum(c) || specialCharsSet.has(c);
     }
 }

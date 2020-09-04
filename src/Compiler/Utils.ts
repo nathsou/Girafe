@@ -9,6 +9,7 @@ import { leftLinearize, replaceVars } from "./Passes/LeftLinearize";
 import { orderBySpecificity } from "./Passes/OrderBy";
 import { NativeExternals } from "../Externals/Externals";
 import { normalizeLhsArgs } from "./Passes/NormalizeLhsArgs";
+import { simulateIfs } from "./Passes/SimulateIfs";
 
 export type Maybe<T> = T | void;
 
@@ -40,6 +41,7 @@ export const defaultPasses: (exts: NativeExternals) => CompilerPass[] = exts => 
   // currify,
   orderBySpecificity,
   leftLinearize,
+  simulateIfs,
   lazify,
   normalizeLhsArgs(exts),
   // logTRS,

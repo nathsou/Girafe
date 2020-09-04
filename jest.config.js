@@ -60,6 +60,7 @@ module.exports = {
     // A set of global variables that need to be available in all test environments
     globals: {
         JEST_PRNG_SEED: (() => {
+            // return 9452286;
             const min = 1000, max = 10000000;
             const seed = Math.floor(Math.random() * (max - min) + min);
             console.log(`seed: ${seed}`);

@@ -11,6 +11,7 @@ export * from "./Compiler/Passes/Imports";
 export * from "./Compiler/Passes/Lazify";
 export * from "./Compiler/Passes/LeftLinearize";
 export * from "./Compiler/Passes/NormalizeLhsArgs";
+export * from "./Compiler/Passes/SimulateIfs";
 export * from "./Compiler/Passes/OrderBy";
 
 export * from "./Normalizer/Normalizer";
