@@ -7,6 +7,8 @@ import { CompilerPass } from "./Passes/CompilerPass";
 import { lazify } from "./Passes/Lazify";
 import { leftLinearize, replaceVars } from "./Passes/LeftLinearize";
 import { orderBySpecificity } from "./Passes/OrderBy";
+import { NativeExternals } from "../Externals/Externals";
+import { normalizeLhsArgs } from "./Passes/NormalizeLhsArgs";
 
 export type Maybe<T> = T | void;
 
@@ -24,7 +26,7 @@ export const logTRS: CompilerPass = (trs: TRS) => {
   return Ok(trs);
 };
 
-export const defaultPasses: CompilerPass[] = [
+export const defaultPasses: (exts: NativeExternals) => CompilerPass[] = exts => [
   check(
     checkNoFreeVars,
     checkArity,
@@ -39,6 +41,7 @@ export const defaultPasses: CompilerPass[] = [
   orderBySpecificity,
   leftLinearize,
   lazify,
+  normalizeLhsArgs(exts),
   // logTRS,
 ];
 
@@ -76,6 +79,12 @@ export function vars(term: Term, acc: Var[] = []): Var[] {
   }
 
   return term.args.reduce((acc, t) => vars(t, acc), acc);
+}
+
+export function* rules(trs: TRS): Iterable<Rule> {
+  for (const rules of trs.values()) {
+    yield* rules;
+  }
 }
 
 export const rule = (lhs: Fun, rhs: Term): Rule => [lhs, rhs];

@@ -1,12 +1,12 @@
 import { spawn } from 'child_process';
-import { writeFileSync, unlinkSync } from 'fs';
+import { writeFileSync, unlinkSync, readFileSync } from 'fs';
 import { isFunLeftLinear } from "../Compiler/Passes/Checks";
 import { Arities } from "../Compiler/Passes/Lazify";
 import { defined, mapify, Maybe, occurs, stringifyQueryVars, substitute, vars } from "../Compiler/Utils";
 import { Externals } from "../Externals/Externals";
 import { AsyncNormalizer } from "../Normalizer/Normalizer";
 import { specialCharacters } from "../Parser/Lexer/SpecialChars";
-import { parseRule, parseTerm } from "../Parser/Parser";
+import { parseRule, parseTerm, parseRules } from "../Parser/Parser";
 import { dictGet, dictHas, dictKeys, Fun, Rule, Substitution, Symb, Term, TRS, Var } from "../Parser/Types";
 import { gen } from "../Parser/Utils";
 import { HaskellTranslator } from "../Translator/HaskellTranslator";
@@ -34,6 +34,8 @@ export const allowedChars = [
 ];
 
 export const parseTRS = (rules: string[]): TRS => mapify(rules.map(rule => defined(parseRule(rule))));
+
+export const parseTRSFromFile = (path: string) => defined(parseRules(readFileSync(path, 'utf-8')));
 
 export const parseTermPairs = (pairs: Array<[string, string]>): Array<[Term, Term]> => {
     return pairs.map(([input, output]) => [defined(parseTerm(input)), defined(parseTerm(output))]);

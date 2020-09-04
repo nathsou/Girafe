@@ -38,7 +38,9 @@ const jsMetaExternals: Externals<'js', MetaExternals> = {
             if (isVar(a) && isVar(b)) return { name: a === b ? "True" : "False", args: [] };
             if (isFun(a) && isFun(b) && a.name === b.name && a.args.length === b.args.length) {
               for (let i = 0; i < a.args.length; i++) {
-                  if (!${name}(a.args[i], b.args[i])) return { name: "False", args: [] };
+                  if (${name}(a.args[i], b.args[i]).name === "False") {
+                      return { name: "False", args: [] };
+                  }
               }
               return { name: "True", args: [] };
             }

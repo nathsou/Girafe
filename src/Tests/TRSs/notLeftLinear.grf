@@ -1,0 +1,11 @@
+-(a, b) -> @sub(a, b)
+
+Range(from, to) -> Range'(from, to, Nil)
+Range'(from, from, rng) -> :(from, rng)
+Range'(from, to, acc) -> Range'(from, -(to, 1), :(to, acc))
+
++(a, a) -> *(a, 2)
++(a, 0) -> a
++(0, b) -> b
++(a, +(a, b)) -> +(*(a, 2), b)
++(*(n, a), *(n, b)) -> *(n, +(a, b))

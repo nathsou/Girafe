@@ -1,9 +1,9 @@
 import { defaultPasses, fun, isNothing, isVar, Maybe, replaceTermAt, showRule, uniq, vars } from "../Compiler/Utils";
+import { ExternalsFactory, NativeExternals } from "../Externals/Externals";
 import { FileReader } from "../Parser/Preprocessor/Import";
 import { dictHas, Fun, Term, TRS } from "../Parser/Types";
 import { mapMut } from "../Parser/Utils";
 import { compileRules } from "./Unification";
-import { NativeExternals, AnyExternals } from "../Externals/Externals";
 
 export interface StepNormalizer {
     /**
@@ -96,22 +96,22 @@ export const buildNormalizer = (
     return normalize(query, evaluator, externals);
 };
 
-export type NormalizerFactory<Exts extends AnyExternals> = (
+export type NormalizerFactory<Exts extends string> = (
     trs: TRS,
-    externals: Exts
+    externals: ExternalsFactory<Exts>
 ) => AsyncNormalizer;
 
 export const makeNormalizerAsync = (normalizer: Normalizer): AsyncNormalizer => {
     return (query: Term) => Promise.resolve(normalizer(query));
 };
 
-export const normalizeQuery = async <Exts extends AnyExternals>(
+export const normalizeQuery = async <Exts extends string>(
     query: Term,
     source: string,
-    externals: Exts,
+    externals: ExternalsFactory<Exts>,
     normalizerFactory: NormalizerFactory<Exts>,
     fileReader: FileReader,
-    passes = defaultPasses
+    passes = defaultPasses(externals('native'))
 ): Promise<Maybe<{ duration: number, normalForm: Term }>> => {
     const querySymb = "___query";
     const queryVars = uniq(vars(query));

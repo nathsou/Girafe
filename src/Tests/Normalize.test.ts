@@ -1,5 +1,4 @@
-import { readFileSync } from "fs";
-import { defined, showTerm } from "../Compiler/Utils";
+import { showTerm } from "../Compiler/Utils";
 import { arithmeticExternals } from "../Externals/Arithmetic";
 import { mergeExternals } from "../Externals/Externals";
 import { metaExternals } from "../Externals/Meta";
@@ -8,9 +7,8 @@ import { nodeWorkerNormalizer } from "../Normalizer/JSNormalizer/NodeWorkerNorma
 import { headMatcher } from "../Normalizer/Matchers/HeadMatcher";
 import { AsyncNormalizer, buildNormalizer, makeNormalizerAsync } from "../Normalizer/Normalizer";
 import { unificationNormalizer } from "../Normalizer/Unification";
-import { parseRules } from "../Parser/Parser";
 import { Term, TRS } from "../Parser/Types";
-import { parseTermPairs, parseTRS, ghcNormalizer, ocamlNormalizer } from "./TestUtils";
+import { ghcNormalizer, ocamlNormalizer, parseTermPairs, parseTRS, parseTRSFromFile } from "./TestUtils";
 
 type NormalizationTestSuite = {
     trs: TRS,
@@ -46,8 +44,6 @@ const suite1: NormalizationTestSuite = {
         ['=(Len(Reverse(Range(11))), Len(Range(11)))', 'True']
     ])
 };
-
-const parseTRSFromFile = (path: string) => defined(parseRules(readFileSync(path, 'utf-8')));
 
 const suite2: NormalizationTestSuite = {
     trs: parseTRSFromFile('./src/Tests/TRSs/primes.grf'),

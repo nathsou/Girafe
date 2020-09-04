@@ -1,5 +1,5 @@
-import { compile } from "../Compiler/Passes/CompilerPass";
-import { defaultPasses, isSomething, Maybe, rhs, substitute } from "../Compiler/Utils";
+import { compile, CompilerPass } from "../Compiler/Passes/CompilerPass";
+import { isSomething, Maybe, rhs, substitute } from "../Compiler/Utils";
 import { parse } from "../Parser/Parser";
 import { FileReader, handleImports, ImportInfos } from "../Parser/Preprocessor/Import";
 import { consLists } from "../Parser/Preprocessor/Lists";
@@ -23,7 +23,7 @@ function logErrors<E = string>(errors: Right_<E[]>): void {
 
 export async function compileRules(
   src: string,
-  passes = defaultPasses,
+  passes: CompilerPass[],
   fileReader: FileReader,
 ): Promise<Maybe<TRS>> {
   const rules = await parse<ImportInfos>(

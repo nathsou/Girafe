@@ -8,7 +8,7 @@ import { Term, TRS } from "../Parser/Types";
 import { defaultPasses } from "../Compiler/Utils";
 import { FileReader } from "../Parser/Preprocessor/Import";
 import { CompilerPass } from "../Compiler/Passes/CompilerPass";
-import { NativeExternals, Externals } from "../Externals/Externals";
+import { NativeExternals, Externals, ExternalsFactory } from "../Externals/Externals";
 
 
 export type ExternalsMap<Exts extends string = string> = {
@@ -29,11 +29,11 @@ export const normalizersList: Normalizers[] = [
 export const normalizeQueryWith = <N extends Normalizers>(normalizer: N): (
     query: Term,
     source: string,
-    externals: ExternalsMap[N],
+    externals: ExternalsFactory<string>,
     fileReader: FileReader,
     passes?: CompilerPass[]
 ) => ReturnType<typeof normalizeQuery> => {
-    const factory: NormalizerFactory<ExternalsMap[N]> = {
+    const factory: NormalizerFactory<string> = {
         'decision-trees': (trs: TRS, externals) => makeNormalizerAsync(
             new DecisionTreeNormalizer(trs).asNormalizer(externals)
         ),
@@ -49,8 +49,8 @@ export const normalizeQueryWith = <N extends Normalizers>(normalizer: N): (
     return (
         query: Term,
         source: string,
-        externals: ExternalsMap[N],
+        externals: ExternalsFactory<string>,
         fileReader: FileReader,
-        passes = defaultPasses
+        passes = defaultPasses(externals('native'))
     ) => normalizeQuery(query, source, externals, factory, fileReader, passes);
 };
