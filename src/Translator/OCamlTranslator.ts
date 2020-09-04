@@ -40,7 +40,7 @@ export class OCamlTranslator<Exts extends string>
             }]))`;
     }
 
-    private callTerm(term: Term): string {
+    public callTerm(term: Term): string {
         if (isVar(term)) return term;
         if (!this.isDefined(term.name)) {
             return this.translateTerm(

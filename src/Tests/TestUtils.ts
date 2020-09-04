@@ -1,8 +1,8 @@
 import { spawn } from 'child_process';
-import { unlinkSync, writeFileSync } from 'fs';
+import { writeFileSync, unlinkSync } from 'fs';
 import { isFunLeftLinear } from "../Compiler/Passes/Checks";
 import { Arities } from "../Compiler/Passes/Lazify";
-import { defined, mapify, occurs, stringifyQueryVars, substitute, vars } from "../Compiler/Utils";
+import { defined, mapify, Maybe, occurs, stringifyQueryVars, substitute, vars } from "../Compiler/Utils";
 import { Externals } from "../Externals/Externals";
 import { AsyncNormalizer } from "../Normalizer/Normalizer";
 import { specialCharacters } from "../Parser/Lexer/SpecialChars";
@@ -10,6 +10,7 @@ import { parseRule, parseTerm } from "../Parser/Parser";
 import { dictGet, dictHas, dictKeys, Fun, Rule, Substitution, Symb, Term, TRS, Var } from "../Parser/Types";
 import { gen } from "../Parser/Utils";
 import { HaskellTranslator } from "../Translator/HaskellTranslator";
+import { OCamlTranslator } from '../Translator/OCamlTranslator';
 
 export const digits = [...gen(10, i => `${i}`)];
 export const lowerCaseLetters = [...gen(26, i => String.fromCharCode(97 + i))];
@@ -221,44 +222,76 @@ declare const JEST_PRNG_SEED: number;
 
 export const testPrng = prng(JEST_PRNG_SEED);
 
-export const ghcNormalizer = (trs: TRS, externals: Externals<'haskell'>): AsyncNormalizer => {
-    const hst = new HaskellTranslator(trs, externals);
-    const tmpFile = 'grf_tmp.hs';
-
-    const source = hst.translate();
+const externalNormalizer = (
+    prog: string,
+    args: string[],
+    ext: string,
+    sourceWithQuery: (query: Term) => string,
+    parseRenamedTerm: (out: string) => Maybe<Term>
+): AsyncNormalizer => {
+    const tmpFile = `grf_tmp_${prog}.${ext}`;
 
     return (query: Term) => {
-        const sourceWithQuery = [
-            source,
-            `main = putStr (show ${hst.callTerm(hst.renameTerm(stringifyQueryVars(query)))})`
-        ].join('\n');
+        // create a tempory file with the source program
+        writeFileSync(tmpFile, sourceWithQuery(query), 'utf-8');
 
-        // create a tempory file with the generated haskell program
-        writeFileSync(tmpFile, sourceWithQuery, 'utf-8');
-
-        // run ghc on this file
+        // run the compiler on this file
         return new Promise<Term>((resolve, reject) => {
-            const ghc = spawn('runghc', [tmpFile]);
+            const instance = spawn(prog, [...args, tmpFile]);
 
             let out = '';
             let err = '';
 
-            ghc.stdout.on('data', (data: Buffer) => {
+            instance.stdout.on('data', (data: Buffer) => {
                 out += data.toString('utf-8');
             });
 
-            ghc.stderr.on('data', (data: Buffer) => {
+            instance.stderr.on('data', (data: Buffer) => {
                 err += data.toString('utf-8');
             });
 
-            ghc.on('close', () => {
+            instance.on('close', () => {
+                // remove the temporary file
                 unlinkSync(tmpFile);
+
                 if (err !== '') {
                     reject(err);
                 } else {
-                    resolve(defined(hst.parseRenamedTerm(out)));
+                    resolve(defined(parseRenamedTerm(out)));
                 }
             });
         });
     };
+};
+
+export const ghcNormalizer = (trs: TRS, externals: Externals<'haskell'>): AsyncNormalizer => {
+    const hst = new HaskellTranslator(trs, externals);
+    const source = hst.translate();
+
+    return externalNormalizer(
+        'runghc',
+        [],
+        'hs',
+        query => [
+            source,
+            `main = putStr (show ${hst.callTerm(hst.renameTerm(stringifyQueryVars(query)))})`
+        ].join('\n'),
+        out => hst.parseRenamedTerm(out)
+    );
+};
+
+export const ocamlNormalizer = (trs: TRS, externals: Externals<'ocaml'>): AsyncNormalizer => {
+    const ost = new OCamlTranslator(trs, externals);
+    const source = ost.translate();
+
+    return externalNormalizer(
+        'ocaml',
+        ['-w', '-26'], // disable "unused variable" warnings
+        'ml',
+        query => [
+            source,
+            `in print_string (show_term ${ost.callTerm(ost.renameTerm(stringifyQueryVars(query)))});;`
+        ].join('\n'),
+        out => ost.parseRenamedTerm(out)
+    );
 };

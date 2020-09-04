@@ -10,7 +10,7 @@ import { AsyncNormalizer, buildNormalizer, makeNormalizerAsync } from "../Normal
 import { unificationNormalizer } from "../Normalizer/Unification";
 import { parseRules } from "../Parser/Parser";
 import { Term, TRS } from "../Parser/Types";
-import { parseTermPairs, parseTRS, ghcNormalizer } from "./TestUtils";
+import { parseTermPairs, parseTRS, ghcNormalizer, ocamlNormalizer } from "./TestUtils";
 
 type NormalizationTestSuite = {
     trs: TRS,
@@ -78,6 +78,7 @@ const genNormalizers = (trs: TRS): AsyncNormalizer[] => {
     ].map(makeNormalizerAsync);
 
     normalizers.push(nodeWorkerNormalizer(trs, externals('js')));
+    normalizers.push(ocamlNormalizer(trs, externals('ocaml')));
     normalizers.push(ghcNormalizer(trs, externals('haskell')));
 
     return normalizers;
