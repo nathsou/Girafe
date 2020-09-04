@@ -7,7 +7,7 @@ import { fun, isVar, zip } from "../Compiler/Utils";
 import { Externals } from "../Externals/Externals";
 import { repeatString } from "../Normalizer/Matchers/ClosureMatcher/Closure";
 import { Dict, dictHas, Term, TRS } from "../Parser/Types";
-import { map, mapString } from "../Parser/Utils";
+import { map, mapString, setMap } from "../Parser/Utils";
 import { symbolMap } from "./Translator";
 
 const nullarySymbolsPrefix = 'symb_';
@@ -16,9 +16,11 @@ const nullaryVarName = (f: string): string => {
     return `${nullarySymbolsPrefix}${mapString(f, c => symbolMap[c] ?? c)}`;
 };
 
+const nullaries = new Set<string>();
+
 const translateTerm = (term: Term): string => {
     if (isVar(term)) return term;
-    if (term.args.length === 0) return nullaryVarName(term.name);
+    if (term.args.length === 0 && nullaries.has(term.name)) return nullaryVarName(term.name);
     return `{ name: "${term.name}", args: [${term.args.map(translateTerm).join(', ')}] }`;
 };
 
@@ -75,15 +77,14 @@ export class JSTranslator<Exts extends string>
 
     private declareNullarySymbols() {
         const symbs = collectTRSArities(this.trs);
-        const nullaries: string[] = [];
 
         for (const [symb, ar] of symbs) {
             if (ar === 0) {
-                nullaries.push(symb);
+                nullaries.add(symb);
             }
         }
 
-        const decl = nullaries.map(f => `const ${nullaryVarName(f)} = { name: "${f}", args: [] };`);
+        const decl = setMap(nullaries, f => `const ${nullaryVarName(f)} = { name: "${f}", args: [] };`);
 
         this.header.push(...decl);
     }
