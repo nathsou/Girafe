@@ -4,7 +4,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
 const webpack = require('webpack');
 
-const unif = {
+const editor = {
   entry: "./src/Editor/Editor.ts",
   module: {
     rules: [
@@ -152,8 +152,8 @@ const grfi = {
   // devtool: 'source-map'
 };
 
-// module.exports = [unif];
+// module.exports = [editor];
 // module.exports = [lib, grfc];
 // module.exports = [grfc, grfi];
 // module.exports = [grfi];
-module.exports = [unif, lib, grfc, grfi];
+module.exports = [editor, lib, grfc, grfi];

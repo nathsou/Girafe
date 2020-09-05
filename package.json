@@ -1,6 +1,6 @@
 {
   "name": "girafe",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Term Rewriting Systems infrastructure",
   "main": "./lib/js/lib.js",
   "module": "./lib/js/lib.js",
@@ -30,6 +30,7 @@
   "scripts": {
     "start": "webpack-dev-server --mode development -d",
     "build": "tsc && webpack --mode production",
+    "lib": "tsc",
     "debug": "webpack --mode development",
     "watch": "webpack -w",
     "test": "jest"

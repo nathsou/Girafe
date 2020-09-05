@@ -1,7 +1,7 @@
 import { defined, stringifyQueryVars } from "../../Compiler/Utils";
 import { Externals } from "../../Externals/Externals";
 import { Term, TRS } from "../../Parser/Types";
-import { JSTranslator, stringifyJSExpr } from "../../Translator/JSTranslator";
+import { JSTranslator } from "../../Translator/JSTranslator";
 import { OneShotNormalizer } from "./../Normalizer";
 
 export class JSNormalizer<Exts extends string> implements OneShotNormalizer {
@@ -15,7 +15,7 @@ export class JSNormalizer<Exts extends string> implements OneShotNormalizer {
     }
 
     private getOutputExpr(query: Term, jst: JSTranslator<Exts>): string {
-        return `showTerm(${stringifyJSExpr(jst.callTerm(jst.renameTerm(stringifyQueryVars(query))))})`;
+        return `showTerm(${jst.translateJSExpr(jst.callTerm(jst.renameTerm(stringifyQueryVars(query))))})`;
     }
 
     public async normalize(query: Term): Promise<Term> {

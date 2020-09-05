@@ -5,9 +5,8 @@ import { DecisionTreeTranslator } from "../Compiler/DecisionTrees/DecisionTreeTr
 import { collectTRSArities } from "../Compiler/Passes/Lazify";
 import { fun, isVar, zip } from "../Compiler/Utils";
 import { Externals } from "../Externals/Externals";
-import { repeatString } from "../Normalizer/Matchers/ClosureMatcher/Closure";
 import { Dict, dictHas, Term, TRS } from "../Parser/Types";
-import { map, mapString, setMap } from "../Parser/Utils";
+import { map, mapString, setMap, format, indent } from "../Parser/Utils";
 import { symbolMap } from "./Translator";
 
 const nullarySymbolsPrefix = 'symb_';
@@ -16,59 +15,17 @@ const nullaryVarName = (f: string): string => {
     return `${nullarySymbolsPrefix}${mapString(f, c => symbolMap[c] ?? c)}`;
 };
 
-const nullaries = new Set<string>();
-
-const translateTerm = (term: Term): string => {
-    if (isVar(term)) return term;
-    if (term.args.length === 0 && nullaries.has(term.name)) return nullaryVarName(term.name);
-    return `{ name: "${term.name}", args: [${term.args.map(translateTerm).join(', ')}] }`;
-};
-
 type FunCall = { funName: string, args: JSExpr[] };
 type JSExpr = string | FunCall | Term;
-
-export const stringifyJSExpr = (exp: JSExpr): string => {
-    if (typeof exp === 'string') return exp;
-
-    if (isFunCall(exp)) {
-        return `${exp.funName}(${exp.args.map(stringifyJSExpr).join(', ')})`;
-    }
-
-    return translateTerm(exp);
-};
 
 function isFunCall(val: unknown): val is FunCall {
     return typeof val === 'object' && dictHas(val as Dict<unknown>, 'funName');
 }
 
-const tabs = (count: number): string => repeatString('   ', count);
-
-const ident = (tabCount: number, ...lines: string[]): string => {
-    const ident = tabs(tabCount);
-    return lines.map(l => `${ident}${l}`).join('\n');
-};
-
-const format = (...lines: string[]): string => {
-    let tabCount = 0;
-    const idented: string[] = [];
-
-    for (const line of lines) {
-        if (line.endsWith('{')) {
-            idented.push(ident(tabCount, line));
-            tabCount++;
-            continue;
-        } else if (line.endsWith('}')) {
-            tabCount--;
-        }
-
-        idented.push(ident(tabCount, line));
-    }
-
-    return idented.join('\n');
-};
-
 export class JSTranslator<Exts extends string>
     extends DecisionTreeTranslator<'js', Exts> {
+
+    private nullaries: Set<string>;
 
     constructor(trs: TRS, externals: Externals<'js', Exts>) {
         super(trs, externals);
@@ -76,15 +33,17 @@ export class JSTranslator<Exts extends string>
     }
 
     private declareNullarySymbols() {
+        this.nullaries = new Set();
+
         const symbs = collectTRSArities(this.trs);
 
         for (const [symb, ar] of symbs) {
             if (ar === 0) {
-                nullaries.add(symb);
+                this.nullaries.add(symb);
             }
         }
 
-        const decl = setMap(nullaries, f => `const ${nullaryVarName(f)} = { name: "${f}", args: [] };`);
+        const decl = setMap(this.nullaries, f => `const ${nullaryVarName(f)} = { name: "${f}", args: [] };`);
 
         this.header.push(...decl);
     }
@@ -162,15 +121,15 @@ export class JSTranslator<Exts extends string>
 
         // if this is a free constructor simply output a term
         if (!this.isDefined(term.name)) {
-            return translateTerm(
+            return this.translateTerm(
                 fun(term.name,
-                    ...term.args.map(t => stringifyJSExpr(this.callTerm(t)))
+                    ...term.args.map(t => this.translateJSExpr(this.callTerm(t)))
                 )
             );
         }
 
         // otherwise call the corresponding js function
-        const args = term.args.map(t => stringifyJSExpr(this.callTerm(t)));
+        const args = term.args.map(t => this.translateJSExpr(this.callTerm(t)));
         return { funName: term.name, args };
     }
 
@@ -179,15 +138,15 @@ export class JSTranslator<Exts extends string>
 
         // if this is a free constructor simply output a term
         if (!this.isDefined(occ.name)) {
-            return translateTerm(
+            return this.translateTerm(
                 fun(occ.name,
-                    ...occ.args.map(t => stringifyJSExpr(this.callOccTerm(t, varNames)))
+                    ...occ.args.map(t => this.translateJSExpr(this.callOccTerm(t, varNames)))
                 )
             );
         }
 
         // otherwise call the corresponding js function
-        const args = occ.args.map(t => stringifyJSExpr(this.callOccTerm(t, varNames)));
+        const args = occ.args.map(t => this.translateJSExpr(this.callOccTerm(t, varNames)));
         return { funName: occ.name, args };
     }
 
@@ -207,13 +166,13 @@ export class JSTranslator<Exts extends string>
         const translate = (tree: DecisionTree): string => {
             switch (tree.type) {
                 case 'fail':
-                    return 'return ' + translateTerm(fun(name, ...varNames)) + ';';
+                    return 'return ' + this.translateTerm(fun(name, ...varNames)) + ';';
                 case 'leaf':
                     const ret = this.callOccTerm(tree.action, varNames);
 
                     // check if this is a tail recursive call
                     if (isFunCall(ret) && ret.funName === name) {
-                        const newArgs = ret.args.map(stringifyJSExpr);
+                        const newArgs = ret.args.map(this.translateJSExpr);
                         const updateArgs = map(
                             zip(varNames, newArgs),
                             ([v, newVal]) => `const ${v}_ = ${newVal};`
@@ -223,7 +182,7 @@ export class JSTranslator<Exts extends string>
 
                         hasTailRecursiveLeaf = true;
 
-                        return ident(1,
+                        return indent(1,
                             '{',
                             ...updateArgs,
                             ...copyArgs,
@@ -232,22 +191,22 @@ export class JSTranslator<Exts extends string>
                         );
                     }
 
-                    return `return ${stringifyJSExpr(ret)};`;
+                    return `return ${this.translateJSExpr(ret)};`;
                 case 'switch':
                     const cases: string[] = [];
 
                     for (const [ctor, A] of tree.tests) {
-                        cases.push(ident(0,
+                        cases.push(indent(0,
                             (ctor === _ ? 'default:' : 'case "' + ctor + '":'),
-                            ident(1, translate(A))
+                            indent(1, translate(A))
                         ));
                     }
 
                     const occName = this.translateOccurence(tree.occurence, varNames);
 
-                    return ident(1,
+                    return indent(1,
                         'switch (isFun(' + occName + ') ? ' + occName + '.name : null) {',
-                        ident(1, cases.join('\n')),
+                        indent(1, cases.join('\n')),
                         '}'
                     );
             }
@@ -259,7 +218,7 @@ export class JSTranslator<Exts extends string>
             `while(true) {\n ${tree} \n}` :
             tree;
 
-        return ident(0,
+        return indent(0,
             'function ' + name + '(' + varNames.join(', ') + ') {',
             body,
             '}'
@@ -267,7 +226,22 @@ export class JSTranslator<Exts extends string>
     }
 
     public translateTerm(term: Term): string {
-        return translateTerm(term);
+        if (isVar(term)) return term;
+        if (term.args.length === 0 && this.nullaries.has(term.name)) {
+            return nullaryVarName(term.name);
+        }
+
+        return `{ name: "${term.name}", args: [${term.args.map(this.translateTerm).join(', ')}] }`;
+    }
+
+    public translateJSExpr(expr: JSExpr): string {
+        if (typeof expr === 'string') return expr;
+
+        if (isFunCall(expr)) {
+            return `${expr.funName}(${expr.args.map(this.translateJSExpr).join(', ')})`;
+        }
+
+        return this.translateTerm(expr);
     }
 
 }

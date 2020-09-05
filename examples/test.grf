@@ -1,19 +1,17 @@
-If(True, a?, b?) -> a
-If(False, a?, b?) -> b
+Or(True, True) -> True
+Or(True, False) -> True
+Or(False, True) -> True
+Or(False, False) -> False
 
-Or(True, b?) -> True
-Or(a?, True) -> True
-Or(a?, b?) -> If(a, True, b)
+And(True, True) -> True
+And(True, False) -> False
+And(False, True) -> False
+And(False, False) -> False
 
-And(a?, False) -> False
-And(False, b?) -> False
-And(a?, b?) -> If(a, b, False)
+Not(True) -> False
+Not(False) -> True
 
-Not(True?) -> False
-Not(False?) -> True
-Not(Not(q)?) -> q
-
-Trace(query?) -> @trace(query?)
+// Trace(query?) -> @trace(query?)
 
 +(a, b) -> @add(a, b)
 -(a, b) -> @sub(a, b)
@@ -37,14 +35,14 @@ Len'(:(h, tl), n) -> Len'(tl, +(n, 1))
 Divisible(a, b) -> =(%(a, b), 0)
 
 IsPrime(2) -> True
-IsPrime(n) -> If(Or(<(n, 2), Divisible(n, 2)), False, IsPrime'(n, 3, Maybe))
+IsPrime(n) -> if(Or(<(n, 2), Divisible(n, 2)), False, IsPrime'(n, 3, Maybe))
 
 IsPrime'(n, i, Maybe) -> IsPrime'(
     n,
     +(i, 2),
-    If(>(*(i, i), n),
+    if(>(*(i, i), n),
         True,
-        If(Divisible(n, i),
+        if(Divisible(n, i),
             False,
             Maybe
         )
@@ -56,28 +54,25 @@ IsPrime'(n, i, ans) -> ans
 Factorize(1) -> Nil
 Factorize(2) -> :(2, Nil)
 Factorize(n) -> 
-        If(Divisible(n, 2),
+        if(Divisible(n, 2),
             :(2, Factorize(/(n, 2))),
             Factorize'(n, 3, Nil)
         )
 
 Factorize'(n, i) ->
-    If(<=(*(i, i), n),
-        If(Divisible(n, i),
+    if(<=(*(i, i), n),
+        if(Divisible(n, i),
             :(i, Factorize(/(n, i))),
             Factorize'(n, +(i, 2))
         ),
         :(n, Nil) // n is prime
     )
 
-PrevOdd(n) -> If(Divisible(n, 2), -(n, 1), n)
+PrevOdd(n) -> if(Divisible(n, 2), -(n, 1), n)
 
-PrimesLessThan(n) -> If(<(n, 2), Nil, PrimesLessThan'(PrevOdd(n), Nil))
+PrimesLessThan(n) -> if(<(n, 2), Nil, PrimesLessThan'(PrevOdd(n), Nil))
 PrimesLessThan'(3, ps) -> :(2, :(3, ps))
-PrimesLessThan'(n, ps) -> PrimesLessThan'(-(n, 2), If(IsPrime(n), :(n, ps), ps))
-
-RangeIt(n) -> It(n, RangeIt(-(n, 1))?)
-RangeIt(0) -> It(0, EmptyIt)
+PrimesLessThan'(n, ps) -> PrimesLessThan'(-(n, 2), if(IsPrime(n), :(n, ps), ps))
 
 Next(It(val, next)) -> next
 

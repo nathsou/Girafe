@@ -183,3 +183,42 @@ export function* gen<T>(count: number, f: (idx: number) => T): Iterable<T> {
         yield f(i);
     }
 }
+
+export const repeatString = (str: string, n: number): string => {
+    if (n < 1) return '';
+    let seq = str;
+
+    while (2 * seq.length <= n) {
+        seq += seq;
+    }
+
+    seq += seq.slice(0, n - seq.length);
+
+    return seq;
+};
+
+export const tabs = (count: number): string => repeatString('   ', count);
+
+export const indent = (tabCount: number, ...lines: string[]): string => {
+    const ident = tabs(tabCount);
+    return lines.map(l => `${ident}${l}`).join('\n');
+};
+
+export const format = (...lines: string[]): string => {
+    let tabCount = 0;
+    const indented: string[] = [];
+
+    for (const line of map(lines, s => s.trimRight())) {
+        if (line.endsWith('{')) {
+            indented.push(indent(tabCount, line));
+            tabCount++;
+            continue;
+        } else if (line.endsWith('}')) {
+            tabCount--;
+        }
+
+        indented.push(indent(tabCount, line));
+    }
+
+    return indented.join('\n');
+};

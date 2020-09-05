@@ -1,7 +1,7 @@
 import { matches } from "../../Unification";
 import { parseTerm } from "../../../Parser/Parser";
 import { Fun, Rule, Symb, Term, TRS } from "../../../Parser/Types";
-import { join, once, pop, reverse, setMap, traverseNames, unionMut, } from "../../../Parser/Utils";
+import { join, once, pop, reverse, setMap, traverseNames, unionMut, repeatString, } from "../../../Parser/Utils";
 import { Arities, collectArity } from "../../../Compiler/Passes/Lazify";
 import { fun, isEmpty, isFun, isNothing, isSomething, isVar, lhs, Maybe, zip, } from "../../../Compiler/Utils";
 import { StringClosureMatcher } from "./StringClosureMatcher";
@@ -27,19 +27,6 @@ export const factorOut = (α: Symb, M: SuffixSet): SuffixSet => {
 export const prepend = (α: string, M: SuffixSet): SuffixSet => (
   setMap(M, s => `${α}${s}`)
 );
-
-export const repeatString = (α: string, n: number): string => {
-  if (n < 1) return ε;
-  let seq = α;
-
-  while (2 * seq.length <= n) {
-    seq += seq;
-  }
-
-  seq += seq.slice(0, n - seq.length);
-
-  return seq;
-};
 
 export const closure = (M: SuffixSet, arities: Map<Symb, number>): Closure => {
   if ((M.size === 1 && M.has(ε)) || isEmpty(M)) return M;

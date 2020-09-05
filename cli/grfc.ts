@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
-import { defaultPasses } from "../src/Compiler/Utils";
+import { defaultPasses, showTRS } from "../src/Compiler/Utils";
 import { arithmeticExternals } from "../src/Externals/Arithmetic";
 import { mergeExternals, supportedTargets, Targets } from "../src/Externals/Externals";
 import { metaExternals } from "../src/Externals/Meta";
@@ -12,7 +12,7 @@ const target = process.argv[4];
 
 const externals = mergeExternals(arithmeticExternals, metaExternals());
 
-const transpile = async (path: string, target: Targets): Promise<string> => {
+const transpile = async (path: string, target: Targets | 'girafe'): Promise<string> => {
   const source = readFileSync(path).toString();
   const trs = await compileRules(
     source,
@@ -26,7 +26,11 @@ const transpile = async (path: string, target: Targets): Promise<string> => {
   );
 
   if (trs) {
-    return translate(trs, target, externals);
+    if (target === 'girafe') {
+      return showTRS(trs);
+    } else {
+      return translate(trs, target, externals);
+    }
   } else {
     console.log("Transpilation failed");
   }
@@ -35,8 +39,9 @@ const transpile = async (path: string, target: Targets): Promise<string> => {
 (async () => {
   if (src) {
     const targetName = target as Targets;
-    if (!supportedTargets.includes(targetName)) {
-      console.error(`invalid target: ${targetName}, available targets are: [${supportedTargets.join(', ')}]`);
+    const targets = [...supportedTargets, 'girafe'];
+    if (!targets.includes(targetName)) {
+      console.error(`invalid target: ${targetName}, available targets are: [${targets.join(', ')}]`);
       return;
     }
     const out = await transpile(src, targetName);
@@ -46,6 +51,6 @@ const transpile = async (path: string, target: Targets): Promise<string> => {
       console.log(out);
     }
   } else {
-    console.log("usage: grfc [src.grf] [out] [ocaml/haskell/js]");
+    console.log("usage: grfc [src.grf] [out] [ocaml/haskell/js/girafe]");
   }
 })();
