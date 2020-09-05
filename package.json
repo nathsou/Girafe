@@ -1,6 +1,6 @@
 {
   "name": "girafe",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Term Rewriting Systems infrastructure",
   "main": "./lib/js/lib.js",
   "module": "./lib/js/lib.js",
@@ -34,7 +34,8 @@
     "debug": "webpack --mode development",
     "watch": "webpack -w",
     "check": "tsc --noEmit",
-    "test": "jest"
+    "test": "jest",
+    "prepublishOnly": "rm -rf /lib && tsc"
   },
   "keywords": [
     "Girafe",

@@ -9,11 +9,10 @@ export class JSNormalizer<Exts extends string> implements OneShotNormalizer {
         private trs: TRS,
         private externals: Externals<'js', Exts>,
         private executor: (jsSource: string, outExpr: string) => Promise<string>,
-        private makeNat = makeBigNat
+        private nat = makeBigNat
     ) {
         this.trs = trs;
         this.externals = externals;
-        this.makeNat = makeNat;
     }
 
     private getOutputExpr(query: Term, jst: JSTranslator<Exts>): string {
@@ -21,7 +20,7 @@ export class JSNormalizer<Exts extends string> implements OneShotNormalizer {
     }
 
     public async normalize(query: Term): Promise<Term> {
-        const jst = new JSTranslator(this.trs, this.externals, this.makeNat);
+        const jst = new JSTranslator(this.trs, this.externals, this.nat);
         const source = jst.translate();
         const out = await this.executor(source, this.getOutputExpr(query, jst));
         return defined(jst.parseRenamedTerm(out));

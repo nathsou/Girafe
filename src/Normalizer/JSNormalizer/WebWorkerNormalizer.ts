@@ -26,12 +26,12 @@ const webWorkerExecutor = (source: string, outputExpr: string): Promise<string> 
 export const webWorkerNormalizer = <Exts extends string>(
     trs: TRS,
     externals: Externals<'js', Exts>,
-    makeNat = makeBigNat
+    nat = makeBigNat
 ): AsyncNormalizer => {
     return (query: Term) => new JSNormalizer<Exts>(
         trs,
         externals,
         webWorkerExecutor,
-        makeNat
+        nat
     ).normalize(query);
 };

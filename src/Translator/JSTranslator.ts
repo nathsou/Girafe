@@ -83,7 +83,7 @@ export class JSTranslator<Exts extends string>
             format(
                 'function isNat(term) {',
                 'const t = typeof term;',
-                'return t === "number" || t === "bigint"',
+                'return t === "number" || t === "bigint";',
                 '}'
             ),
             `function showTerm(term) {
