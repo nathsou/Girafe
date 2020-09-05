@@ -100,6 +100,6 @@ const repl = (): void => {
             repl();
         }
     } else {
-        console.log("usage: grfi [src.grf] [query]");
+        console.log("usage: grfi src.grf [query]");
     }
 })();

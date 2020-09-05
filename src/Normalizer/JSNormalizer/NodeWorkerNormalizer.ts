@@ -2,6 +2,7 @@ import { Externals } from "../../Externals/Externals";
 import { TRS, Term } from "../../Parser/Types";
 import { JSNormalizer } from "./JSNormalizer";
 import { AsyncNormalizer } from "../Normalizer";
+import { makeBigNat } from "../../Translator/JSTranslator";
 
 declare const __non_webpack_require__: (name: string) => any;
 
@@ -35,7 +36,13 @@ const nodeWorkerExecutor = async (source: string, outputExpr: string): Promise<s
 
 export const nodeWorkerNormalizer = <Exts extends string>(
     trs: TRS,
-    externals: Externals<'js', Exts>
+    externals: Externals<'js', Exts>,
+    makeNat = makeBigNat
 ): AsyncNormalizer => {
-    return (query: Term) => new JSNormalizer<Exts>(trs, externals, nodeWorkerExecutor).normalize(query);
+    return (query: Term) => new JSNormalizer<Exts>(
+        trs,
+        externals,
+        nodeWorkerExecutor,
+        makeNat
+    ).normalize(query);
 };

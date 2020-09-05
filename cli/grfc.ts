@@ -51,6 +51,6 @@ const transpile = async (path: string, target: Targets | 'girafe'): Promise<stri
       console.log(out);
     }
   } else {
-    console.log("usage: grfc [src.grf] [out] [ocaml/haskell/js/girafe]");
+    console.log("usage: grfc src.grf out ocaml/haskell/js/girafe");
   }
 })();

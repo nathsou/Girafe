@@ -4,6 +4,7 @@ import { showTerm, termsEq } from "../Compiler/Utils";
 import { Inst } from "../Compiler/Passes/Lazify";
 import { True, False } from "../Compiler/Passes/Imports";
 import { NativeExternals, ExternalsFactory, Externals } from "./Externals";
+import { nullaryVarName } from "../Translator/JSTranslator";
 
 export type MetaExternals = 'trace' | 'equ';
 
@@ -19,7 +20,7 @@ const trace = (log: (str: string) => void) => (query: Fun, normalizer: StepNorma
 };
 
 const equ = (s: Term, t: Term): Fun => {
-    return termsEq(s, t) ? True() : False();
+    return termsEq(s, t) ? True : False;
 };
 
 const nativeMetaExternals = (log: (str: string) => void): NativeExternals<MetaExternals> => {
@@ -35,17 +36,16 @@ const jsMetaExternals: Externals<'js', MetaExternals> = {
     trace: (name: string) => `function ${name}() { throw new Error("${traceNotAvailableMsg}"); }`,
     equ: (name: string) => `
         function ${name}(a, b) {
-            if (isVar(a) && isVar(b)) return { name: a === b ? "True" : "False", args: [] };
             if (isFun(a) && isFun(b) && a.name === b.name && a.args.length === b.args.length) {
               for (let i = 0; i < a.args.length; i++) {
                   if (${name}(a.args[i], b.args[i]).name === "False") {
-                      return { name: "False", args: [] };
+                      return ${nullaryVarName('False')};
                   }
               }
-              return { name: "True", args: [] };
+              return ${nullaryVarName('True')};
             }
           
-            return { name: "False", args: [] };
+            return a === b ? ${nullaryVarName('True')} : ${nullaryVarName('False')};
         }`,
 };
 

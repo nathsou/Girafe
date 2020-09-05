@@ -29,8 +29,8 @@ const simIf = (
         const simVars = uniq([...vars(thenExpr), ...vars(elseExpr)]);
 
         const sim: Rule[] = [
-            [fun(ifName, True(), ...simVars), simIf(thenExpr, addRules)],
-            [fun(ifName, False(), ...simVars), simIf(elseExpr, addRules)]
+            [fun(ifName, True, ...simVars), simIf(thenExpr, addRules)],
+            [fun(ifName, False, ...simVars), simIf(elseExpr, addRules)]
         ];
 
         addRules(sim);

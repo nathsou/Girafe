@@ -1,17 +1,19 @@
 import { defined, stringifyQueryVars } from "../../Compiler/Utils";
 import { Externals } from "../../Externals/Externals";
 import { Term, TRS } from "../../Parser/Types";
-import { JSTranslator } from "../../Translator/JSTranslator";
+import { JSTranslator, makeBigNat } from "../../Translator/JSTranslator";
 import { OneShotNormalizer } from "./../Normalizer";
 
 export class JSNormalizer<Exts extends string> implements OneShotNormalizer {
     constructor(
         private trs: TRS,
         private externals: Externals<'js', Exts>,
-        private executor: (jsSource: string, outExpr: string) => Promise<string>
+        private executor: (jsSource: string, outExpr: string) => Promise<string>,
+        private makeNat = makeBigNat
     ) {
         this.trs = trs;
         this.externals = externals;
+        this.makeNat = makeNat;
     }
 
     private getOutputExpr(query: Term, jst: JSTranslator<Exts>): string {
@@ -19,7 +21,7 @@ export class JSNormalizer<Exts extends string> implements OneShotNormalizer {
     }
 
     public async normalize(query: Term): Promise<Term> {
-        const jst = new JSTranslator(this.trs, this.externals);
+        const jst = new JSTranslator(this.trs, this.externals, this.makeNat);
         const source = jst.translate();
         const out = await this.executor(source, this.getOutputExpr(query, jst));
         return defined(jst.parseRenamedTerm(out));

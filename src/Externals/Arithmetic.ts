@@ -1,7 +1,8 @@
 import { False, True } from "../Compiler/Passes/Imports";
 import { isFun } from "../Compiler/Utils";
 import { Fun } from "../Parser/Types";
-import { Externals, ExternalsFactory, NativeExternals, Targets, ExternalsFactoryMap } from "./Externals";
+import { nullaryVarName } from "../Translator/JSTranslator";
+import { Externals, ExternalsFactory, NativeExternals } from "./Externals";
 
 export const symb = (f: string): Fun => ({ name: f, args: [] });
 
@@ -17,7 +18,6 @@ const arithbinop = (t: Fun, op: (a: bigint, b: bigint) => bigint): Fun => {
         } catch (e) {
             return t;
         }
-
     }
 
     return t;
@@ -28,10 +28,9 @@ const boolbinop = (t: Fun, op: (a: bigint, b: bigint) => boolean): Fun => {
     if (isFun(a) && isFun(b)) {
         const an = BigInt(a.name);
         const bn = BigInt(b.name);
-
         const res = op(an, bn);
 
-        return res ? True() : False();
+        return res ? True : False;
     }
 
     return t;
@@ -56,20 +55,11 @@ const nativeArithmeticExternals: NativeExternals<ArithmeticExternals> = {
 const jsarithbinop = (op: string) => {
     return (name: string) => (
         `function ${name}(a, b) {
-            if (isFun(a) && isFun(b)) {
-                try {
-                    const an = BigInt(a.name);
-                    const bn = BigInt(b.name);
-        
-                    const res = (an ${op} bn).toString();
-                    return { name: res, args: [] };
-                } catch (e) {
-                    return { name: ${name}, args: [a, b] };
-                }
-        
+            if (isNat(a) && isNat(b)) {
+                return a ${op} b;
             }
         
-            return { name: ${name}, args: [a, b] };
+            return { name: "${name}", args: [a, b] };
         }`
     );
 };
@@ -77,15 +67,11 @@ const jsarithbinop = (op: string) => {
 const jsboolbinop = (op: string) => {
     return (name: string) => (
         `function ${name}(a, b) {
-            if (isFun(a) && isFun(b)) {
-                const an = BigInt(a.name);
-                const bn = BigInt(b.name);
-                const res = an ${op} bn;
-        
-                return { name: res ? 'True' : 'False', args: [] };
+            if (isNat(a) && isNat(b)) {
+                return (a ${op} b) ? ${nullaryVarName('True')} : ${nullaryVarName('False')};
             }
         
-            return { name: ${name}, args: [a, b] };
+            return { name: "${name}", args: [a, b] };
         }`
     );
 };

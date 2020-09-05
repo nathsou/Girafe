@@ -8,8 +8,8 @@ export const andSymb = 'and';
 export const trueSymb = 'True';
 export const falseSymb = 'False';
 
-export const True = (): Fun => fun(trueSymb);
-export const False = (): Fun => fun(falseSymb);
+export const True = { name: trueSymb, args: [] };
+export const False = { name: falseSymb, args: [] };
 
 export const If = (cond: Term, thenExp: Term, elseExp: Term): Fun => {
     return fun(ifSymb, cond, thenExp, elseExp);
@@ -32,8 +32,8 @@ export const useIf = (trs: TRS, lazy = true): void => {
     const b = MaybeLazy('b', lazy);
 
     const ifRules: Rule[] = [
-        [If(True(), a, b), 'a'],
-        [If(False(), a, b), 'b']
+        [If(True, a, b), 'a'],
+        [If(False, a, b), 'b']
     ];
 
     use(trs, ifRules);
@@ -41,10 +41,10 @@ export const useIf = (trs: TRS, lazy = true): void => {
 
 export const useAnd = (trs: TRS): void => {
     const andRules: Rule[] = [
-        [And(False(), False()), False()],
-        [And(False(), True()), False()],
-        [And(True(), False()), False()],
-        [And(True(), True()), True()]
+        [And(False, False), False],
+        [And(False, True), False],
+        [And(True, False), False],
+        [And(True, True), True]
     ];
 
     use(trs, andRules);

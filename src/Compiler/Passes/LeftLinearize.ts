@@ -84,8 +84,8 @@ const leftLinearizeRule = (
     const updatedRule: Rule = [newLhs, fun(selectRuleName, conjunction(eqs), ...newLhs.args)];
 
     const selectRules: Rule[] = [
-        [fun(selectRuleName, True(), ...newLhs.args), replaceVars(rhs, newRhsVars)],
-        [fun(selectRuleName, False(), ...newLhs.args), fun(simName, ...newLhs.args)],
+        [fun(selectRuleName, True, ...newLhs.args), replaceVars(rhs, newRhsVars)],
+        [fun(selectRuleName, False, ...newLhs.args), fun(simName, ...newLhs.args)],
     ];
 
     // only change the head symbol of matching rules
@@ -108,7 +108,7 @@ export function replaceVars<T extends Term>(t: Term, newVars: Var[], i = { offse
 }
 
 const conjunction = (terms: Term[]): Term => {
-    if (terms.length === 0) return True();
+    if (terms.length === 0) return True;
     if (terms.length === 1) return head(terms);
     const [h, tl] = decons(terms);
     return And(h, conjunction(tl));
@@ -116,7 +116,7 @@ const conjunction = (terms: Term[]): Term => {
 
 // allEq(['a', 'b', 'c']) = And(Eq('a', 'b'), Eq('b', 'c'))
 const allEq = (terms: Term[]): Fun => {
-    if (terms.length <= 1) return True();
+    if (terms.length <= 1) return True;
     if (terms.length === 2) return Eq(terms[0], terms[1]);
 
     const [h, tl] = decons(terms);

@@ -61,6 +61,7 @@ module.exports = {
     globals: {
         JEST_PRNG_SEED: (() => {
             // return 9452286;
+            // return 1872944;
             const min = 1000, max = 10000000;
             const seed = Math.floor(Math.random() * (max - min) + min);
             console.log(`seed: ${seed}`);

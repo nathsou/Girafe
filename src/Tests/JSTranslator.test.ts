@@ -3,6 +3,7 @@ import { defined, showTerm } from "../Compiler/Utils";
 import { Externals } from "../Externals/Externals";
 import { nodeWorkerNormalizer } from '../Normalizer/JSNormalizer/NodeWorkerNormalizer';
 import { parseRules, parseTerm } from "../Parser/Parser";
+import { makeBigNat } from "../Translator/JSTranslator";
 
 const tests = [
     { // peano addition
@@ -59,7 +60,7 @@ const tests = [
 
 it('should produce expected output when evaluated', async () => {
     for (const { rules, query, output, externals } of tests) {
-        const normalize = nodeWorkerNormalizer(rules, externals);
+        const normalize = nodeWorkerNormalizer(rules, externals, makeBigNat);
         const res = await normalize(query);
         expect(showTerm(res)).toBe(output);
     }

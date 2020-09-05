@@ -10,8 +10,13 @@ import { map, mapString, setMap, format, indent } from "../Parser/Utils";
 import { symbolMap } from "./Translator";
 
 const nullarySymbolsPrefix = 'symb_';
+const natRegex = /^[0-9]+$/;
 
-const nullaryVarName = (f: string): string => {
+const isNat = (str: string): boolean => natRegex.test(str);
+export const makeBigNat = (nat: string): string => `${nat}n`;
+export const makeNat = (nat: string): string => `${nat}`;
+
+export const nullaryVarName = (f: string): string => {
     return `${nullarySymbolsPrefix}${mapString(f, c => symbolMap[c] ?? c)}`;
 };
 
@@ -26,26 +31,37 @@ export class JSTranslator<Exts extends string>
     extends DecisionTreeTranslator<'js', Exts> {
 
     private nullaries: Set<string>;
+    private nat: (nat: string) => string;
 
-    constructor(trs: TRS, externals: Externals<'js', Exts>) {
+    constructor(
+        trs: TRS,
+        externals: Externals<'js', Exts>,
+        nat = makeBigNat
+    ) {
         super(trs, externals);
+        this.nat = nat;
         this.declareNullarySymbols();
     }
 
     private declareNullarySymbols() {
         this.nullaries = new Set();
 
+        if (['equ', 'gtr', 'geq', 'lss', 'leq'].some(f => dictHas(this.externals, f))) {
+            this.nullaries.add('True');
+            this.nullaries.add('False');
+        }
+
         const symbs = collectTRSArities(this.trs);
 
         for (const [symb, ar] of symbs) {
-            if (ar === 0) {
+            if (ar === 0 && !isNat(symb)) {
                 this.nullaries.add(symb);
             }
         }
 
         const decl = setMap(this.nullaries, f => `const ${nullaryVarName(f)} = { name: "${f}", args: [] };`);
 
-        this.header.push(...decl);
+        this.header.unshift(...decl);
     }
 
     public accessSubterm(parent: string, childIndex: number): string {
@@ -64,8 +80,15 @@ export class JSTranslator<Exts extends string>
                 'return typeof term === "string";',
                 '}'
             ),
+            format(
+                'function isNat(term) {',
+                'const t = typeof term;',
+                'return t === "number" || t === "bigint"',
+                '}'
+            ),
             `function showTerm(term) {
                 if (isVar(term)) return term;
+                if (isNat(term)) return term.toString();
                 if (term.args.length === 0) return term.name;
                 
                 const terms = [term];
@@ -76,8 +99,8 @@ export class JSTranslator<Exts extends string>
                 while (terms.length > 0) {
                     const t = terms.pop();
                 
-                    if (isVar(t)) {
-                        stack.push(t);
+                    if (isVar(t) || isNat(t)) {
+                        stack.push(t.toString());
                     } else if (t.args.length === 0) {
                         stack.push(t.name);
                     } else {
@@ -197,7 +220,7 @@ export class JSTranslator<Exts extends string>
 
                     for (const [ctor, A] of tree.tests) {
                         cases.push(indent(0,
-                            (ctor === _ ? 'default:' : 'case "' + ctor + '":'),
+                            (ctor === _ ? 'default:' : `case ${isNat(ctor) ? this.nat(ctor) : `"${ctor}"`}:`),
                             indent(1, translate(A))
                         ));
                     }
@@ -205,7 +228,7 @@ export class JSTranslator<Exts extends string>
                     const occName = this.translateOccurence(tree.occurence, varNames);
 
                     return indent(1,
-                        'switch (isFun(' + occName + ') ? ' + occName + '.name : null) {',
+                        `switch (isFun(${occName}) ? ${occName}.name : ${occName}) {`,
                         indent(1, cases.join('\n')),
                         '}'
                     );
@@ -227,6 +250,7 @@ export class JSTranslator<Exts extends string>
 
     public translateTerm(term: Term): string {
         if (isVar(term)) return term;
+        if (isNat(term.name)) return this.nat(term.name);
         if (term.args.length === 0 && this.nullaries.has(term.name)) {
             return nullaryVarName(term.name);
         }
