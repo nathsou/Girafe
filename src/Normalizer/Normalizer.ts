@@ -1,6 +1,5 @@
 import { defaultPasses, fun, isNothing, isVar, Maybe, replaceTermAt, showRule, uniq, vars } from "../Compiler/Utils";
 import { ExternalsFactory, NativeExternals } from "../Externals/Externals";
-import { FileReader } from "../Parser/Preprocessor/Import";
 import { dictHas, Fun, Term, TRS } from "../Parser/Types";
 import { mapMut } from "../Parser/Utils";
 import { compileRules } from "./Unification";
@@ -110,7 +109,6 @@ export const normalizeQuery = async <Exts extends string>(
     source: string,
     externals: ExternalsFactory<Exts>,
     normalizerFactory: NormalizerFactory<Exts>,
-    fileReader: FileReader,
     passes = defaultPasses(externals('native'))
 ): Promise<Maybe<{ duration: number, normalForm: Term }>> => {
     const querySymb = "___query";
@@ -119,7 +117,7 @@ export const normalizeQuery = async <Exts extends string>(
     const queryRule = showRule([queryLhs, query]);
     const sourceWithQuery = `${source}\n${queryRule}`;
 
-    const trs = await compileRules(sourceWithQuery, passes, fileReader);
+    const trs = await compileRules(sourceWithQuery, passes);
     if (isNothing(trs)) return;
     const normalize = normalizerFactory(trs, externals);
     const start = Date.now();

@@ -16,13 +16,7 @@ const transpile = async (path: string, target: Targets | 'girafe'): Promise<stri
   const source = readFileSync(path).toString();
   const trs = await compileRules(
     source,
-    defaultPasses(externals('native')),
-    async path => {
-      return new Promise(resolve => {
-        const contents = readFileSync(`./examples/${path}`).toString();
-        resolve(contents);
-      });
-    },
+    defaultPasses(externals('native'))
   );
 
   if (trs) {

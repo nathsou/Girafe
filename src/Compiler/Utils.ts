@@ -1,4 +1,3 @@
-import { FileReader } from "../Parser/Preprocessor/Import";
 import { Dict, dictEntries, dictGet, dictHas, dictSet, Fun, Rule, Substitution, Symb, Term, TRS, Var } from "../Parser/Types";
 import { every, gen, range, some, traverseNames } from "../Parser/Utils";
 import { Ok } from "../Types";
@@ -46,13 +45,6 @@ export const defaultPasses: (exts: NativeExternals) => CompilerPass[] = exts => 
   normalizeLhsArgs(exts),
   // logTRS,
 ];
-
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-export const defaultFileReader = (importPath: string): FileReader => async (path: string) => {
-  ///@ts-ignore
-  const dep = await import(`${importPath}/${path}`);
-  return dep.default;
-};
 
 export function isFun(term: Term, name?: Symb): term is Fun {
   if (name) {

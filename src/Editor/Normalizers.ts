@@ -6,7 +6,6 @@ import { headMatcher } from "../Normalizer/Matchers/HeadMatcher";
 import { ClosureMatcher } from "../Normalizer/Matchers/ClosureMatcher/ClosureMatcher";
 import { Term, TRS } from "../Parser/Types";
 import { defaultPasses } from "../Compiler/Utils";
-import { FileReader } from "../Parser/Preprocessor/Import";
 import { CompilerPass } from "../Compiler/Passes/CompilerPass";
 import { NativeExternals, Externals, ExternalsFactory } from "../Externals/Externals";
 
@@ -30,7 +29,6 @@ export const normalizeQueryWith = <N extends Normalizers>(normalizer: N): (
     query: Term,
     source: string,
     externals: ExternalsFactory<string>,
-    fileReader: FileReader,
     passes?: CompilerPass[]
 ) => ReturnType<typeof normalizeQuery> => {
     const factory: NormalizerFactory<string> = {
@@ -51,7 +49,6 @@ export const normalizeQueryWith = <N extends Normalizers>(normalizer: N): (
         query: Term,
         source: string,
         externals: ExternalsFactory<string>,
-        fileReader: FileReader,
         passes = defaultPasses(externals('native'))
-    ) => normalizeQuery(query, source, externals, factory, fileReader, passes);
+    ) => normalizeQuery(query, source, externals, factory, passes);
 };

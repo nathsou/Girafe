@@ -5,7 +5,6 @@ import * as monaco from 'monaco-editor';
 ///@ts-ignore
 import trs from "../../examples/test.grf";
 import {
-    defaultFileReader,
     isNothing, showTerm
 } from "../Compiler/Utils";
 import { arithmeticExternals } from '../Externals/Arithmetic';
@@ -163,8 +162,7 @@ const run = async () => {
     const res = await normalizeQueryWith(chosenNormalizer)(
         queryT,
         editor.getValue(),
-        externals,
-        defaultFileReader(importPath)
+        externals
     );
 
     if (isNothing(res)) return;

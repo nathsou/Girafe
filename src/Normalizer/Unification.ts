@@ -1,10 +1,7 @@
 import { compile, CompilerPass } from "../Compiler/Passes/CompilerPass";
 import { isSomething, Maybe, rhs, substitute } from "../Compiler/Utils";
 import { parse } from "../Parser/Parser";
-import { FileReader, handleImports, ImportInfos } from "../Parser/Preprocessor/Import";
-import { consLists } from "../Parser/Preprocessor/Lists";
 import { removeComments } from "../Parser/Preprocessor/RemoveComments";
-import { convertStrings } from "../Parser/Preprocessor/Strings";
 import { Fun, Term, TRS } from "../Parser/Types";
 import { isError, Right_, unwrap } from "../Types";
 import { Matcher } from "./Matchers/Matcher";
@@ -23,16 +20,11 @@ function logErrors<E = string>(errors: Right_<E[]>): void {
 
 export async function compileRules(
   src: string,
-  passes: CompilerPass[],
-  fileReader: FileReader,
+  passes: CompilerPass[]
 ): Promise<Maybe<TRS>> {
-  const rules = await parse<ImportInfos>(
+  const rules = await parse(
     src,
-    removeComments,
-    handleImports(fileReader),
-    convertStrings,
-    consLists,
-    // log
+    removeComments
   );
 
   if (isError(rules)) {

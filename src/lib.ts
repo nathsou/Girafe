@@ -29,7 +29,6 @@ export * from "./Normalizer/JSNormalizer/WebWorkerNormalizer";
 export * from "./Normalizer/JSNormalizer/NodeWorkerNormalizer";
 
 export * from "./Externals/Arithmetic";
-export * from "./Externals/Lists";
 export * from "./Externals/Externals";
 export * from "./Externals/Meta";
 
@@ -40,7 +39,6 @@ export * from "./Parser/Parser";
 export * from "./Parser/Source";
 export * from "./Parser/Types";
 export * from "./Parser/Preprocessor/Preprocessor";
-export * from "./Parser/Preprocessor/Import";
 export * from "./Parser/Preprocessor/RemoveComments";
 
 export * from "./Translator/Translator";

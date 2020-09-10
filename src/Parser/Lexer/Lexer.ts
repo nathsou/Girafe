@@ -41,7 +41,7 @@ export class Lexer {
         }
     }
 
-    private currentChar(): string {
+    public currentChar(): string {
         return this.source[this.pos];
     }
 
@@ -92,7 +92,7 @@ export class Lexer {
         return false;
     }
 
-    private skipWhiteSpaces() {
+    public skipWhiteSpaces() {
         while (whitespaces.has(this.currentChar())) {
             this.advance();
         }
@@ -114,7 +114,7 @@ export class Lexer {
         return lowerCaseSymbols.some(s => this.match(s));
     }
 
-    private tokenizeVar(): Maybe<VarToken> {
+    public tokenizeVar(): Maybe<VarToken> {
         if (
             this.isAlpha(this.currentChar()) &&
             this.isLowerCase(this.currentChar()) &&
@@ -132,7 +132,7 @@ export class Lexer {
         }
     }
 
-    private tokenizeSymb(): Maybe<SymbToken> {
+    public tokenizeSymb(): Maybe<SymbToken> {
         if (
             this.isAllowedChar(this.currentChar()) &&
             (
@@ -152,7 +152,7 @@ export class Lexer {
         }
     }
 
-    private tokenizeString(str: string): () => Maybe<Token> {
+    public tokenizeString(str: string): () => Maybe<Token> {
         const pos = this.position();
         return (): Token => {
             switch (str) {

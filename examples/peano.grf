@@ -1,19 +1,13 @@
-If(True, a, b) -> Inst(a)
-If(False, a, b) -> Inst(b)
-
-Inst(#If(a, b, c)) -> If(Inst(a), Inst(b), Inst(c))
-
 =(True, True) -> True
 =(True, False) -> False
 =(False, True) -> False
 =(False, False) -> True
 
-Not(Not(q)) -> q
 Not(True) -> False
 Not(False) -> True
 
-And(a, b) -> If(a, b, False)
-Or(a, b) -> If(a, True, b)
+And(a, b) -> if(a, b, False)
+Or(a, b) -> if(a, True, b)
 
 1 -> S(0)
 2 -> S(1)
@@ -24,6 +18,7 @@ Or(a, b) -> If(a, True, b)
 7 -> S(6)
 8 -> S(7)
 9 -> S(8)
+10 -> S(9)
 
 |(0, x) -> x
 |(a, b) -> +(b, *(a, S(9)))
@@ -47,8 +42,7 @@ Or(a, b) -> If(a, True, b)
 <=(a, b) -> Not(>(a, b))
 
 ~(n) -> ~'(n, 0)
-~'(n, acc) -> If(>(n, 0), #~'(P(n), P(acc)), acc)
-Inst(#~'(n, acc)) -> ~'(n, acc)
+~'(n, acc) -> if(>(n, 0), ~'(P(n), P(acc)), acc)
 
 +(a, 0) -> a
 +(0, b) -> b
@@ -78,11 +72,10 @@ S(P(n)) -> n
 /(a, S(0)) -> a
 /(a, b) -> /'(a, b, 0)
 /'(a, b, i) ->
-    If(>=(a, b),
-        #/'(-(a, b), b, S(i)),
+    if(>=(a, b),
+        /'(-(a, b), b, S(i)),
         DivRes(i, a)
     )
-Inst(#/'(a, b, i)) -> /'(a, b, i)
 
 Quotient(DivRes(q, r)) -> q
 Rem(DivRes(q, r)) -> r
@@ -94,34 +87,31 @@ IsEven(n) -> =(Mod(n, 2), 0)
 IsPrime(S(S(0))) -> True
 IsPrime(S(S(S(0)))) -> True
 IsPrime(n) -> 
-    If(<(n, 2),
+    if(<(n, 2),
         False,
-        #If(IsEven(n),
+        if(IsEven(n),
             False,
-            #IsPrime'(n, 3)
+            IsPrime'(n, 3)
         )
     )
 IsPrime'(n, i) ->
-    If(<=(*(i, i), n),
-        #If(=(Mod(n, i), 0),
+    if(<=(*(i, i), n),
+        if(=(Mod(n, i), 0),
             False,
-            #IsPrime'(n, +(i, 2))
+            IsPrime'(n, +(i, 2))
         ),
         True
     )
 
-Inst(#IsPrime'(n, i)) -> IsPrime'(n, i)
-
 Primes(n) -> Primes'(n, 3, :(2, Nil))
 Primes'(n, i, primes) -> 
-    If(<=(i, n),
-        #If(IsPrime(i),
-            #Primes'(n, +(i, 2), :(i, primes)),
-            #Primes'(n, +(i, 2), primes)
+    if(<=(i, n),
+        if(IsPrime(i),
+            Primes'(n, +(i, 2), :(i, primes)),
+            Primes'(n, +(i, 2), primes)
         ),
         primes
     )
-Inst(#Primes'(n, i, primes)) -> Primes'(n, i, primes)
 
 Len(Nil) -> 0
 Len(:(h, tl)) -> +(Len(tl), 1)
@@ -131,15 +121,15 @@ Reverse'(Nil, rev) -> rev
 Reverse'(:(h, tl), rev) -> Reverse'(tl, :(h, rev))
 
 N(0) -> 0'
-N(S(0)) -> 1'
-N(S(S(0))) -> 2'
-N(S(S(S(0)))) -> 3'
-N(S(S(S(S(0))))) -> 4'
-N(S(S(S(S(S(0)))))) -> 5'
-N(S(S(S(S(S(S(0))))))) -> 6'
-N(S(S(S(S(S(S(S(0)))))))) -> 7'
-N(S(S(S(S(S(S(S(S(0))))))))) -> 8'
-N(S(S(S(S(S(S(S(S(S(0)))))))))) -> 9'
+N(1) -> 1'
+N(2) -> 2'
+N(3) -> 3'
+N(4) -> 4'
+N(5) -> 5'
+N(6) -> 6'
+N(7) -> 7'
+N(8) -> 8'
+N(9) -> 9'
 
 N(n) -> Reverse(N'(n, Nil))
 N'(0, acc) -> acc
@@ -149,6 +139,4 @@ N''(DivRes(q, r), acc) -> :(N(r), N'(q, acc))
 N(Nil) -> Nil
 N(:(h, tl)) -> :(N(h), N(tl))
 
-Inst(x) -> x
-
-Query -> Reverse(N(Primes(|(5, 0))))
+Query -> Reverse(N(Primes(**(10, 2))))

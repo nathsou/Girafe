@@ -24,13 +24,7 @@ const normalize = async (query: Term): Promise<Term> => {
     const res = await normalizeQueryWith('decision-trees')(
         query,
         source,
-        externals,
-        async path => {
-            return new Promise(resolve => {
-                const contents = readFileSync(`./examples/${path}`).toString();
-                resolve(contents);
-            });
-        }
+        externals
     );
 
     if (res) {
