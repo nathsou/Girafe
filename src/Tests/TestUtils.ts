@@ -48,7 +48,7 @@ export const randomSymb = (rnd: RandomGenerator, eps = 0.1): Symb => {
         symb += randomElem(rnd, allowedChars);
     }
 
-    if (symb.includes('->')) return randomSymb(rnd, eps);
+    if (symb === '_' || symb.includes('->')) return randomSymb(rnd, eps);
     return symb;
 };
 

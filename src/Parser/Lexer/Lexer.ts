@@ -29,6 +29,7 @@ export class Lexer {
     private pos: number;
     private line: number;
     private col: number;
+    private underscoresCount: number;
     private lowerCaseSymbols = defaultLowerCaseSymbols;
 
     private advance(count = 1): void {
@@ -55,6 +56,7 @@ export class Lexer {
         this.source = src;
         this.line = 1;
         this.col = 1;
+        this.underscoresCount = 0;
 
         const tokens: Token[] = [];
         const tokenizeLeftParen = this.tokenizeString('(');
@@ -116,10 +118,12 @@ export class Lexer {
     }
 
     public tokenizeVar(): Maybe<VarToken> {
-        if (
+        if ((
             this.isAlpha(this.currentChar()) &&
             this.isLowerCase(this.currentChar()) &&
             !this.matchLowercaseSymb()
+        ) ||
+            this.match('_')
         ) {
             const pos = this.position();
             let name = this.currentChar();
@@ -127,6 +131,10 @@ export class Lexer {
             while (this.isAllowedChar(this.currentChar())) {
                 name += this.currentChar();
                 this.advance();
+            }
+
+            if (name === '_') {
+                name = `any_${this.underscoresCount++}`;
             }
 
             return { type: 'Var', name, position: pos };

@@ -1,7 +1,7 @@
 App(App(App(Map', f), :(h, tl)), acc) -> App(App(App(Map', f), tl), :(App(f, h), acc))
 App(App(Collatz', 1), acc) -> App(Rev, :(1, acc))
 App(App(Collatz', n), acc) -> App(App(Collatz', App(NextCollatz, n)), :(n, acc))
-App(App(Len', :(h, tl)), len) -> App(App(Len', tl), @add(len, 1))
+App(App(Len', :(_, tl)), len) -> App(App(Len', tl), @add(len, 1))
 App(App(Rev', :(h, tl)), acc) -> App(App(Rev', tl), :(h, acc))
 App(App(App(Map', f), Nil), acc) -> App(Rev, acc)
 App(App(Rev', Nil), rev) -> rev
