@@ -1,0 +1,25 @@
+App(Lambda10, d) -> @sub(d, @mod(d, 1))
+App(App(Div, a), b) -> App(Lambda10, @div(a, b))
+App(Digits, n) -> App(App(Digits', n), Nil)
+App(App(Digits', 0), ds) -> :(0, ds)
+App(App(Digits', 1), ds) -> :(1, ds)
+App(App(Digits', 2), ds) -> :(2, ds)
+App(App(Digits', 3), ds) -> :(3, ds)
+App(App(Digits', 4), ds) -> :(4, ds)
+App(App(Digits', 5), ds) -> :(5, ds)
+App(App(Digits', 6), ds) -> :(6, ds)
+App(App(Digits', 7), ds) -> :(7, ds)
+App(App(Digits', 8), ds) -> :(8, ds)
+App(App(Digits', 9), ds) -> :(9, ds)
+App(App(Digits', n), ds) -> App(App(Digits', App(App(Div, n), 10)), :(@mod(n, 10), ds))
+
+App(Rev, lst) -> App(App(Rev', lst), Nil)
+App(App(Rev', Nil), rev) -> rev
+App(App(Rev', :(h, tl)), acc) -> App(App(Rev', tl), :(h, acc))
+
+App(Palindrome, n) -> App(PalindromeList, App(Digits, n))
+App(PalindromeList, lst) -> @equ(lst, App(Rev, lst))
+
+App(App(Lambda13, p), Unit) -> App(Palindrome, p)
+
+Main -> App(App(Lambda13, 11), Unit)

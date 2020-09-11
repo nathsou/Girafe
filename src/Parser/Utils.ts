@@ -59,7 +59,7 @@ export function partition<T>(it: Iterable<T>, pred: (val: T) => boolean): [T[], 
     return [as, bs];
 }
 
-export function* indexed<T>(vals: T[]): Iterable<[T, number]> {
+export function* indexed<T>(vals: Iterable<T>): Iterable<[T, number]> {
     let i = 0;
     for (const val of vals) {
         yield [val, i++];

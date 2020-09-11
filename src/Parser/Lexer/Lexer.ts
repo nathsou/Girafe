@@ -4,9 +4,9 @@ import { unreachable } from "../Types";
 import { specialCharacters } from "./SpecialChars";
 import { PositionInfo, SymbToken, Token, VarToken } from "./Token";
 
-const specialCharsSet = new Set<string>(specialCharacters);
+export const defaultLowerCaseSymbols = ['if', 'app', 'inst'];
+export const specialCharsSet = new Set<string>(specialCharacters);
 const whitespaces = new Set([' ', '\n', '\r', '\t']);
-export const lowerCaseSymbols = ['if', 'app', 'inst']; // keywords
 
 export type LexerError =
     | InvalidCharError
@@ -29,6 +29,7 @@ export class Lexer {
     private pos: number;
     private line: number;
     private col: number;
+    private lowerCaseSymbols = defaultLowerCaseSymbols;
 
     private advance(count = 1): void {
         for (let i = 0; i < count; i++) {
@@ -111,7 +112,7 @@ export class Lexer {
     }
 
     private matchLowercaseSymb(): boolean {
-        return lowerCaseSymbols.some(s => this.match(s));
+        return this.lowerCaseSymbols.some(s => this.match(s));
     }
 
     public tokenizeVar(): Maybe<VarToken> {
@@ -215,5 +216,9 @@ export class Lexer {
     private isAllowedChar(c: string): boolean {
         if (c === undefined) return false;
         return this.isAlphaNum(c) || specialCharsSet.has(c);
+    }
+
+    public setAcceptedLowerCaseSymbols(symbs: string[]) {
+        this.lowerCaseSymbols = symbs;
     }
 }

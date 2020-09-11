@@ -5,11 +5,11 @@ import { metaExternals } from "../Externals/Meta";
 import { DecisionTreeNormalizer } from "../Normalizer/DecisionTreeNormalizer";
 import { nodeWorkerNormalizer } from "../Normalizer/JSNormalizer/NodeWorkerNormalizer";
 import { headMatcher } from "../Normalizer/Matchers/HeadMatcher";
-import { AsyncNormalizer, buildNormalizer, makeNormalizerAsync } from "../Normalizer/Normalizer";
+import { AsyncNormalizer, buildFueledNormalizer, makeNormalizerAsync } from "../Normalizer/Normalizer";
 import { unificationNormalizer } from "../Normalizer/Unification";
 import { Term, TRS } from "../Parser/Types";
+import { makeBigNat, makeNat } from "../Translator/JSTranslator";
 import { ghcNormalizer, ocamlNormalizer, parseTermPairs, parseTRS, parseTRSFromFile } from "./TestUtils";
-import { makeNat, makeBigNat } from "../Translator/JSTranslator";
 
 type NormalizationTestSuite = {
     trs: TRS,
@@ -65,13 +65,15 @@ const suite3: NormalizationTestSuite = {
     ])
 };
 
+const maxSteps = 500_000;
+
 const genNormalizers = (trs: TRS): AsyncNormalizer[] => {
     const externals = mergeExternals(arithmeticExternals, metaExternals());
 
     const normalizers = [
-        buildNormalizer(unificationNormalizer(headMatcher(trs)), externals('native')),
+        buildFueledNormalizer(unificationNormalizer(headMatcher(trs)), maxSteps, externals('native')),
         // new ClosureMatcher(trs).asNormalizer(externals('native')),
-        new DecisionTreeNormalizer(trs).asNormalizer(externals('native'))
+        new DecisionTreeNormalizer(trs).asFueledNormalizer(maxSteps, externals('native'))
     ].map(makeNormalizerAsync);
 
     normalizers.push(nodeWorkerNormalizer(trs, externals('js'), makeBigNat));

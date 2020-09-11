@@ -1,10 +1,10 @@
-import { Fun, Term } from "../Parser/Types";
-import { StepNormalizer, traceNormalize } from "../Normalizer/Normalizer";
-import { showTerm, termsEq } from "../Compiler/Utils";
+import { False, True } from "../Compiler/Passes/Imports";
 import { Inst } from "../Compiler/Passes/Lazify";
-import { True, False } from "../Compiler/Passes/Imports";
-import { NativeExternals, ExternalsFactory, Externals } from "./Externals";
+import { showTerm, termsEq } from "../Compiler/Utils";
+import { StepNormalizer, traceNormalize } from "../Normalizer/Normalizer";
+import { Fun, Term } from "../Parser/Types";
 import { nullaryVarName } from "../Translator/JSTranslator";
+import { Externals, ExternalsFactory, NativeExternals } from "./Externals";
 
 export type MetaExternals = 'trace' | 'equ';
 

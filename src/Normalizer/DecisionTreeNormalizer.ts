@@ -3,7 +3,7 @@ import { clauseMatrixOf, compileClauseMatrix } from "../Compiler/DecisionTrees/D
 import { collectTRSArities } from "../Compiler/Passes/Lazify";
 import { arity, isVar, Maybe } from "../Compiler/Utils";
 import { Symb, Term, TRS } from "../Parser/Types";
-import { buildNormalizer, Normalizer, StepNormalizer } from "./Normalizer";
+import { buildNormalizer, Normalizer, StepNormalizer, buildFueledNormalizer } from "./Normalizer";
 import { NativeExternals } from "../Externals/Externals";
 
 export class DecisionTreeNormalizer implements StepNormalizer {
@@ -34,6 +34,13 @@ export class DecisionTreeNormalizer implements StepNormalizer {
         externals: NativeExternals<Exts>
     ): Normalizer {
         return buildNormalizer(this, externals);
+    }
+
+    public asFueledNormalizer<Exts extends string>(
+        maxSteps: number,
+        externals: NativeExternals<Exts>
+    ): Normalizer {
+        return buildFueledNormalizer(this, maxSteps, externals);
     }
 
 }

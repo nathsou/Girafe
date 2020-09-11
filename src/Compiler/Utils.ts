@@ -120,9 +120,9 @@ export function isSomething<T>(m: Maybe<T>): m is T {
   return !isNothing(m);
 }
 
-export const substitute = (t: Term, sigma: Substitution): Term => {
-  if (isVar(t)) return dictGet(sigma, t) ?? t;
-  return { name: t.name, args: t.args.map(s => substitute(s, sigma)) };
+export const substitute = <T extends Term>(t: T, sigma: Substitution): T => {
+  if (isVar(t)) return (dictGet(sigma, t) ?? t) as T;
+  return { name: (t as Fun).name, args: (t as Fun).args.map(s => substitute(s, sigma)) } as T;
 };
 
 export const termsEq = (a: Term, b: Term): boolean => {
@@ -547,4 +547,18 @@ export const stringifyQueryVars = (q: Term): Term => {
   }
 
   return q;
+};
+
+// maps every key of a given array to a value to build a dictionary
+export const associate = <K extends string | number | symbol, V>(
+  keys: K[],
+  vals: (key: K) => V
+): Record<K, V> => {
+  const dict = {} as Record<K, V>;
+
+  for (const key of keys) {
+    dict[key] = vals(key);
+  }
+
+  return dict;
 };

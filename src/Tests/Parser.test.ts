@@ -1,6 +1,6 @@
 import { Arities } from '../Compiler/Passes/Lazify';
 import { showRule, showTerm, showTermRec } from '../Compiler/Utils';
-import { Lexer, lowerCaseSymbols } from '../Parser/Lexer/Lexer';
+import { Lexer, defaultLowerCaseSymbols } from '../Parser/Lexer/Lexer';
 import { TRSParser } from '../Parser/TRSParser';
 import { gen } from '../Parser/Utils';
 import { isError, isOk, unwrap } from '../Types';
@@ -46,7 +46,7 @@ test('Lex symbols', () => {
 
 test('Lex keywords', () => {
     const lexer = new Lexer();
-    for (const symb of lowerCaseSymbols) {
+    for (const symb of defaultLowerCaseSymbols) {
         const lexSymb = lexer.tokenize(symb);
         expect(isOk(lexSymb)).toBe(true);
         expect(unwrap(lexSymb)).toStrictEqual([{

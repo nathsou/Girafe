@@ -11,8 +11,10 @@ export * from "./Compiler/Passes/Imports";
 export * from "./Compiler/Passes/Lazify";
 export * from "./Compiler/Passes/LeftLinearize";
 export * from "./Compiler/Passes/NormalizeLhsArgs";
+export * from "./Compiler/Passes/NormalizeRhs";
 export * from "./Compiler/Passes/SimulateIfs";
 export * from "./Compiler/Passes/OrderBy";
+export * from "./Compiler/Passes/UniqueVarNames";
 
 export * from "./Normalizer/Normalizer";
 export * from "./Normalizer/Matchers/Matcher";
@@ -40,6 +42,9 @@ export * from "./Parser/Source";
 export * from "./Parser/Types";
 export * from "./Parser/Preprocessor/Preprocessor";
 export * from "./Parser/Preprocessor/RemoveComments";
+export * from "./Parser/Lexer/Lexer";
+export * from "./Parser/Lexer/SpecialChars";
+export * from "./Parser/Lexer/Token";
 
 export * from "./Translator/Translator";
 export * from "./Translator/Translate";
