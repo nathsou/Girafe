@@ -13,6 +13,14 @@ Or(True, False) -> True
 Or(False, True) -> True
 Or(True, True) -> True
 
+And(False, False) -> False
+And(True, False) -> True
+And(False, True) -> True
+And(True, True) -> True
+
+Not(True) -> False
+Not(False) -> True
+
 IsPrime(2) -> True
 IsPrime(n) -> if(Or(<(n, 2), Divisible(n, 2)), False, IsPrime'(n, 3, Maybe))
 
@@ -29,3 +37,5 @@ IsPrime'(n, i, Maybe) -> IsPrime'(
 )
 
 IsPrime'(n, i, ans) -> ans
+
+Main -> IsPrime(17)

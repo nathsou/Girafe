@@ -108,6 +108,21 @@ export const funs = (trs: TRS): Term[] => {
   return terms;
 };
 
+// returns all the funs in t
+export const allSymbs = (
+  t: Term,
+  acc: Symb[] = []
+): Symb[] => {
+  if (isVar(t)) return acc;
+  acc.push(t.name);
+
+  for (const arg of t.args) {
+    allSymbs(arg, acc);
+  }
+
+  return acc;
+};
+
 export function occurs(x: Var, t: Term): boolean {
   return vars(t).includes(x);
 }

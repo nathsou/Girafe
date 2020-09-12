@@ -15,6 +15,7 @@ export * from "./Compiler/Passes/NormalizeRhs";
 export * from "./Compiler/Passes/SimulateIfs";
 export * from "./Compiler/Passes/OrderBy";
 export * from "./Compiler/Passes/UniqueVarNames";
+export * from "./Compiler/Passes/RemoveUnusedRules";
 
 export * from "./Normalizer/Normalizer";
 export * from "./Normalizer/Matchers/Matcher";
