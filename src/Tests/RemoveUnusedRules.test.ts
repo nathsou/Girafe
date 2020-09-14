@@ -16,7 +16,7 @@ type TestSuite = {
     tests: Array<[Term, Term]>
 };
 
-const externals = mergeExternals(arithmeticExternals, metaExternals())('native');
+const externals = mergeExternals<string>(arithmeticExternals, metaExternals())('native');
 
 const removeUnused = (trs: TRS, start = 'Main') => {
     const res = compile(trs, simulateIfs, removeUnusedRules(start));

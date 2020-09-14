@@ -1,7 +1,7 @@
-import { Rule, TRS, Fun } from "../../Parser/Types";
+import { Fun, Rule, TRS } from "../../Parser/Types";
 import { Err, Ok } from "../../Types";
+import { arity, hasDuplicatesSet, isRuleRecursive, isRuleTailRecursive, ruleArity, ruleName, rulesAlphaEquiv, showRule, vars } from "../Utils";
 import { CompilationMessage, CompilationResult, CompilerPass } from "./CompilerPass";
-import { arity, hasDuplicatesSet, ruleArity, ruleName, rulesAlphaEquiv, showRule, vars, isRuleRecursive, isRuleTailRecursive } from "../Utils";
 
 export type Checker = (rules: Rule[]) => CompilationMessage[];
 
@@ -86,7 +86,7 @@ export const checkNoFreeVars: Checker = (rules: Rule[]): CompilationMessage[] =>
 
     for (const rule of rules) {
         if (hasFreeVars(rule)) {
-            errors.push(`${ruleName(rule)} contains free variables`);
+            errors.push(`${showRule(rule)} contains free variables`);
         }
     }
 
@@ -124,7 +124,7 @@ export const checkTailRecursive: Checker = (rules: Rule[]): CompilationMessage[]
 
     for (const rule of rules) {
         if (isRuleRecursive(rule) && !isRuleTailRecursive(rule)) {
-            warnings.push(`${ruleName(rule)} is not tail recursive`);
+            warnings.push(`${showRule(rule)} is not tail recursive`);
         }
     }
 

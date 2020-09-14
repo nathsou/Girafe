@@ -2,7 +2,7 @@ import { False, True } from "../Compiler/Passes/Imports";
 import { isFun } from "../Compiler/Utils";
 import { Fun } from "../Parser/Types";
 import { nullaryVarName } from "../Translator/JSTranslator";
-import { Externals, ExternalsFactory, NativeExternals } from "./Externals";
+import { Externals, ExternalsFactory, NativeExternals, Targets } from "./Externals";
 
 export const symb = (f: string): Fun => ({ name: f, args: [] });
 
@@ -165,7 +165,7 @@ let rec pow a = function
     "geq": ocamlBoolBinop('>=')
 };
 
-export const arithmeticExternals: ExternalsFactory<ArithmeticExternals> = target => {
+export const arithmeticExternals: ExternalsFactory<ArithmeticExternals, Targets> = target => {
     return {
         'native': nativeArithmeticExternals,
         'js': jsArithmeticExternals,

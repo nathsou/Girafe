@@ -10,23 +10,26 @@ export type NativeExternals<Exts extends string = string> = {
 
 export type AnyExternals<Exts extends string = string> = Externals<Targets, Exts> | NativeExternals<Exts>;
 
-export type Externals<Target extends Targets, Exts extends string = string> = {
+export type Externals<Target extends string = Targets, Exts extends string = string> = {
     [key in Exts]: (name: string) => string
 };
 
-export type ExternalsFactoryMap<Exts extends string = string> = {
-    'native': NativeExternals<Exts>,
-    'js': Externals<'js', Exts>,
-    'ocaml': Externals<'ocaml', Exts>,
-    'haskell': Externals<'haskell', Exts>
-};
 
-export type ExternalsFactory<Exts extends string> =
-    <T extends Targets | 'native'>(target: T) => ExternalsFactoryMap<Exts>[T];
+export type ExternalsFactoryMap<
+    Exts extends string = string,
+    Ts extends string = Targets
+    > = {
+        'native': NativeExternals<Exts>,
+    } & { [target in Ts]: Externals<target, Exts> };
 
-export const mergeExternals = (...factories: ExternalsFactory<string>[]): ExternalsFactory<string> => {
-    return <T extends Targets | 'native'>(target: T) => {
-        let exts = {};
+export type ExternalsFactory<Exts extends string = string, Ts extends string = Targets | 'native'> =
+    <T extends Ts>(target: T) => ExternalsFactoryMap<Exts, Ts>[T];
+
+export const mergeExternals = <Exts extends string, Ts extends string = Targets | 'native'>(
+    ...factories: ExternalsFactory<Exts, Ts | 'native'>[]
+): ExternalsFactory<Exts, Ts> => {
+    return <T extends Ts | 'native'>(target: Ts) => {
+        let exts = {} as ExternalsFactoryMap<Exts, Ts>[T];
 
         for (const factory of factories) {
             for (const [name, impl] of Object.entries(factory(target))) {

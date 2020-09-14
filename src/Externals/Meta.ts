@@ -4,7 +4,7 @@ import { showTerm, termsEq } from "../Compiler/Utils";
 import { StepNormalizer, traceNormalize } from "../Normalizer/Normalizer";
 import { Fun, Term } from "../Parser/Types";
 import { nullaryVarName } from "../Translator/JSTranslator";
-import { Externals, ExternalsFactory, NativeExternals } from "./Externals";
+import { Externals, ExternalsFactory, NativeExternals, Targets } from "./Externals";
 
 export type MetaExternals = 'trace' | 'equ';
 
@@ -61,7 +61,7 @@ const ocamlMetaExternals: Externals<'ocaml', MetaExternals> = {
 
 const log = (msg: string) => { console.log(msg); };
 
-export const metaExternals = (nativeLog = log): ExternalsFactory<MetaExternals> => target => {
+export const metaExternals = (nativeLog = log): ExternalsFactory<MetaExternals, Targets> => target => {
     return {
         'native': nativeMetaExternals(nativeLog),
         'js': jsMetaExternals,

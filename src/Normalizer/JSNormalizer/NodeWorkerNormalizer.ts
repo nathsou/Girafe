@@ -46,3 +46,16 @@ export const nodeWorkerNormalizer = <Exts extends string>(
         nat
     ).normalize(query);
 };
+
+export const nodeWorkerRawNormalizer = <Exts extends string>(
+    trs: TRS,
+    externals: Externals<'js', Exts>,
+    nat = makeBigNat
+): AsyncNormalizer => {
+    return (query: Term) => new JSNormalizer<Exts>(
+        trs,
+        externals,
+        nodeWorkerExecutor,
+        nat
+    ).normalizeRaw(query);
+};

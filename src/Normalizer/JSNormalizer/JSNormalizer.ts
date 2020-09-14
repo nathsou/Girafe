@@ -25,4 +25,11 @@ export class JSNormalizer<Exts extends string> implements OneShotNormalizer {
         const out = await this.executor(source, this.getOutputExpr(query, jst));
         return defined(jst.parseRenamedTerm(out));
     }
+
+    public async normalizeRaw(query: Term): Promise<string> {
+        const jst = new JSTranslator(this.trs, this.externals, this.nat);
+        const source = jst.translate();
+        const out = await this.executor(source, this.getOutputExpr(query, jst));
+        return out;
+    }
 }

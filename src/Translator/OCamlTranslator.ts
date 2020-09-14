@@ -35,8 +35,7 @@ export class OCamlTranslator<Exts extends string>
 
     translateTerm(term: Term): string {
         if (isVar(term)) return this.renameVar(term);
-        return `(Fun ("${term.name}", [${
-            term.args.map(t => this.translateTerm(t)).join("; ")
+        return `(Fun ("${term.name}", [${term.args.map(t => this.translateTerm(t)).join("; ")
             }]))`;
     }
 

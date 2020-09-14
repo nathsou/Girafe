@@ -16,7 +16,7 @@ type TestSuite = {
     tests: Array<[Term, Term]>
 };
 
-const externals = mergeExternals(arithmeticExternals, metaExternals())('native');
+const externals = mergeExternals<string>(arithmeticExternals, metaExternals())('native');
 
 const normRhs = (trs: TRS) => {
     const res = compile(trs, uniqueVarNames, normalizeRhs(100, true));

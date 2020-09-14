@@ -68,7 +68,7 @@ const suite3: NormalizationTestSuite = {
 const maxSteps = 500_000;
 
 const genNormalizers = (trs: TRS): AsyncNormalizer[] => {
-    const externals = mergeExternals(arithmeticExternals, metaExternals());
+    const externals = mergeExternals<string>(arithmeticExternals, metaExternals());
 
     const normalizers = [
         buildFueledNormalizer(unificationNormalizer(headMatcher(trs)), maxSteps, externals('native')),

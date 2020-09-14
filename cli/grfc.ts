@@ -10,7 +10,7 @@ const src = process.argv[2];
 const outFile = process.argv[3];
 const target = process.argv[4];
 
-const externals = mergeExternals(arithmeticExternals, metaExternals());
+const externals = mergeExternals<string>(arithmeticExternals, metaExternals());
 
 const transpile = async (path: string, target: Targets | 'girafe'): Promise<string> => {
   const source = readFileSync(path).toString();
