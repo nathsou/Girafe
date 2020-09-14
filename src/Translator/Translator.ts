@@ -9,8 +9,9 @@ import {
 	TRS,
 	Var
 } from "../Parser/Types";
-import { mapString } from "../Parser/Utils";
+import { mapString, setMap } from "../Parser/Utils";
 import { Targets, Externals } from "../Externals/Externals";
+import { collectTRSArities } from "../Compiler/Passes/Lazify";
 
 export const symbolMap: { [key in SpecialCharacters]: string } = {
 	'.': '_dot_',
@@ -38,12 +39,21 @@ export const symbolMap: { [key in SpecialCharacters]: string } = {
 	'!': '_exclamation_mark_'
 };
 
+export const isNat = (str: string): boolean => natRegex.test(str);
+export const nullarySymbolsPrefix = 'symb_';
+const natRegex = /^[0-9]+$/;
+
+export const nullaryVarName = (f: string): string => {
+	return `${nullarySymbolsPrefix}${mapString(f, c => symbolMap[c] ?? c)}`;
+};
+
 export abstract class Translator<Target extends Targets, Exts extends string> {
 	protected header: string[] = [];
 	protected externals: Externals<Target, Exts>;
 	protected trs: TRS;
 	protected definedSymbols: Set<Symb>;
 	protected reservedKeywords: Set<string>;
+	protected nullaries: Set<string>;
 
 	constructor(
 		trs: TRS,
@@ -59,10 +69,34 @@ export abstract class Translator<Target extends Targets, Exts extends string> {
 		);
 
 		this.init();
+		this.declareNullarySymbols();
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	protected init(): void { }
+
+	protected declareNullarySymbols() {
+		this.nullaries = new Set();
+
+		if (['equ', 'gtr', 'geq', 'lss', 'leq'].some(f => dictHas(this.externals, f))) {
+			this.nullaries.add('True');
+			this.nullaries.add('False');
+		}
+
+		const symbs = collectTRSArities(this.trs);
+
+		for (const [symb, ar] of symbs) {
+			if (ar === 0 && !isNat(symb)) {
+				this.nullaries.add(symb);
+			}
+		}
+
+		const decl = setMap(this.nullaries, f => this.declareNullary(nullaryVarName(f), f));
+
+		this.header.push(...decl);
+	}
+
+	protected abstract declareNullary(varName: string, symb: string): string;
 
 	protected setReservedKeywords(kw: Set<string>): void {
 		this.reservedKeywords = kw;

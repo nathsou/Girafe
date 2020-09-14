@@ -1,9 +1,12 @@
 import { readFileSync } from "fs";
 import { defined, showTerm } from "../Compiler/Utils";
-import { Externals } from "../Externals/Externals";
+import { Externals, mergeExternals } from "../Externals/Externals";
+import { metaExternals } from "../Externals/Meta";
 import { nodeWorkerNormalizer } from '../Normalizer/JSNormalizer/NodeWorkerNormalizer';
 import { parseRules, parseTerm } from "../Parser/Parser";
 import { makeBigNat } from "../Translator/JSTranslator";
+
+const externals = mergeExternals<'show'>(metaExternals())('js');
 
 const tests = [
     { // peano addition
@@ -18,7 +21,7 @@ const tests = [
         Query -> +(3, 2)`,
         query: 'Query',
         output: 'S(S(S(S(S(0)))))',
-        externals: {}
+        externals
     },
     { // fibonacci
         rules: `
@@ -41,13 +44,13 @@ const tests = [
         Query -> Fib(7)`,
         query: 'Query',
         output: 'S(S(S(S(S(S(S(S(S(S(S(S(S(0)))))))))))))',
-        externals: {}
+        externals
     },
     { // primes
         rules: readFileSync('src/Tests/TRSs/primes.grf').toString(),
         query: 'Query',
         output: ":(2', :(5', Nil))",
-        externals: {}
+        externals
     },
 ].map(({ rules, query, output, externals }) =>
     ({

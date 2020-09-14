@@ -2,7 +2,7 @@ import { spawn } from 'child_process';
 import { writeFileSync, unlinkSync, readFileSync } from 'fs';
 import { isFunLeftLinear } from "../Compiler/Passes/Checks";
 import { Arities } from "../Compiler/Passes/Lazify";
-import { defined, mapify, Maybe, occurs, stringifyQueryVars, substitute, vars } from "../Compiler/Utils";
+import { defined, fun, mapify, Maybe, occurs, stringifyQueryVars, substitute, vars } from "../Compiler/Utils";
 import { Externals } from "../Externals/Externals";
 import { AsyncNormalizer } from "../Normalizer/Normalizer";
 import { specialCharacters } from "../Parser/Lexer/SpecialChars";
@@ -281,7 +281,7 @@ export const ghcNormalizer = (trs: TRS, externals: Externals<'haskell'>): AsyncN
         'hs',
         query => [
             source,
-            `main = putStr (show ${hst.callTerm(hst.renameTerm(stringifyQueryVars(query)))})`
+            `main = putStr ${hst.callTerm(hst.renameTerm(stringifyQueryVars(fun('@show', query))))}`
         ].join('\n'),
         out => hst.parseRenamedTerm(out)
     );
@@ -297,7 +297,7 @@ export const ocamlNormalizer = (trs: TRS, externals: Externals<'ocaml'>): AsyncN
         'ml',
         query => [
             source,
-            `in print_string (show_term ${ost.callTerm(ost.renameTerm(stringifyQueryVars(query)))});;`
+            `in print_string ${ost.callTerm(ost.renameTerm(stringifyQueryVars(fun('@show', query))))};;`
         ].join('\n'),
         out => ost.parseRenamedTerm(out)
     );

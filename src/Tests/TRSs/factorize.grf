@@ -12,7 +12,7 @@ Factorize(2) -> :(2, Nil)
 Factorize(n) -> If0(Divisible(n, 2), n)
 
 If0(True, n) -> :(2, Factorize(/(n, 2)))
-If0(False, n) -> Factorize'(n, 3, Nil)
+If0(False, n) -> Factorize'(n, 3)
 
 Factorize'(n, i) -> If1(<=(*(i, i), n), n, i)
 

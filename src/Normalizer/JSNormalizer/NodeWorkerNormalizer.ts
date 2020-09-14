@@ -51,7 +51,7 @@ export const nodeWorkerRawNormalizer = <Exts extends string>(
     trs: TRS,
     externals: Externals<'js', Exts>,
     nat = makeBigNat
-): AsyncNormalizer => {
+): (query: Term) => Promise<string> => {
     return (query: Term) => new JSNormalizer<Exts>(
         trs,
         externals,

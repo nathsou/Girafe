@@ -1,6 +1,8 @@
 import { arity, fun, genVars, hasMostGeneralRule, isVar, substitute, unusedRuleVars, zip } from "../Compiler/Utils";
 import { Fun, Rule, Substitution, Term } from "../Parser/Types";
-import { Translator } from "./Translator";
+import { isNat, Translator, nullaryVarName } from "./Translator";
+
+const nat = (n: string) => `(Nat ${n})`;
 
 export class OCamlTranslator<Exts extends string>
     extends Translator<'ocaml', Exts> {
@@ -19,23 +21,21 @@ export class OCamlTranslator<Exts extends string>
     protected init(): void {
         this.setReservedKeywords(OCamlTranslator.reservedKeywords);
         this.header = [
-            "type term = Var of string | Fun of string * term list;;",
+            "type term = Var of string | Fun of string * term list | Nat of int;;",
 
             "let funOf name args = Fun (name, args);;",
             "let varOf name = Var (name);;",
-
-            `let rec show_term t =
-                match t with
-                | Var x -> x
-                | Fun (f, []) -> f
-                | Fun (f, ts) -> f ^ "(" ^ (String.concat ", " (List.map show_term ts)) ^ ")";;
-        `,
         ];
     }
 
-    translateTerm(term: Term): string {
+    translateTerm(term: Term, useNullaryVars = false): string {
         if (isVar(term)) return this.renameVar(term);
-        return `(Fun ("${term.name}", [${term.args.map(t => this.translateTerm(t)).join("; ")
+        if (isNat(term.name)) return nat(term.name);
+        if (useNullaryVars && term.args.length === 0 && this.nullaries.has(term.name)) {
+            return nullaryVarName(term.name);
+        }
+
+        return `(Fun("${term.name}", [${term.args.map(t => this.translateTerm(t)).join("; ")
             }]))`;
     }
 
@@ -51,6 +51,10 @@ export class OCamlTranslator<Exts extends string>
         return `(${term.name} ${args})`;
     }
 
+    protected declareNullary(varName: string, symb: string): string {
+        return `let ${varName} = Fun("${symb}", []);; `;
+    }
+
     translateRules(name: string, rules: Rule[]): string {
         const newVars = genVars(arity(rules)).map(v => `${v}_${name}`);
         const args = `(${newVars.join(', ')})`;
@@ -58,7 +62,7 @@ export class OCamlTranslator<Exts extends string>
         // make all functions mutually recursive
         const res: string[] = [
             `${this.firstRule ? 'let rec' : 'and'} ${name} ${args} =
-                match ${args} with
+            match ${args} with
             `.trim()
         ];
 
@@ -80,11 +84,11 @@ export class OCamlTranslator<Exts extends string>
             ];
 
             const args = `(${lhs.args.map(t => this.translateTerm(t)).join(', ')})`;
-            res.push(`| ${args} -> ${this.callTerm(rhs)}`.trim());
+            res.push(`| ${args} -> ${this.callTerm(rhs)} `.trim());
         }
 
         if (!hasMostGeneralRule(rules)) {
-            res.push(`| _ -> ${this.translateTerm(fun(name, ...newVars))}`);
+            res.push(`| _ -> ${this.translateTerm(fun(name, ...newVars), true)} `);
         }
 
         return res.join("\n");

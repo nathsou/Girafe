@@ -1,5 +1,6 @@
-import { defined, stringifyQueryVars } from "../../Compiler/Utils";
+import { defined, fun, stringifyQueryVars } from "../../Compiler/Utils";
 import { Externals } from "../../Externals/Externals";
+import { parseTerm } from "../../Parser/Parser";
 import { Term, TRS } from "../../Parser/Types";
 import { JSTranslator, makeBigNat } from "../../Translator/JSTranslator";
 import { OneShotNormalizer } from "./../Normalizer";
@@ -16,14 +17,14 @@ export class JSNormalizer<Exts extends string> implements OneShotNormalizer {
     }
 
     private getOutputExpr(query: Term, jst: JSTranslator<Exts>): string {
-        return `showTerm(${jst.translateJSExpr(jst.callTerm(jst.renameTerm(stringifyQueryVars(query))))})`;
+        return jst.translateJSExpr(jst.callTerm(jst.renameTerm(stringifyQueryVars(fun('@show', query)))));
     }
 
     public async normalize(query: Term): Promise<Term> {
         const jst = new JSTranslator(this.trs, this.externals, this.nat);
         const source = jst.translate();
         const out = await this.executor(source, this.getOutputExpr(query, jst));
-        return defined(jst.parseRenamedTerm(out));
+        return defined(parseTerm(out));
     }
 
     public async normalizeRaw(query: Term): Promise<string> {

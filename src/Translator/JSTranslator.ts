@@ -2,23 +2,14 @@
 import { DecisionTree, isOccurence } from "../Compiler/DecisionTrees/DecisionTree";
 import { OccTerm, _ } from "../Compiler/DecisionTrees/DecisionTreeCompiler";
 import { DecisionTreeTranslator } from "../Compiler/DecisionTrees/DecisionTreeTranslator";
-import { collectTRSArities } from "../Compiler/Passes/Lazify";
 import { fun, isVar, zip } from "../Compiler/Utils";
 import { Externals } from "../Externals/Externals";
 import { Dict, dictHas, Term, TRS } from "../Parser/Types";
-import { map, mapString, setMap, format, indent } from "../Parser/Utils";
-import { symbolMap } from "./Translator";
+import { format, indent, map } from "../Parser/Utils";
+import { isNat, nullaryVarName } from './Translator';
 
-const nullarySymbolsPrefix = 'symb_';
-const natRegex = /^[0-9]+$/;
-
-const isNat = (str: string): boolean => natRegex.test(str);
 export const makeBigNat = (nat: string): string => `${nat}n`;
 export const makeNat = (nat: string): string => `${nat}`;
-
-export const nullaryVarName = (f: string): string => {
-    return `${nullarySymbolsPrefix}${mapString(f, c => symbolMap[c] ?? c)}`;
-};
 
 type FunCall = { funName: string, args: JSExpr[] };
 type JSExpr = string | FunCall | Term;
@@ -30,7 +21,6 @@ function isFunCall(val: unknown): val is FunCall {
 export class JSTranslator<Exts extends string>
     extends DecisionTreeTranslator<'js', Exts> {
 
-    private nullaries: Set<string>;
     private nat: (nat: string) => string;
 
     constructor(
@@ -40,28 +30,6 @@ export class JSTranslator<Exts extends string>
     ) {
         super(trs, externals);
         this.nat = nat;
-        this.declareNullarySymbols();
-    }
-
-    private declareNullarySymbols() {
-        this.nullaries = new Set();
-
-        if (['equ', 'gtr', 'geq', 'lss', 'leq'].some(f => dictHas(this.externals, f))) {
-            this.nullaries.add('True');
-            this.nullaries.add('False');
-        }
-
-        const symbs = collectTRSArities(this.trs);
-
-        for (const [symb, ar] of symbs) {
-            if (ar === 0 && !isNat(symb)) {
-                this.nullaries.add(symb);
-            }
-        }
-
-        const decl = setMap(this.nullaries, f => `const ${nullaryVarName(f)} = { name: "${f}", args: [] };`);
-
-        this.header.unshift(...decl);
     }
 
     public accessSubterm(parent: string, childIndex: number): string {
@@ -85,58 +53,12 @@ export class JSTranslator<Exts extends string>
                 'const t = typeof term;',
                 'return t === "number" || t === "bigint";',
                 '}'
-            ),
-            `function showTerm(term) {
-                if (isVar(term)) return term;
-                if (isNat(term)) return term.toString();
-                if (term.args.length === 0) return term.name;
-                
-                const terms = [term];
-                const stack = [];
-                const symbols = [];
-                
-                // flatten the terms onto a stack
-                while (terms.length > 0) {
-                    const t = terms.pop();
-                
-                    if (isVar(t) || isNat(t)) {
-                        stack.push(t.toString());
-                    } else if (t.args.length === 0) {
-                        stack.push(t.name);
-                    } else {
-                        for (let i = t.args.length - 1; i >= 0; i--) {
-                            terms.push(t.args[i]);
-                        }
-                    
-                        terms.push(t.name);
-                        symbols.push([t.name, t.args.length]);
-                    }
-                }
-                
-                const argsStack = [];
-                
-                // assemble constructors back when all arguments have been stringified
-                for (let i = stack.length - 1; i >= 0; i--) {
-                    const t = stack[i];
-                    if (symbols.length === 0) break;
-                    const [f, ar] = symbols[symbols.length - 1];
-                
-                    if (t === f) {
-                        const args = [];
-                        for (let k = 0; k < ar; k++) {
-                            args.push(argsStack.pop());
-                        }
-                
-                        argsStack.push(f + '(' + args.join(', ') + ')');
-                        symbols.pop();
-                    } else {
-                        argsStack.push(t);
-                    }
-                }
-                
-                return argsStack[0];
-            }`
+            )
         );
+    }
+
+    protected declareNullary(varName: string, symb: string): string {
+        return `const ${varName} = { name: "${symb}", args: [] };`;
     }
 
     public callTerm(term: Term): JSExpr {

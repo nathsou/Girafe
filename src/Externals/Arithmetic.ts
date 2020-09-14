@@ -1,7 +1,7 @@
 import { False, True } from "../Compiler/Passes/Imports";
 import { isFun } from "../Compiler/Utils";
 import { Fun } from "../Parser/Types";
-import { nullaryVarName } from "../Translator/JSTranslator";
+import { nullaryVarName } from "../Translator/Translator";
 import { Externals, ExternalsFactory, NativeExternals, Targets } from "./Externals";
 
 export const symb = (f: string): Fun => ({ name: f, args: [] });
@@ -37,7 +37,7 @@ const boolbinop = (t: Fun, op: (a: bigint, b: bigint) => boolean): Fun => {
 };
 
 export type ArithmeticExternals = 'add' | 'sub' | 'mult' | 'div' |
-    'mod' | 'pow' | 'gtr' | 'geq' | 'lss' | 'leq';
+    'mod' | 'gtr' | 'geq' | 'lss' | 'leq';
 
 const nativeArithmeticExternals: NativeExternals<ArithmeticExternals> = {
     'add': t => arithbinop(t, (a, b) => a + b),
@@ -45,7 +45,6 @@ const nativeArithmeticExternals: NativeExternals<ArithmeticExternals> = {
     'mult': t => arithbinop(t, (a, b) => a * b),
     'div': t => arithbinop(t, (a, b) => a / b),
     'mod': t => arithbinop(t, (a, b) => a % b),
-    'pow': t => arithbinop(t, (a, b) => a ** b),
     'gtr': t => boolbinop(t, (a, b) => a > b),
     'geq': t => boolbinop(t, (a, b) => a >= b),
     'lss': t => boolbinop(t, (a, b) => a < b),
@@ -82,66 +81,45 @@ const jsArithmeticExternals: Externals<'js', ArithmeticExternals> = {
     'mult': jsarithbinop('*'),
     'div': jsarithbinop('/'),
     'mod': jsarithbinop('%'),
-    'pow': jsarithbinop('**'),
     'gtr': jsboolbinop('>'),
     'geq': jsboolbinop('>='),
     'lss': jsboolbinop('<'),
     'leq': jsboolbinop('<=')
 };
 
+const haskellIntBinop = (op: string) =>
+    (name: string) => `${name} (Nat a) (Nat b) = Nat (a ${op} b)`;
+
+const haskellBoolBinop = (op: string) =>
+    (name: string) => `${name} (Nat a) (Nat b) =
+        if a ${op} b then ${nullaryVarName('True')} else ${nullaryVarName('False')}`;
+
 const haskellArithmeticExternals: Externals<'haskell', ArithmeticExternals> = {
-    "sub": name =>
-        `${name} (Fun a []) (Fun b []) =
-          Fun (show ((read a :: Int) - (read b :: Int))) []`,
-    "add": name =>
-        `${name} (Fun a []) (Fun b []) =
-          Fun (show ((read a :: Int) + (read b :: Int))) []`,
-    "mult": name =>
-        `${name} (Fun a []) (Fun b []) =
-          Fun (show ((read a :: Int) * (read b :: Int))) []`,
-    "mod": name =>
-        `${name} (Fun a []) (Fun b []) =
-          Fun (show ((read a :: Int) \`mod\` (read b :: Int))) []`,
-    "div": name =>
-        `${name} (Fun a []) (Fun b []) =
-          Fun (show ((read a :: Int) \`div\` (read b :: Int))) []`,
-    "pow": name =>
-        `${name} (Fun a []) (Fun b []) =
-          Fun (show ((read a :: Int) ^ (read b :: Int))) []`,
-    "lss": name =>
-        `${name} (Fun a []) (Fun b []) =
-          Fun (show ((read a :: Int) < (read b :: Int))) []`,
-    "leq": name =>
-        `${name} (Fun a []) (Fun b []) =
-          Fun (show ((read a :: Int) <= (read b :: Int))) []`,
-    "gtr": name =>
-        `${name} (Fun a []) (Fun b []) =
-          Fun (show ((read a :: Int) > (read b :: Int))) []`,
-    "geq": name =>
-        `${name} (Fun a []) (Fun b []) =
-          Fun (show ((read a :: Int) >= (read b :: Int))) []`,
+    'add': haskellIntBinop('+'),
+    'sub': haskellIntBinop('-'),
+    'mult': haskellIntBinop('*'),
+    'div': haskellIntBinop('`div`'),
+    'mod': haskellIntBinop('`mod`'),
+    'gtr': haskellBoolBinop('>'),
+    'geq': haskellBoolBinop('>='),
+    'lss': haskellBoolBinop('<'),
+    'leq': haskellBoolBinop('<=')
 };
 
-const ocamlIntBinop = (op: string, reversed = false) => {
-    return (name: string) =>
-        'let ' + name + ' (a, b) = match (a, b) with\n' +
-        '   | ((Fun (a, [])), (Fun (b, []))) ->\n' +
-        (reversed ?
-            '       Fun ((string_of_int ((' + op + ' (int_of_string a)) (int_of_string b))), [])' :
-            '       Fun ((string_of_int ((int_of_string a) ' + op + ' (int_of_string b))), [])'
-        ) + '\n' +
-        '   | _ -> Fun ("@' + name + '", []);;';
-};
+const ocamlIntBinop = (op: string) =>
+    (name: string) => `let ${name} (a, b) = match (a, b) with
+        | (Nat a, Nat b) -> Nat (a ${op} b)
+        | _ -> Fun ("${name}", [a; b]);;
+    `;
 
-const ocamlBoolOf = (expr: string) => `(if ${expr} then "True" else "False")`;
+const ocamlBoolOf = (expr: string) =>
+    `(if ${expr} then ${nullaryVarName('True')} else ${nullaryVarName('False')})`;
 
-const ocamlBoolBinop = (op: string) => {
-    return (name: string) =>
-        'let ' + name + ' (a, b) = match (a, b) with\n' +
-        '   | ((Fun (a, [])), (Fun (b, []))) ->\n' +
-        '       Fun (' + ocamlBoolOf('((int_of_string a) ' + op + ' (int_of_string b))') + ', [])\n' +
-        '   | _ -> Fun ("@' + name + '", []);;';
-};
+const ocamlBoolBinop = (op: string) =>
+    (name: string) => `let ${name} (a, b) = match (a, b) with
+        | (Nat a, Nat b) -> ${ocamlBoolOf(`a ${op} b`)}
+        | _ -> Fun ("${name}", [a; b]);;
+    `;
 
 const ocamlArithmeticExternals: Externals<'ocaml', ArithmeticExternals> = {
     "sub": ocamlIntBinop('-'),
@@ -149,16 +127,6 @@ const ocamlArithmeticExternals: Externals<'ocaml', ArithmeticExternals> = {
     "mult": ocamlIntBinop('*'),
     "mod": ocamlIntBinop('mod'),
     "div": ocamlIntBinop('/'),
-    "pow": name => `
-let rec pow a = function
-    | 0 -> 1
-    | 1 -> a
-    | n -> 
-      let b = pow a (n / 2) in
-      b * b * (if n mod 2 = 0 then 1 else a);;
-    
-      ${ocamlIntBinop('pow', true)(name)}
-`.trim().trimEnd(),
     "lss": ocamlBoolBinop('<'),
     "leq": ocamlBoolBinop('<='),
     "gtr": ocamlBoolBinop('>'),
