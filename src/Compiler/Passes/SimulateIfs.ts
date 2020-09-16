@@ -4,9 +4,12 @@ import { fun, isVar, mapify, rules, uniq, vars } from "../Utils";
 import { CompilationResult, CompilerPass } from "./CompilerPass";
 import { False, ifSymb, True } from "./Imports";
 
-export const simulateIfs: CompilerPass = (trs: TRS): CompilationResult => {
+let ifsCount = 0;
+
+export const simulateIfs: CompilerPass = (trs: TRS, previousIfsCount = 0): CompilationResult => {
     const newRules: Rule[] = [];
     const addRules = (rules: Rule[]) => { newRules.push(...rules); };
+    ifsCount = previousIfsCount;
 
     for (const [lhs, rhs] of rules(trs)) {
         newRules.push([lhs, simIf(rhs, addRules)]);
@@ -15,15 +18,13 @@ export const simulateIfs: CompilerPass = (trs: TRS): CompilationResult => {
     return Ok(mapify(newRules));
 };
 
-let ifs_count = 0;
-
 const simIf = (
     term: Term,
     addRules: (rules: Rule[]) => void
 ): Term => {
     if (isVar(term)) return term;
     if (term.name === ifSymb) {
-        const ifName = `${ifSymb}_sim${ifs_count++}`;
+        const ifName = `${ifSymb}_sim${ifsCount++}`;
         const [cond, thenExpr, elseExpr] = term.args;
 
         const simVars = uniq([...vars(thenExpr), ...vars(elseExpr)]);

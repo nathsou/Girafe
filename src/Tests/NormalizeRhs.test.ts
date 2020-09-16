@@ -1,7 +1,7 @@
 import { compile } from "../Compiler/Passes/CompilerPass";
 import { removeSimSuffixes } from "../Compiler/Passes/LeftLinearize";
 import { normalizeRhs } from "../Compiler/Passes/NormalizeRhs";
-import { uniqueVarNames } from "../Compiler/Passes/UniqueVarNames";
+import { ensureUniqueVarNames } from "../Compiler/Passes/UniqueVarNames";
 import { showTerm } from "../Compiler/Utils";
 import { arithmeticExternals } from "../Externals/Arithmetic";
 import { mergeExternals } from "../Externals/Externals";
@@ -19,7 +19,7 @@ type TestSuite = {
 const externals = mergeExternals<string>(arithmeticExternals, metaExternals())('native');
 
 const normRhs = (trs: TRS) => {
-    const res = compile(trs, uniqueVarNames, normalizeRhs(100, true));
+    const res = compile(trs, ensureUniqueVarNames, normalizeRhs(100, true));
 
     if (isError(res)) {
         throw new Error('Could not normalize LHSs:\n' + unwrap(res).join('\n'));

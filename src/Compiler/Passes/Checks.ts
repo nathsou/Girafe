@@ -42,6 +42,7 @@ export const warn = (
 };
 
 export const checkArity: Checker = (rules: Rule[]): CompilationMessage[] => {
+    if (rules.length === 0) return [];
     const errors: string[] = [];
     const ar = arity(rules);
 

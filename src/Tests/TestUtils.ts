@@ -272,6 +272,9 @@ const externalNormalizer = (
 };
 
 export const ghcNormalizer = (trs: TRS, externals: Externals<'haskell'>): AsyncNormalizer => {
+    if (!dictHas(externals, 'show')) {
+        throw new Error('@show must be included in the externals to use the ghcNormalizer');
+    }
     const hst = new HaskellTranslator(trs, externals);
     const source = hst.translate();
 
@@ -288,6 +291,9 @@ export const ghcNormalizer = (trs: TRS, externals: Externals<'haskell'>): AsyncN
 };
 
 export const ocamlNormalizer = (trs: TRS, externals: Externals<'ocaml'>): AsyncNormalizer => {
+    if (!dictHas(externals, 'show')) {
+        throw new Error('@show must be included in the externals to use the ocamlNormalizer');
+    }
     const ost = new OCamlTranslator(trs, externals);
     const source = ost.translate();
 

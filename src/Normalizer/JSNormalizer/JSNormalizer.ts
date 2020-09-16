@@ -1,7 +1,7 @@
 import { defined, fun, stringifyQueryVars } from "../../Compiler/Utils";
 import { Externals } from "../../Externals/Externals";
 import { parseTerm } from "../../Parser/Parser";
-import { Term, TRS } from "../../Parser/Types";
+import { dictHas, Term, TRS } from "../../Parser/Types";
 import { JSTranslator, makeBigNat } from "../../Translator/JSTranslator";
 import { OneShotNormalizer } from "./../Normalizer";
 
@@ -13,6 +13,9 @@ export class JSNormalizer<Exts extends string> implements OneShotNormalizer {
         private nat = makeBigNat
     ) {
         this.trs = trs;
+        if (!dictHas(externals, 'show')) {
+            throw new Error('@show must be included in the externals to use the JSNormalizer');
+        }
         this.externals = externals;
     }
 
