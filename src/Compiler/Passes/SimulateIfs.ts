@@ -6,17 +6,18 @@ import { False, ifSymb, True } from "./Imports";
 
 let ifsCount = 0;
 
-export const simulateIfs: CompilerPass = (trs: TRS, previousIfsCount = 0): CompilationResult => {
-    const newRules: Rule[] = [];
-    const addRules = (rules: Rule[]) => { newRules.push(...rules); };
-    ifsCount = previousIfsCount;
+export const simulateIfs: (offset?: number) => CompilerPass
+    = (previousIfsCount = 0) => (trs: TRS): CompilationResult => {
+        const newRules: Rule[] = [];
+        const addRules = (rules: Rule[]) => { newRules.push(...rules); };
+        ifsCount = previousIfsCount;
 
-    for (const [lhs, rhs] of rules(trs)) {
-        newRules.push([lhs, simIf(rhs, addRules)]);
-    }
+        for (const [lhs, rhs] of rules(trs)) {
+            newRules.push([lhs, simIf(rhs, addRules)]);
+        }
 
-    return Ok(mapify(newRules));
-};
+        return Ok(mapify(newRules));
+    };
 
 const simIf = (
     term: Term,

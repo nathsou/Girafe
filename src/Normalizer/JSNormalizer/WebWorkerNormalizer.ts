@@ -1,8 +1,7 @@
 import { Externals } from "../../Externals/Externals";
-import { TRS, Term } from "../../Parser/Types";
-import { JSNormalizer } from "./JSNormalizer";
+import { Term, TRS } from "../../Parser/Types";
 import { AsyncNormalizer } from "../Normalizer";
-import { makeBigNat } from "../../Translator/JSTranslator";
+import { JSNormalizer } from "./JSNormalizer";
 
 const webWorkerExecutor = (source: string, outputExpr: string): Promise<string> => {
     const sourceWithQuery = [
@@ -25,13 +24,11 @@ const webWorkerExecutor = (source: string, outputExpr: string): Promise<string> 
 
 export const webWorkerNormalizer = <Exts extends string>(
     trs: TRS,
-    externals: Externals<'js', Exts>,
-    nat = makeBigNat
+    externals: Externals<'js', Exts>
 ): AsyncNormalizer => {
     return (query: Term) => new JSNormalizer<Exts>(
         trs,
         externals,
-        webWorkerExecutor,
-        nat
+        webWorkerExecutor
     ).normalize(query);
 };

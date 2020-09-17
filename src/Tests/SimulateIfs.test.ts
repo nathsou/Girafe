@@ -18,7 +18,7 @@ type TestSuite = {
 const externals = mergeExternals<string>(arithmeticExternals, metaExternals())('native');
 
 const normLhs = (trs: TRS) => {
-    const res = compile(trs, simulateIfs);
+    const res = compile(trs, simulateIfs());
 
     if (isError(res)) {
         throw new Error('Could not simulate ifs:\n' + unwrap(res).join('\n'));

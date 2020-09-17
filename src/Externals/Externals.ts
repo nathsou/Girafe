@@ -1,5 +1,6 @@
 import { Fun, Term } from "../Parser/Types";
 import { StepNormalizer } from "../Normalizer/Normalizer";
+import { SourceCode } from "../Translator/Translator";
 
 export type Targets = 'js' | 'ocaml' | 'haskell';
 export const supportedTargets: Targets[] = ['js', 'ocaml', 'haskell'];
@@ -11,7 +12,7 @@ export type NativeExternals<Exts extends string = string> = {
 export type AnyExternals<Exts extends string = string> = Externals<Targets, Exts> | NativeExternals<Exts>;
 
 export type Externals<Target extends string = Targets, Exts extends string = string> = {
-    [key in Exts]: (name: string) => string
+    [key in Exts]: (name: string) => SourceCode
 };
 
 

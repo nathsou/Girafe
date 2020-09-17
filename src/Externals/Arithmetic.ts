@@ -133,7 +133,7 @@ const ocamlArithmeticExternals: Externals<'ocaml', ArithmeticExternals> = {
     "geq": ocamlBoolBinop('>=')
 };
 
-export const arithmeticExternals: ExternalsFactory<ArithmeticExternals, Targets> = target => {
+export const arithmeticExternals: ExternalsFactory<ArithmeticExternals, Targets> = (target: Targets) => {
     return {
         'native': nativeArithmeticExternals,
         'js': jsArithmeticExternals,

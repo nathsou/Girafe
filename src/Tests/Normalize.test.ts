@@ -8,7 +8,6 @@ import { headMatcher } from "../Normalizer/Matchers/HeadMatcher";
 import { AsyncNormalizer, buildFueledNormalizer, makeNormalizerAsync } from "../Normalizer/Normalizer";
 import { unificationNormalizer } from "../Normalizer/Unification";
 import { Term, TRS } from "../Parser/Types";
-import { makeBigNat, makeNat } from "../Translator/JSTranslator";
 import { ghcNormalizer, ocamlNormalizer, parseTermPairs, parseTRS, parseTRSFromFile } from "./TestUtils";
 
 type NormalizationTestSuite = {
@@ -76,8 +75,7 @@ const genNormalizers = (trs: TRS): AsyncNormalizer[] => {
         new DecisionTreeNormalizer(trs).asFueledNormalizer(maxSteps, externals('native'))
     ].map(makeNormalizerAsync);
 
-    normalizers.push(nodeWorkerNormalizer(trs, externals('js'), makeBigNat));
-    normalizers.push(nodeWorkerNormalizer(trs, externals('js'), makeNat));
+    normalizers.push(nodeWorkerNormalizer(trs, externals('js')));
     normalizers.push(ocamlNormalizer(trs, externals('ocaml')));
     normalizers.push(ghcNormalizer(trs, externals('haskell')));
 

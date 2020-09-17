@@ -19,7 +19,7 @@ type TestSuite = {
 const externals = mergeExternals<string>(arithmeticExternals, metaExternals())('native');
 
 const removeUnused = (trs: TRS, start = 'Main') => {
-    const res = compile(trs, simulateIfs, removeUnusedRules(start));
+    const res = compile(trs, simulateIfs(), removeUnusedRules(start));
 
     if (isError(res)) {
         throw new Error('Could not simulate ifs:\n' + unwrap(res).join('\n'));

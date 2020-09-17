@@ -40,7 +40,7 @@ export const defaultPasses: (exts: NativeExternals) => CompilerPass[] = exts => 
   // currify,
   orderBySpecificity,
   leftLinearize,
-  simulateIfs,
+  simulateIfs(),
   lazify,
   normalizeLhsArgs(exts),
   // logTRS,

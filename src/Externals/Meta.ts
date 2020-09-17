@@ -9,16 +9,17 @@ import { Externals, ExternalsFactory, NativeExternals, Targets } from "./Externa
 
 export type MetaExternals = 'trace' | 'equ' | 'show';
 
-const trace = (log: (str: string) => void) => (query: Fun, normalizer: StepNormalizer, externals: NativeExternals): Term => {
-    return traceNormalize(
-        Inst(query.args[0]),
-        normalizer,
-        externals,
-        (t: Term) => {
-            log(showTerm(t));
-        }
-    );
-};
+const trace = (log: (str: string) => void) =>
+    (query: Fun, normalizer: StepNormalizer, externals: NativeExternals): Term => {
+        return traceNormalize(
+            Inst(query.args[0]),
+            normalizer,
+            externals,
+            (t: Term) => {
+                log(showTerm(t));
+            }
+        );
+    };
 
 const equ = (s: Term, t: Term): Fun => {
     return termsEq(s, t) ? True : False;
@@ -126,7 +127,7 @@ const ocamlMetaExternals: Externals<'ocaml', MetaExternals> = {
 
 const log = (msg: string) => { console.log(msg); };
 
-export const metaExternals = (nativeLog = log): ExternalsFactory<MetaExternals, Targets> => target => {
+export const metaExternals = (nativeLog = log): ExternalsFactory<MetaExternals, Targets> => (target: Targets) => {
     return {
         'native': nativeMetaExternals(nativeLog),
         'js': jsMetaExternals,

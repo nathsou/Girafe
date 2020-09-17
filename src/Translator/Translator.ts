@@ -13,6 +13,8 @@ import { mapString, setMap } from "../Parser/Utils";
 import { Targets, Externals } from "../Externals/Externals";
 import { collectTRSArities } from "../Compiler/Passes/Lazify";
 
+export type SourceCode = string;
+
 export const symbolMap: { [key in SpecialCharacters]: string } = {
 	'.': '_dot_',
 	'-': '_minus_',
@@ -96,7 +98,7 @@ export abstract class Translator<Target extends Targets, Exts extends string> {
 		this.header.push(...decl);
 	}
 
-	protected abstract declareNullary(varName: string, symb: string): string;
+	protected abstract declareNullary(varName: string, symb: string): SourceCode;
 
 	protected setReservedKeywords(kw: Set<string>): void {
 		this.reservedKeywords = kw;
@@ -124,8 +126,8 @@ export abstract class Translator<Target extends Targets, Exts extends string> {
 	}
 
 	// abstract call(name: Symb, args: Term[]): string;
-	abstract translateTerm(term: Term): string;
-	abstract translateRules(name: string, rules: Rule[]): string;
+	abstract translateTerm(term: Term, useNullaryVars?: boolean): SourceCode;
+	abstract translateRules(name: string, rules: Rule[]): SourceCode;
 
 	public isDefined(f: Symb): boolean {
 		return this.trs.has(f) || this.definedSymbols.has(f) ||
@@ -159,16 +161,16 @@ export abstract class Translator<Target extends Targets, Exts extends string> {
 		return [this.renameFun(lhs), this.renameTerm(rhs)];
 	}
 
-	private generateExternals(): string {
-		const exts: string[] = [];
-		for (const [name, gen] of Object.entries<(name: string) => string>(this.externals)) {
+	private generateExternals(): SourceCode {
+		const exts: SourceCode[] = [];
+		for (const [name, gen] of Object.entries<(name: string) => SourceCode>(this.externals)) {
 			exts.push(gen(this.withoutSpecialChars("@" + name)));
 		}
 
 		return exts.join("\n");
 	}
 
-	private generateRules(): string {
+	private generateRules(): SourceCode {
 		const res = [];
 		for (const [name, rules] of this.trs) {
 			res.push(this.translateRules(
@@ -180,7 +182,7 @@ export abstract class Translator<Target extends Targets, Exts extends string> {
 		return res.join("\n");
 	}
 
-	public translate(): string {
+	public translate(): SourceCode {
 		return [
 			this.header.join("\n"),
 			this.generateExternals(),

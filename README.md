@@ -22,7 +22,7 @@ $ grfi src.grf [query]
 ```
 ## Use Cases
 
-- Target language for functional (lazy or eager) programming languages
+- Target language for functional (lazy or eager) programming languages (see [croco](https://github.com/nathsou/Croco))
 - Symbolic computation
 - Automated theorem proving
 - Abstract data type specifications

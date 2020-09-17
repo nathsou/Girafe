@@ -1,8 +1,7 @@
 import { Externals } from "../../Externals/Externals";
-import { TRS, Term } from "../../Parser/Types";
-import { JSNormalizer } from "./JSNormalizer";
+import { Term, TRS } from "../../Parser/Types";
 import { AsyncNormalizer } from "../Normalizer";
-import { makeBigNat } from "../../Translator/JSTranslator";
+import { JSNormalizer } from "./JSNormalizer";
 
 declare const __non_webpack_require__: (name: string) => any;
 
@@ -36,26 +35,22 @@ const nodeWorkerExecutor = async (source: string, outputExpr: string): Promise<s
 
 export const nodeWorkerNormalizer = <Exts extends string>(
     trs: TRS,
-    externals: Externals<'js', Exts>,
-    nat = makeBigNat
+    externals: Externals<'js', Exts>
 ): AsyncNormalizer => {
     return (query: Term) => new JSNormalizer<Exts>(
         trs,
         externals,
-        nodeWorkerExecutor,
-        nat
+        nodeWorkerExecutor
     ).normalize(query);
 };
 
 export const nodeWorkerRawNormalizer = <Exts extends string>(
     trs: TRS,
-    externals: Externals<'js', Exts>,
-    nat = makeBigNat
+    externals: Externals<'js', Exts>
 ): (query: Term) => Promise<string> => {
     return (query: Term) => new JSNormalizer<Exts>(
         trs,
         externals,
-        nodeWorkerExecutor,
-        nat
+        nodeWorkerExecutor
     ).normalizeRaw(query);
 };

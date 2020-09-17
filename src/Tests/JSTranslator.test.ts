@@ -4,7 +4,6 @@ import { Externals, mergeExternals } from "../Externals/Externals";
 import { metaExternals } from "../Externals/Meta";
 import { nodeWorkerNormalizer } from '../Normalizer/JSNormalizer/NodeWorkerNormalizer';
 import { parseRules, parseTerm } from "../Parser/Parser";
-import { makeBigNat } from "../Translator/JSTranslator";
 
 const externals = mergeExternals<'show'>(metaExternals())('js');
 
@@ -63,7 +62,7 @@ const tests = [
 
 it('should produce expected output when evaluated', async () => {
     for (const { rules, query, output, externals } of tests) {
-        const normalize = nodeWorkerNormalizer(rules, externals, makeBigNat);
+        const normalize = nodeWorkerNormalizer(rules, externals);
         const res = await normalize(query);
         expect(showTerm(res)).toBe(output);
     }

@@ -1,7 +1,7 @@
 import { collectTRSArities } from "../../Compiler/Passes/Lazify";
 import { Fun, Rule, Substitution, Symb, Term, TRS, Var } from "../../Parser/Types";
 import { indexed } from "../../Parser/Utils";
-import { Translator } from "../../Translator/Translator";
+import { SourceCode, Translator } from "../../Translator/Translator";
 import { Arities } from "../Passes/Lazify";
 import { arity, genVars, isVar, substitute } from "../Utils";
 import { DecisionTree } from "./DecisionTree";
@@ -19,14 +19,13 @@ export abstract class DecisionTreeTranslator<Target extends Targets, Exts extend
         externals: Externals<Target, Exts>
     ) {
         super(trs, externals);
-
         this.arities = collectTRSArities(trs);
         this.signature = new Set(this.arities.keys());
     }
 
-    abstract translateDecisionTree(name: string, dt: DecisionTree, varNames: Var[]): string;
+    abstract translateDecisionTree(name: string, dt: DecisionTree, varNames: Var[]): SourceCode;
 
-    abstract accessSubterm(parent: string, childIndex: number): string;
+    abstract accessSubterm(parent: string, childIndex: number): SourceCode;
 
     protected collectVarNames(
         t: Term,
@@ -47,7 +46,8 @@ export abstract class DecisionTreeTranslator<Target extends Targets, Exts extend
         });
     }
 
-    public translateRules(name: string, rules: Rule[]): string {
+    // Rules are compiled to decitions trees and then translated to source code
+    public translateRules(name: string, rules: Rule[]): SourceCode {
         const newVars: Var[] = genVars(arity(rules));
         const rules_: Rule[] = rules.map(([lhs, rhs]) => {
             const sigma: Substitution = {};
