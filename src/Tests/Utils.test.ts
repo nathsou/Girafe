@@ -1,5 +1,6 @@
-import { isRuleRecursive, isSomething, unusedRuleVars, setEq, replaceTermAt, defined, showTerm } from "../Compiler/Utils";
+import { isRuleRecursive, isSomething, unusedRuleVars, setEq, replaceTermAt, defined, showTerm, replaceTerms, fun } from "../Compiler/Utils";
 import { parseRule, parseTerm } from "../Parser/Parser";
+import { Fun } from "../Parser/Types";
 
 test('isRuleRecursive', () => {
     const notRecursiveRules = [
@@ -77,11 +78,37 @@ test('replaceTermAt', () => {
     ].map(({ parent, child, pos, res }) => ({
         parent: defined(parseTerm(parent)),
         child: defined(parseTerm(child)),
-        res: defined(parseTerm(res)),
+        res,
         pos
     }));
 
     for (const { parent, child, pos, res } of tests) {
-        expect(showTerm(replaceTermAt(parent, child, pos))).toBe(showTerm(res));
+        expect(showTerm(replaceTermAt(parent, child, pos))).toBe(res);
+    }
+});
+
+test('replaceTerms', () => {
+    const tests = [
+        {
+            old: 'a',
+            by: 'App(a, Unit)',
+            inside: 'Add(Multiply(a, b), c)',
+            res: 'Add(Multiply(App(a, Unit), b), c)'
+        },
+        {
+            old: 'Multiply(a, b)',
+            by: '@mult(a, b)',
+            inside: 'Add(Multiply(a, b), c)',
+            res: 'Add(@mult(a, b), c)'
+        }
+    ].map(({ old, by, inside, res }) => ({
+        old: defined(parseTerm(old)),
+        by: defined(parseTerm(by)),
+        inside: defined(parseTerm(inside)) as Fun,
+        res: res
+    }));
+
+    for (const { old, by, inside, res } of tests) {
+        expect(showTerm(fun(inside.name, ...replaceTerms(old, by, inside.args)))).toBe(res);
     }
 });

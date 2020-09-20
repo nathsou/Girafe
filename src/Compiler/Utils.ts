@@ -474,7 +474,7 @@ export function trd<U, V, W>([, , w]: [U, V, W]): W {
 }
 
 export const replaceTerms = (old: Term, by: Term, inside: Term[]): Term[] => {
-  return inside.map(t => termsEq(t, old) ? by : t);
+  return inside.map(t => termsEq(t, old) ? by : (isVar(t) ? t : fun(t.name, ...replaceTerms(old, by, t.args))));
 };
 
 export const cloneTerm = <T extends Term>(t: T): T => {
