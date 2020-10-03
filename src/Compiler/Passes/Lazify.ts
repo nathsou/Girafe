@@ -172,11 +172,14 @@ const thunkifyAll = (ts: Term[], ann: LazinessAnnotations): Term[] => (
     ts.map(t => (isVar(t) || isConst(t)) ? t : Thunk(t.name, ...thunkifyAll(t.args, ann)))
 );
 
-const thunkify = <T extends Term>(t: T, ann: LazinessAnnotations): T => {
+function thunkify(x: Var, ann: LazinessAnnotations): Var;
+function thunkify(f: Fun, ann: LazinessAnnotations): Fun;
+function thunkify(t: Term, ann: LazinessAnnotations): Term;
+function thunkify(t: Term, ann: LazinessAnnotations): Term {
     if (isVar(t) || isConst(t)) return t;
 
-    const name = (t as Fun).name;
-    const args = (t as Fun).args.map((arg, i) => {
+    const name = t.name;
+    const args = t.args.map((arg, i) => {
         if (isFun(arg) && isLazy(name, i, ann) && !isConst(arg)) {
             return thunkify(Thunk(arg.name, ...thunkifyAll(arg.args, ann)), ann);
         }
@@ -184,7 +187,7 @@ const thunkify = <T extends Term>(t: T, ann: LazinessAnnotations): T => {
         return thunkify(arg, ann);
     });
 
-    return { name, args } as T;
+    return { name, args };
 };
 
 const instantiateMigrants = (rule: Rule, ann: LazinessAnnotations): Rule => {

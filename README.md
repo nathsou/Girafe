@@ -10,6 +10,12 @@ See the examples/ folder for small demos.
 
 Multiple preprocessors and transformations can be applied to support laziness, imports, currying, non-linearity etc.. see src/Compiler/Passes/
 
+## Installing
+
+```bash
+$ npm install -g girafe
+```
+
 ## Compiling
 Girafe programs can be compiled to javascript, ocaml or haskell using:
 ```bash

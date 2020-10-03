@@ -135,9 +135,12 @@ export function isSomething<T>(m: Maybe<T>): m is T {
   return !isNothing(m);
 }
 
-export const substitute = <T extends Term>(t: T, sigma: Substitution): T => {
-  if (isVar(t)) return (dictGet(sigma, t) ?? t) as T;
-  return { name: (t as Fun).name, args: (t as Fun).args.map(s => substitute(s, sigma)) } as T;
+export function substitute(x: Var, sigma: Substitution): Term;
+export function substitute(f: Fun, sigma: Substitution): Fun;
+export function substitute(t: Term, sigma: Substitution): Term;
+export function substitute(t: Term, sigma: Substitution): Term {
+  if (isVar(t)) return dictGet(sigma, t) ?? t;
+  return { name: t.name, args: t.args.map(s => substitute(s, sigma)) };
 };
 
 export const termsEq = (a: Term, b: Term): boolean => {
