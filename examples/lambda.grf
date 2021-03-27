@@ -1,0 +1,109 @@
+// Evaluator for a basic extension of the lambda calculus
+// transpiled using croco : https://github.com/nathsou/Croco
+// source program : https://github.com/nathsou/Croco/blob/master/examples/lambda.cro
+
+Rev -> Fold_2(Cons, Nil)
+Main -> Filter_2(Lambda20, Range_2(1, 1000))
+Apply(Fold_2(v0, v1), v2) -> Fold_3(v0, v1, v2)
+Apply(Lambda5_2(v0, v1), v2) -> Lambda5_3(v0, v1, v2)
+Apply(Lambda4_1(v0), v1) -> Lambda4_2(v0, v1)
+Apply(FilterRev, pred) -> Fold_2(Lambda4_1(pred), Nil)
+Apply(Snd, ;(any_18, ;(b, Unit))) -> b
+Apply(Snd, ;(any_21, ;(b, ;(any_22, Unit)))) -> b
+Apply(Not, True) -> False
+Apply(Not, False) -> True
+Apply(Unwrap, Apply(Some, x)) -> x
+Apply(Unwrap, None) -> None
+Apply(Lambda15_1(v0), v1) -> Lambda15_2(v0, v1)
+Apply(ClosureOf, Apply(Apply(Apply(Apply(ClosureRecVal, f), x), body), env)) -> Lambda16_5(f, body, env, x, Apply(Apply(Apply(Apply(ClosureRecVal, f), x), body), env))
+Apply(ClosureOf, Apply(Apply(Apply(Closure, x), body), env)) -> Apply(Apply(Apply(Closure, x), body), env)
+Apply(IsPrime, n) -> Apply(Apply(Apply(Apply(LetRecIn, Apply(String, :(105, :(115, :(80, :(114, :(105, :(109, :(101, Nil))))))))), Apply(String, :(110, Nil))), Apply(Apply(Lambda, Apply(String, :(105, Nil))), Apply(Apply(Apply(If, Apply(Apply(Leq, Apply(Apply(Times, Apply(Var, Apply(String, :(105, Nil)))), Apply(Var, Apply(String, :(105, Nil))))), Apply(Var, Apply(String, :(110, Nil))))), Apply(Apply(Apply(If, Apply(Apply(Eq, Apply(Apply(Modulo, Apply(Var, Apply(String, :(110, Nil)))), Apply(Var, Apply(String, :(105, Nil))))), Apply(Const, 0))), Apply(Const, False)), Apply(Apply(App, Apply(Apply(App, Apply(Var, Apply(String, :(105, :(115, :(80, :(114, :(105, :(109, :(101, Nil)))))))))), Apply(Var, Apply(String, :(110, Nil))))), Apply(Apply(Plus, Apply(Var, Apply(String, :(105, Nil)))), Apply(Const, 1))))), Apply(Apply(Neq, Apply(Var, Apply(String, :(110, Nil)))), Apply(Const, 1))))), Apply(Apply(App, Apply(Apply(App, Apply(Var, Apply(String, :(105, :(115, :(80, :(114, :(105, :(109, :(101, Nil)))))))))), Apply(Const, n))), Apply(Const, 2)))
+Apply(Lambda20, n) -> Eval_2(Apply(IsPrime, n), Nil)
+Apply(Cons, v0) -> Cons_1(v0)
+Apply(Cons_1(v0), v1) -> Cons_2(v0, v1)
+Apply(Apply(Apply(thunk0, env), b), Unit) -> Eval_2(b, env)
+Compose_3(f, g, x) -> Apply(f, Apply(g, x))
+Fold_3(f, base, Apply(String, cs)) -> Apply(String, Fold_3(f, base, cs))
+Fold_3(f, base, lst) -> Fold'_3(f, lst, base)
+Fold'_3(f, Nil, acc) -> acc
+Fold'_3(f, :(h, tl), acc) -> Fold'_3(f, tl, Apply(Apply(f, h), acc))
+If_sim0(True, h, acc) -> :(h, acc)
+If_sim0(False, h, acc) -> acc
+Lambda5_3(h, pred, acc) -> If_sim0(Apply(pred, h), h, acc)
+Lambda4_2(pred, h) -> Lambda5_2(h, pred)
+Filter_2(pred, lst) -> Apply(Rev, Apply(Apply(FilterRev, pred), lst))
+Range_2(from, to) -> Range'_4(from, to, Nil, Equals_2(from, to))
+Range'_4(from, to, rng, True) -> rng
+Range'_4(from, to, acc, False) -> Range'_4(from, Subtract_2(to, 1), :(to, acc), Equals_2(from, to))
+Find_2(pred, lst) -> Find'_3(pred, lst, None)
+Find'_3(any_28, any_29, Apply(Some, x)) -> Apply(Some, x)
+Find'_3(any_30, Nil, any_31) -> None
+Find'_3(pred, :(h, tl), any_32) -> Find'_3(pred, tl, If_sim1(Apply(pred, h), h))
+If_sim1(True, h) -> Apply(Some, h)
+If_sim1(False, h) -> None
+And_2(True, b) -> Apply(b, Unit)
+And_2(False, any_35) -> False
+Or_2(True, any_36) -> True
+Or_2(False, b) -> Apply(b, Unit)
+Less_2(Apply(String, as), Apply(String, bs)) -> StringLess_2(as, bs)
+Less_2(a, b) -> @lss(a, b)
+StringLess_2(Nil, Nil) -> False
+StringLess_2(any_37, Nil) -> False
+StringLess_2(Nil, any_38) -> True
+StringLess_2(:(a, as), :(b, bs)) -> If_sim2(Equals_2(a, b), as, bs, a, b)
+If_sim2(True, as, bs, a, b) -> StringLess_2(as, bs)
+If_sim2(False, as, bs, a, b) -> Less_2(a, b)
+Greater_2(Apply(String, as), Apply(String, bs)) -> StringGtr_2(as, bs)
+Greater_2(a, b) -> @gtr(a, b)
+StringGtr_2(Nil, Nil) -> False
+StringGtr_2(any_39, Nil) -> True
+StringGtr_2(Nil, any_40) -> False
+StringGtr_2(:(a, as), :(b, bs)) -> If_sim3(Equals_2(a, b), as, bs, a, b)
+If_sim3(True, as, bs, a, b) -> StringGtr_2(as, bs)
+If_sim3(False, as, bs, a, b) -> Greater_2(a, b)
+GreaterEq_2(Apply(String, as), Apply(String, bs)) -> Apply(Not, StringLess_2(as, bs))
+GreaterEq_2(a, b) -> @geq(a, b)
+LessEq_2(Apply(String, as), Apply(String, bs)) -> Apply(Not, StringGtr_2(as, bs))
+LessEq_2(a, b) -> @leq(a, b)
+MapOption_2(any_42, None) -> None
+MapOption_2(f, Apply(Some, x)) -> Apply(Some, Apply(f, x))
+MapOption_2(f, lst) -> MapOption_2(Rev, MapOptionRev_2(f, lst))
+MapOptionRev_2(f, lst) -> MapOptionRev'_3(f, lst, Nil)
+MapOptionRev'_3(any_43, any_44, :(None, any_45)) -> None
+MapOptionRev'_3(any_46, Nil, acc) -> Apply(Some, acc)
+MapOptionRev'_3(f, :(h, tl), acc) -> MapOptionRev'_3(f, tl, :(Compose_3(Unwrap, f, h), acc))
+Lambda15_2(x, ;(k, ;(v, Unit))) -> Equals_2(k, x)
+LookupEnv_2(x, env) -> Apply(Unwrap, MapOption_2(Snd, Find_2(Lambda15_1(x), env)))
+Lambda16_5(f, body, env, x, recVal) -> Apply(Apply(Apply(Closure, x), body), :(;(f, ;(recVal, Unit)), env))
+Eval_2(Apply(Const, x), any_50) -> x
+Eval_2(Apply(Apply(Plus, a), b), env) -> Add_2(Eval_2(a, env), Eval_2(b, env))
+Eval_2(Apply(Apply(Times, a), b), env) -> Multiply_2(Eval_2(a, env), Eval_2(b, env))
+Eval_2(Apply(Apply(Minus, a), b), env) -> Subtract_2(Eval_2(a, env), Eval_2(b, env))
+Eval_2(Apply(Apply(IntDiv, a), b), env) -> Divide_2(Eval_2(a, env), Eval_2(b, env))
+Eval_2(Apply(Apply(Modulo, a), b), env) -> Mod_2(Eval_2(a, env), Eval_2(b, env))
+Eval_2(Apply(Apply(Eq, a), b), env) -> Equals_2(Eval_2(a, env), Eval_2(b, env))
+Eval_2(Apply(Apply(Neq, a), b), env) -> NotEquals_2(Eval_2(a, env), Eval_2(b, env))
+Eval_2(Apply(Apply(Gtr, a), b), env) -> Greater_2(Eval_2(a, env), Eval_2(b, env))
+Eval_2(Apply(Apply(Lss, a), b), env) -> Less_2(Eval_2(a, env), Eval_2(b, env))
+Eval_2(Apply(Apply(Leq, a), b), env) -> LessEq_2(Eval_2(a, env), Eval_2(b, env))
+Eval_2(Apply(Apply(Geq, a), b), env) -> GreaterEq_2(Eval_2(a, env), Eval_2(b, env))
+Eval_2(Apply(LogicalNot, q), env) -> Apply(Not, Eval_2(q, env))
+Eval_2(Apply(Var, x), env) -> LookupEnv_2(x, env)
+Eval_2(Apply(Apply(Apply(LetIn, x), val), e), env) -> Eval_2(e, :(;(x, ;(Eval_2(val, env), Unit)), env))
+Eval_2(Apply(Apply(Apply(Apply(LetRecIn, f), x), body), e), env) -> Lambda17_4(f, env, e, Apply(Apply(Apply(Apply(ClosureRecVal, f), x), body), env))
+Eval_2(Apply(Apply(Apply(If, cond), t), e), env) -> If_sim(Eval_2(cond, env), t, env, e)
+Eval_2(Apply(Apply(Lambda, x), body), env) -> Apply(Apply(Apply(Closure, x), body), env)
+Eval_2(Apply(Apply(App, f), val), env2) -> Lambda18_3(env2, val, Apply(ClosureOf, Eval_2(f, env2)))
+If_sim(True, t, env, e) -> Eval_2(t, env)
+If_sim(False, t, env, e) -> Eval_2(e, env)
+Lambda17_4(f, env, e, recVal) -> Eval_2(e, :(;(f, ;(recVal, Unit)), env))
+Lambda19_4(x, env1, body, v) -> Eval_2(body, :(;(x, ;(v, Unit)), env1))
+Lambda18_3(env2, val, Apply(Apply(Apply(Closure, x), body), env1)) -> Lambda19_4(x, env1, body, Eval_2(val, env2))
+Add_2(a, b) -> @add(a, b)
+Subtract_2(a, b) -> @sub(a, b)
+Multiply_2(a, b) -> @mult(a, b)
+Divide_2(a, b) -> @div(a, b)
+Mod_2(a, b) -> @mod(a, b)
+Equals_2(a, b) -> @equ(a, b)
+Cons_2(a, b) -> :(a, b)
+NotEquals_2(a, b) -> Apply(Not, @equ(a, b))
