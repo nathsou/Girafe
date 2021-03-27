@@ -1,6 +1,6 @@
 {
   "name": "girafe",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Term Rewriting Systems infrastructure",
   "main": "./lib/js/lib.js",
   "module": "./lib/js/lib.js",
@@ -9,28 +9,13 @@
   "devDependencies": {
     "@types/jest": "^26.0.13",
     "@types/node": "^14.10.1",
-    "@typescript-eslint/eslint-plugin": "^3.10.1",
-    "@typescript-eslint/parser": "^3.10.1",
-    "css-loader": "^4.3.0",
-    "eslint": "^7.9.0",
-    "file-loader": "^6.1.0",
-    "html-webpack-plugin": "^4.4.1",
+    "esbuild": "^0.10.2",
     "jest": "^26.4.2",
-    "monaco-editor": "^0.20.0",
-    "monaco-editor-webpack-plugin": "^1.9.0",
-    "raw-loader": "^4.0.1",
-    "style-loader": "^1.2.1",
-    "ts-jest": "^26.3.0",
-    "ts-loader": "^8.0.3",
-    "typescript": "^4.0.2",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12",
-    "webpack-dev-server": "^3.11.0",
-    "node-forge": ">=0.10.0"
+    "ts-jest": "^26.5.4"
   },
   "scripts": {
-    "start": "webpack-dev-server --mode development -d",
-    "build": "tsc && webpack --mode production",
+    "build": "tsc --noEmit && esbuild cli/grf.ts --bundle --platform=node --minify --outfile=dist/grf.js",
+    "buildNoCheck": "esbuild cli/grf.ts --bundle --platform=node --outfile=dist/grf.js",
     "lib": "tsc",
     "debug": "webpack --mode development",
     "watch": "webpack -w",
@@ -45,8 +30,7 @@
     "VM"
   ],
   "bin": {
-    "grfc": "./dist/grfc.js",
-    "grfi": "./dist/grfi.js"
+    "grf": "./dist/grf.js"
   },
   "author": "Nathan Soufflet",
   "license": "MIT",

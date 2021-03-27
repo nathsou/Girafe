@@ -1,19 +1,15 @@
-import { readFileSync, writeFileSync } from "fs";
+import { readFile, writeFile } from "fs/promises";
 import { defaultPasses, showTRS } from "../src/Compiler/Utils";
-import { arithmeticExternals } from "../src/Externals/Arithmetic";
-import { mergeExternals, supportedTargets, Targets } from "../src/Externals/Externals";
-import { metaExternals } from "../src/Externals/Meta";
+import { ExternalsFactory, supportedTargets, Targets } from "../src/Externals/Externals";
 import { compileRules } from "../src/Normalizer/Unification";
 import { translate } from "../src/Translator/Translate";
 
-const src = process.argv[2];
-const outFile = process.argv[3];
-const target = process.argv[4];
-
-const externals = mergeExternals<string>(arithmeticExternals, metaExternals());
-
-const transpile = async (path: string, target: Targets | 'girafe'): Promise<string> => {
-  const source = readFileSync(path).toString();
+const transpile = async (
+  externals: ExternalsFactory<string>,
+  path: string,
+  target: Targets | 'girafe'
+): Promise<string> => {
+  const source = (await readFile(path)).toString();
   const trs = await compileRules(
     source,
     defaultPasses(externals('native'))
@@ -26,25 +22,29 @@ const transpile = async (path: string, target: Targets | 'girafe'): Promise<stri
       return translate(trs, target, externals);
     }
   } else {
-    console.log("Transpilation failed");
+    console.log('Transpilation failed');
   }
 };
 
-(async () => {
-  if (src) {
-    const targetName = target as Targets;
-    const targets = [...supportedTargets, 'girafe'];
-    if (!targets.includes(targetName)) {
-      console.error(`invalid target: ${targetName}, available targets are: [${targets.join(', ')}]`);
-      return;
-    }
-    const out = await transpile(src, targetName);
-    if (outFile) {
-      writeFileSync(outFile, out);
+export const compile = async (
+  externals: ExternalsFactory<string>,
+  src: string,
+  outFile: string,
+  target: string
+): Promise<void> => {
+  const targetName = target as Targets;
+  const targets = [...supportedTargets, 'girafe'];
+
+  if (targets.includes(targetName)) {
+    const out = await transpile(externals, src, targetName);
+
+    if (outFile !== undefined) {
+      await writeFile(outFile, out);
     } else {
       console.log(out);
     }
   } else {
-    console.log("usage: grfc src.grf out ocaml/haskell/js/girafe");
+    console.error(`invalid target: ${targetName}, available targets are: [${targets.join(', ')}]`);
+    process.exit(0);
   }
-})();
+};

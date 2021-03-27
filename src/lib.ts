@@ -35,7 +35,7 @@ export * from "./Externals/Arithmetic";
 export * from "./Externals/Externals";
 export * from "./Externals/Meta";
 
-export * from "./Editor/Normalizers";
+export * from "./Normalizer/Normalizers";
 
 export * from "./Parser/Utils";
 export * from "./Parser/Parser";

@@ -15,7 +15,7 @@
 +(a, S(b)) -> S(+(a, b))
 
 Fib(0) -> 0
-Fib(S(0)) -> 1
+Fib(1) -> 1
 Fib(S(S(n))) -> +(Fib(S(n)), Fib(n))
 
 T -> Fib(+(9, 7))

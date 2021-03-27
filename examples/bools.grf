@@ -1,9 +1,3 @@
-If(True, a, b) -> Inst(a)
-If(False, a, b) -> Inst(b)
-Inst(&If(cond, a, b)) -> If(Inst(cond), a, b)
-
-// If(cond, a, a) -> a
-
 Not(True) -> False
 Not(False) -> True
 Not(Not(q)) -> q

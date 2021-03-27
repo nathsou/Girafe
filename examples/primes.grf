@@ -11,8 +11,6 @@ And(False, False) -> False
 Not(True) -> False
 Not(False) -> True
 
-// Trace(query?) -> @trace(query?)
-
 +(a, b) -> @add(a, b)
 -(a, b) -> @sub(a, b)
 *(a, b) -> @mult(a, b)

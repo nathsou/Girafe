@@ -1,7 +1,5 @@
 # Girafe
 
-[Try online](https://nathsou.github.io/Girafe/)
-
  ### Term Rewriting Systems infrastructure
 
 Girafe provides a set of tools based on a minimal [term rewriting systems](https://en.wikipedia.org/wiki/Rewriting) language that can be interpreted or compiled to various targets.
@@ -19,12 +17,12 @@ $ npm install -g girafe
 ## Compiling
 Girafe programs can be compiled to javascript, ocaml or haskell using:
 ```bash
-$ grfc src.grf out.ext js/ocaml/haskell
+$ grf src.grf out.ext js/ocaml/haskell
 ```
 
 Or interpreted using:
 ```bash
-$ grfi src.grf [query]
+$ grf src.grf [query]
 ```
 ## Use Cases
 

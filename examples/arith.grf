@@ -1,4 +1,16 @@
-import "bools.grf"
+Not(True) -> False
+Not(False) -> True
+Not(Not(q)) -> q
+
+And(False, False) -> False
+And(False, True) -> False
+And(True, False) -> False
+And(True, True) -> True
+
+Or(False, False) -> False
+Or(False, True) -> True
+Or(True, False) -> True
+Or(True, True) -> True
 
 // arithmetic operators
 

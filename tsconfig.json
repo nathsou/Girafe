@@ -8,7 +8,8 @@
         "target": "ES2016",
         "declaration": true,
         "declarationDir": "./lib/types",
-        "outDir": "./lib/js"
+        "outDir": "./lib/js",
+        "esModuleInterop": true
     },
     "include": [
         "src/**/*"

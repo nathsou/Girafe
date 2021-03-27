@@ -1,14 +1,13 @@
-import { DecisionTreeNormalizer } from "../Normalizer/DecisionTreeNormalizer";
-import { NormalizerFactory, buildNormalizer, normalizeQuery, makeNormalizerAsync } from "../Normalizer/Normalizer";
-import { webWorkerNormalizer } from "../Normalizer/JSNormalizer/WebWorkerNormalizer";
-import { unificationNormalizer } from "../Normalizer/Unification";
-import { headMatcher } from "../Normalizer/Matchers/HeadMatcher";
-import { ClosureMatcher } from "../Normalizer/Matchers/ClosureMatcher/ClosureMatcher";
+import { DecisionTreeNormalizer } from "./DecisionTreeNormalizer";
+import { NormalizerFactory, buildNormalizer, normalizeQuery, makeNormalizerAsync } from "./Normalizer";
+import { webWorkerNormalizer } from "./JSNormalizer/WebWorkerNormalizer";
+import { unificationNormalizer } from "./Unification";
+import { headMatcher } from "./Matchers/HeadMatcher";
+import { ClosureMatcher } from "./Matchers/ClosureMatcher/ClosureMatcher";
 import { Term, TRS } from "../Parser/Types";
 import { defaultPasses } from "../Compiler/Utils";
 import { CompilerPass } from "../Compiler/Passes/CompilerPass";
 import { NativeExternals, Externals, ExternalsFactory } from "../Externals/Externals";
-
 
 export type ExternalsMap<Exts extends string = string> = {
     'decision-trees': NativeExternals<Exts>,
