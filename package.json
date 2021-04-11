@@ -7,18 +7,16 @@
   "types": "./lib/types/lib.d.ts",
   "dependencies": {},
   "devDependencies": {
-    "@types/jest": "^26.0.13",
-    "@types/node": "^14.10.1",
-    "esbuild": "^0.10.2",
-    "jest": "^26.4.2",
+    "@types/jest": "^26.0.22",
+    "@types/node": "^14.14.37",
+    "esbuild": "^0.11.8",
+    "jest": "^26.6.3",
     "ts-jest": "^26.5.4"
   },
   "scripts": {
     "build": "tsc --noEmit && esbuild cli/grf.ts --bundle --platform=node --minify --outfile=dist/grf.js",
     "buildNoCheck": "esbuild cli/grf.ts --bundle --platform=node --outfile=dist/grf.js",
     "lib": "tsc",
-    "debug": "webpack --mode development",
-    "watch": "webpack -w",
     "check": "tsc --noEmit",
     "test": "jest",
     "prepublishOnly": "rm -rf /lib /dist && npm run build"

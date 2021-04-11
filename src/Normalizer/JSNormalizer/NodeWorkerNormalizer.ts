@@ -35,22 +35,24 @@ const nodeWorkerExecutor = async (source: string, outputExpr: string): Promise<s
 
 export const nodeWorkerNormalizer = <Exts extends string>(
     trs: TRS,
-    externals: Externals<'js', Exts>
+    externals: Externals<'js', Exts>,
+    useBigInts = true
 ): AsyncNormalizer => {
     return (query: Term) => new JSNormalizer<Exts>(
         trs,
         externals,
         nodeWorkerExecutor
-    ).normalize(query);
+    ).normalize(query, useBigInts);
 };
 
 export const nodeWorkerRawNormalizer = <Exts extends string>(
     trs: TRS,
-    externals: Externals<'js', Exts>
+    externals: Externals<'js', Exts>,
+    useBigInts = true
 ): (query: Term) => Promise<string> => {
     return (query: Term) => new JSNormalizer<Exts>(
         trs,
         externals,
         nodeWorkerExecutor
-    ).normalizeRaw(query);
+    ).normalizeRaw(query, useBigInts);
 };

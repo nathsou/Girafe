@@ -2,9 +2,10 @@ import { DecisionTree, isOccurence } from "../Compiler/DecisionTrees/DecisionTre
 import { OccTerm, _ } from "../Compiler/DecisionTrees/DecisionTreeCompiler";
 import { DecisionTreeTranslator } from "../Compiler/DecisionTrees/DecisionTreeTranslator";
 import { fun, isVar, zip } from "../Compiler/Utils";
-import { Targets } from "../Externals/Externals";
-import { Dict, dictHas, Symb, Term, Var } from "../Parser/Types";
+import { Externals, Targets } from "../Externals/Externals";
+import { Dict, dictHas, Symb, Term, TRS, Var } from "../Parser/Types";
 import { map } from "../Parser/Utils";
+import { natOf } from "./JSTranslator";
 import { isNat, nullaryVarName, SourceCode } from './Translator';
 
 export type Ast =
@@ -69,7 +70,7 @@ export type FunTermUse = {
 
 export type NatExpr = {
     type: 'nat',
-    value: number
+    value: string
 };
 
 // returns the name of a fun or the name of a variable
@@ -137,8 +138,19 @@ function isFunCall(val: unknown): val is FunCall {
 }
 
 // a translator for imperative programming languages like c
-export abstract class ImperativeLangTranslator<T extends Targets, Exts extends string>
-    extends DecisionTreeTranslator<T, Exts> {
+export abstract class ImperativeLangTranslator<Target extends Targets, Exts extends string>
+    extends DecisionTreeTranslator<Target, Exts> {
+
+    protected natOf: (nat: string) => string;
+
+    constructor(
+        trs: TRS,
+        externals: Externals<Target, Exts>,
+        natOf = (nat: string) => `${nat}`
+    ) {
+        super(trs, externals);
+        this.natOf = natOf;
+    }
 
     protected abstract translateAst(ast: Ast): SourceCode;
 
@@ -162,7 +174,7 @@ export abstract class ImperativeLangTranslator<T extends Targets, Exts extends s
             if (isNat(term.name)) {
                 return this.translateAst({
                     type: 'nat',
-                    value: parseInt(term.name)
+                    value: this.natOf(term.name)
                 });
             }
 
@@ -323,7 +335,7 @@ export abstract class ImperativeLangTranslator<T extends Targets, Exts extends s
                             cases.push({
                                 type: 'case',
                                 test: isNat(ctor) ?
-                                    { type: 'nat', value: parseInt(ctor) } :
+                                    { type: 'nat', value: this.natOf(ctor) } :
                                     { type: 'string', value: ctor },
                                 body: translate(A)
                             });
@@ -364,6 +376,7 @@ export abstract class ImperativeLangTranslator<T extends Targets, Exts extends s
 
     public callTerm(term: Term): SourceCode {
         if (isVar(term)) return term;
+        if (isNat(term.name)) return this.natOf(term.name);
 
         // if this is a free constructor simply output a term
         if (!this.isDefined(term.name)) {

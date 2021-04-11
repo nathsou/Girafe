@@ -8,12 +8,14 @@ import { Term, TRS } from "../Parser/Types";
 import { defaultPasses } from "../Compiler/Utils";
 import { CompilerPass } from "../Compiler/Passes/CompilerPass";
 import { NativeExternals, Externals, ExternalsFactory } from "../Externals/Externals";
+import { nodeWorkerNormalizer } from "./JSNormalizer/NodeWorkerNormalizer";
 
 export type ExternalsMap<Exts extends string = string> = {
     'decision-trees': NativeExternals<Exts>,
     'head-matcher': NativeExternals<Exts>,
     'closure-matcher': NativeExternals<Exts>,
-    'web-worker': Externals<'js', Exts>
+    'web-worker': Externals<'js', Exts>,
+    'node-worker': Externals<'js', Exts>
 };
 
 export type Normalizers = keyof ExternalsMap;
@@ -21,7 +23,8 @@ export const normalizersList: Normalizers[] = [
     'decision-trees',
     'web-worker',
     'head-matcher',
-    'closure-matcher'
+    'closure-matcher',
+    'node-worker'
 ];
 
 export const normalizeQueryWith = <N extends Normalizers>(normalizer: N): (
@@ -41,7 +44,9 @@ export const normalizeQueryWith = <N extends Normalizers>(normalizer: N): (
             new ClosureMatcher(trs).asNormalizer(externals('native'))
         ),
         'web-worker': (trs: TRS, externals: ExternalsFactory<string>) =>
-            webWorkerNormalizer(trs, externals('js'))
+            webWorkerNormalizer(trs, externals('js')),
+        'node-worker': (trs: TRS, externals: ExternalsFactory<string>) =>
+            nodeWorkerNormalizer(trs, externals('js'))
     }[normalizer];
 
     return (

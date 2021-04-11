@@ -1,4 +1,4 @@
-// Girafe interpreter using decision trees
+// Girafe interpreter, compiles the source program into js and executes it in a node worker
 
 import { readFile } from "fs/promises";
 import * as readline from 'readline';
@@ -15,10 +15,12 @@ const createREPL = (externals: ExternalsFactory<string>) => {
         source = (await readFile(path)).toString();
     };
 
+    const getSource = () => source;
+
     const normalize = async (query: Term): Promise<Term> => {
-        const res = await normalizeQueryWith('decision-trees')(
+        const res = await normalizeQueryWith('node-worker')(
             query,
-            source,
+            getSource(),
             externals
         );
 
@@ -82,7 +84,7 @@ export const interpret = async (
     query?: string
 ): Promise<void> => {
     const { updateSource, normalize, repl } = createREPL(externals);
-    updateSource(src);
+    await updateSource(src);
 
     if (query !== undefined) {
         const q = parseTerm(query);

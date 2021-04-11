@@ -2,8 +2,10 @@ import { format } from "../Parser/Utils";
 import { Ast, ImperativeLangTranslator } from "./ImperativeLangTranslator";
 import { SourceCode, isNat } from "./Translator";
 
-export class JSTranslator<Exts extends string> extends ImperativeLangTranslator<'js', Exts> {
+export const bigNatOf = (nat: string): string => `${nat}n`;
+export const natOf = (nat: string): string => `${nat}`;
 
+export class JSTranslator<Exts extends string> extends ImperativeLangTranslator<'js', Exts> {
     protected init(): void {
         this.header.push(
             format(
@@ -42,7 +44,7 @@ export class JSTranslator<Exts extends string> extends ImperativeLangTranslator<
             case 'continue':
                 return 'continue;';
             case 'fun':
-                if (isNat(ast.name)) return ast.name;
+                if (isNat(ast.name)) return this.natOf(ast.name);
                 return `{ name: "${ast.name}", args: [${ast.args.map(a => tr(a)).join(', ')}] }`;
             case 'function_call':
                 return `${ast.funName}(${ast.args.map(a => tr(a)).join(', ')})`;
@@ -55,7 +57,7 @@ export class JSTranslator<Exts extends string> extends ImperativeLangTranslator<
                     ${tr(ast.body)}
                 }`;
             case 'nat':
-                return `${ast.value}`;
+                return ast.value;
             case 'raw':
                 return ast.value;
             case 'return':

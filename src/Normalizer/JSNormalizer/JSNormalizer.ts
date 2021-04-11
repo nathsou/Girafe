@@ -2,7 +2,7 @@ import { defined, fun, stringifyQueryVars } from "../../Compiler/Utils";
 import { Externals } from "../../Externals/Externals";
 import { parseTerm } from "../../Parser/Parser";
 import { dictHas, Term, TRS } from "../../Parser/Types";
-import { JSTranslator } from "../../Translator/JSTranslator";
+import { bigNatOf, JSTranslator, natOf } from "../../Translator/JSTranslator";
 import { OneShotNormalizer } from "./../Normalizer";
 
 export class JSNormalizer<Exts extends string> implements OneShotNormalizer {
@@ -22,15 +22,15 @@ export class JSNormalizer<Exts extends string> implements OneShotNormalizer {
         return jst.callTerm(jst.renameTerm(stringifyQueryVars(fun('@show', query))));
     }
 
-    public async normalize(query: Term): Promise<Term> {
-        const jst = new JSTranslator(this.trs, this.externals);
+    public async normalize(query: Term, useBigInts = true): Promise<Term> {
+        const jst = new JSTranslator(this.trs, this.externals, useBigInts ? bigNatOf : natOf);
         const source = jst.translate();
         const out = await this.executor(source, this.getOutputExpr(query, jst));
         return defined(parseTerm(out));
     }
 
-    public async normalizeRaw(query: Term): Promise<string> {
-        const jst = new JSTranslator(this.trs, this.externals);
+    public async normalizeRaw(query: Term, useBigInts = true): Promise<string> {
+        const jst = new JSTranslator(this.trs, this.externals, useBigInts ? bigNatOf : natOf);
         const source = jst.translate();
         const out = await this.executor(source, this.getOutputExpr(query, jst));
         return out;

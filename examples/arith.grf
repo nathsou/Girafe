@@ -108,3 +108,5 @@ FracOfFloat(Float(n, fl)) -> If(=(fl, 0), FracOfNat(n), +(FracOfNat(n), Frac(fl,
 Binomial(n, k) -> Binomial'(n, k, 1, 1)
 Binomial'(n, 0, ns, ks) -> /(ns, ks)
 Binomial'(n, k, ns, ks) -> Binomial'(-(n, 1), -(k, 1), *(ns, n), *(ks, k))
+
+T -> Binomial(2372832, 2323)

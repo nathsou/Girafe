@@ -2,7 +2,7 @@ import { defaultPasses, fun, isNothing, isVar, Maybe, replaceTermAt, showRule, u
 import { ExternalsFactory, NativeExternals } from "../Externals/Externals";
 import { dictHas, Fun, Term, TRS } from "../Parser/Types";
 import { mapMut } from "../Parser/Utils";
-import { compileRules, oneStepReducer } from "./Unification";
+import { compileRules } from "./Unification";
 
 export interface StepNormalizer {
     /**
