@@ -1,3 +1,6 @@
+[![NPM Package][npm]][npm-url]
+[![Build Size][build-size]][build-size-url]
+
 # Girafe
 
  ### Term Rewriting Systems infrastructure
@@ -46,3 +49,8 @@ $ grf src.grf [query]
 2. Martelli & Montanari (1982) [An Efficient Unification Algorithm](http://moscova.inria.fr/~levy/courses/X/IF/03/pi/levy2/martelli-montanari.pdf)
 3. Fokkink, Wan & Kamperman, Jasper & Walters, Pum. (1999). [Lazy Rewriting on Eager Machinery.](https://www.researchgate.net/publication/277293248_Lazy_Rewriting_on_Eager_Machinery) ACM Transactions on Programming Languages and Systems. 22. 10.1145/345099.345102. 
 4. Klop, jan willem. (2000). [Term Rewriting Systems.](https://www.researchgate.net/publication/2472655_Term_Rewriting_Systems) 
+
+[npm]: https://img.shields.io/npm/v/girafe
+[npm-url]: https://www.npmjs.com/package/girafe
+[build-size]: https://badgen.net/bundlephobia/minzip/girafe
+[build-size-url]: https://bundlephobia.com/result?p=girafe

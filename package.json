@@ -14,8 +14,9 @@
     "ts-jest": "^26.5.4"
   },
   "scripts": {
-    "build": "tsc --noEmit && esbuild cli/grf.ts --bundle --platform=node --minify --outfile=dist/grf.js",
-    "buildNoCheck": "esbuild cli/grf.ts --bundle --platform=node --outfile=dist/grf.js",
+    "build": "tsc --noEmit && esbuild cli/grf.ts --bundle --platform=node --minify --outfile=dist/grf.js && npm run insertShebang",
+    "buildNoCheck": "esbuild cli/grf.ts --bundle --platform=node --outfile=dist/grf.js && npm run insertShebang",
+    "insertShebang": "node insertShebang.js",
     "lib": "tsc",
     "check": "tsc --noEmit",
     "test": "jest",
