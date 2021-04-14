@@ -5,7 +5,6 @@ import { fun, isVar, zip } from "../Compiler/Utils";
 import { Externals, Targets } from "../Externals/Externals";
 import { Dict, dictHas, Symb, Term, TRS, Var } from "../Parser/Types";
 import { map } from "../Parser/Utils";
-import { natOf } from "./JSTranslator";
 import { isNat, nullaryVarName, SourceCode } from './Translator';
 
 export type Ast =

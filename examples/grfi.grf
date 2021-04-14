@@ -3,7 +3,7 @@
 And(True, True) -> True
 And(_, _) -> False
 
-Len(:(_, tl)) -> S(Len(tl))
+Len(:(_, tl)) -> @add(Len(tl), 1)
 Len(Nil) -> 0
 
 Zip(:(a, as), :(b, bs)) -> :(Pair(a, b), Zip(as, bs))
@@ -40,7 +40,7 @@ FindRule'(_, Some(subst), r, _) -> Some(r, subst)
 FindRule'(t, _, _, rules) -> FindRule(t, rules)
 
 MapSubstitute(Nil, _) -> Nil
-MapSubstitute(:(h, tl), sig) -> :(Substitute(h, sig), MapSubstitute(tl, sig)) 
+MapSubstitute(:(h, tl), sig) -> :(Substitute(h, sig), MapSubstitute(tl, sig))
 
 Substitute(Var(a), sig) -> FindSubst(a, sig)
 Substitute(Fun(f, args), sig) -> Fun(f, MapSubstitute(args, sig))
@@ -60,16 +60,12 @@ Normalize'(Pair(t, True), rules) -> Normalize'(Reduce(t, rules), rules)
 Normalize'(Pair(t, False), _) -> t
 
 -- example: Times(3, 7) -> 21
-T -> Normalize(Fun(Times, :(N(3), :(N(7), Nil))), PeanoTRS)
+Main -> Normalize(Fun(Times, :(N(3), :(N(7), Nil))), PeanoTRS)
 
 N(0) -> Fun(0, Nil)
 N(n) -> Fun(S, :(N(@sub(n, 1)), Nil))
 
 PeanoTRS -> :(
-    -- Not(True) -> False
-    Rule(Fun(Not, :(Fun(True, Nil), Nil)), Fun(False, Nil)), :(
-    -- Not(False) -> True 
-    Rule(Fun(Not, :(Fun(False, Nil), Nil)), Fun(True, Nil)), :(
     -- Plus(a, 0) -> a
     Rule(Fun(Plus, :(Var(0), :(Fun(0, Nil), Nil))), Var(0)), :(
     -- Plus(0, b) -> b
@@ -86,4 +82,4 @@ PeanoTRS -> :(
     Rule(Fun(Times, :(Fun(S, :(Var(0), Nil)), :(Var(1), Nil))), Fun(Plus, :(Fun(Times, :(Var(0), :(Var(1), Nil))), :(Var(1), Nil)))), :(
     -- Times(a, S(b)) -> Plus(Times(a, b), a)
     Rule(Fun(Times, :(Var(0), :(Fun(S, :(Var(1), Nil)), Nil))), Fun(Plus, :(Fun(Times, :(Var(0), :(Var(1), Nil))), :(Var(0), Nil)))),
-Nil))))))))))
+Nil))))))))
