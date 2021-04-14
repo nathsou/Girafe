@@ -63,7 +63,7 @@ Factorize'(n, i) ->
             :(i, Factorize(/(n, i))),
             Factorize'(n, +(i, 2))
         ),
-        :(n, Nil) // n is prime
+        :(n, Nil) -- n is prime
     )
 
 PrevOdd(n) -> if(Divisible(n, 2), -(n, 1), n)

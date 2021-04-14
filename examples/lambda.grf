@@ -1,6 +1,6 @@
-// Evaluator for a basic extension of the lambda calculus
-// transpiled using croco : https://github.com/nathsou/Croco
-// source program : https://github.com/nathsou/Croco/blob/master/examples/lambda.cro
+-- Evaluator for a basic extension of the lambda calculus
+-- transpiled using croco : https:--github.com/nathsou/Croco
+-- source program : https:--github.com/nathsou/Croco/blob/master/examples/lambda.cro
 
 Rev -> Fold_2(Cons, Nil)
 Main -> Filter_2(Lambda20, Range_2(1, 1000))

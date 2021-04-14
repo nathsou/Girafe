@@ -1,4 +1,4 @@
-// Pseudo random number generator
+-- Pseudo random number generator
 
 NextPRN(seed) -> @mod(@add(@mult(seed, 1588635695), 12345), 4294967291)
 

@@ -1,0 +1,89 @@
+-- a girafe interpreter written in girafe
+
+And(True, True) -> True
+And(_, _) -> False
+
+Len(:(_, tl)) -> S(Len(tl))
+Len(Nil) -> 0
+
+Zip(:(a, as), :(b, bs)) -> :(Pair(a, b), Zip(as, bs))
+Zip(Nil, _) -> Nil
+Zip(_, Nil) -> Nil
+
+Merge(Nil, bs) -> bs
+Merge(:(a, as), bs) -> :(a, Merge(as, bs))
+
+=(a, b) -> @equ(a, b)
+
+Unify(:(Pair(Var(a), t), eqs), sig) ->
+    if(=(t, Var(a)),
+        Unify(eqs, sig),
+        Unify(eqs, :(Pair(a, t), sig))
+    )
+
+Unify(:(Pair(Fun(f, as), Fun(g, bs)), eqs), sig) ->
+    if(And(=(f, g), =(Len(as), Len(bs))),
+        Unify(Merge(Zip(as, bs), eqs), sig),
+        None
+    )
+
+Unify(Nil, sig) -> Some(sig)
+Unify(_, _) -> None
+
+FindSubst(x, Nil) -> Var(x)
+FindSubst(x, :(Pair(y, t), tl)) -> if(=(x, y), t, FindSubst(x, tl))
+
+FindRule(_, Nil) -> None
+FindRule(t, :(Rule(lhs, rhs), rules)) ->
+    FindRule'(t, Unify(:(Pair(lhs, t), Nil), Nil), Rule(lhs, rhs), rules)
+FindRule'(_, Some(subst), r, _) -> Some(r, subst)
+FindRule'(t, _, _, rules) -> FindRule(t, rules)
+
+MapSubstitute(Nil, _) -> Nil
+MapSubstitute(:(h, tl), sig) -> :(Substitute(h, sig), MapSubstitute(tl, sig)) 
+
+Substitute(Var(a), sig) -> FindSubst(a, sig)
+Substitute(Fun(f, args), sig) -> Fun(f, MapSubstitute(args, sig))
+
+MapNormalize(Nil, _) -> Nil
+MapNormalize(:(h, tl), rules) -> :(Normalize(h, rules), MapNormalize(tl, rules))
+
+Reduce(Var(x), rules) -> Pair(Var(x), False)
+Reduce(Fun(f, args), rules) -> LetIn1(Fun(f, MapNormalize(args, rules)), rules)
+LetIn1(s, rules) -> Reduce'(s, FindRule(s, rules))
+
+Reduce'(t, None) -> Pair(t, False)
+Reduce'(t, Some(Rule(lhs, rhs), subst)) -> Pair(Substitute(rhs, subst), True)
+
+Normalize(term, rules) -> Normalize'(Pair(term, True), rules)
+Normalize'(Pair(t, True), rules) -> Normalize'(Reduce(t, rules), rules)
+Normalize'(Pair(t, False), _) -> t
+
+-- example: Times(3, 7) -> 21
+T -> Normalize(Fun(Times, :(N(3), :(N(7), Nil))), PeanoTRS)
+
+N(0) -> Fun(0, Nil)
+N(n) -> Fun(S, :(N(@sub(n, 1)), Nil))
+
+PeanoTRS -> :(
+    -- Not(True) -> False
+    Rule(Fun(Not, :(Fun(True, Nil), Nil)), Fun(False, Nil)), :(
+    -- Not(False) -> True 
+    Rule(Fun(Not, :(Fun(False, Nil), Nil)), Fun(True, Nil)), :(
+    -- Plus(a, 0) -> a
+    Rule(Fun(Plus, :(Fun(0, Nil), :(Var(0), Nil))), Var(0)), :(
+    -- Plus(0, b) -> b
+    Rule(Fun(Plus, :(Var(0), :(Fun(0, Nil), Nil))), Var(0)), :(
+    -- Plus(S(a), b) -> S(Plus(a, b))
+    Rule(Fun(Plus, :(Fun(S, :(Var(0), Nil)), :(Var(1), Nil))), Fun(S, :(Fun(Plus, :(Var(0), :(Var(1), Nil))), Nil))), :(
+    -- Plus(a, S(b)) -> S(Plus(a, b))
+    Rule(Fun(Plus, :(Var(0), :(Fun(S, :(Var(1), Nil)), Nil))), Fun(S, :(Fun(Plus, :(Var(0), :(Var(1), Nil))), Nil))), :(
+    -- Times(0, b) -> 0
+    Rule(Fun(Times, :(Fun(0, Nil), :(Var(0), Nil))), Fun(0, Nil)), :(
+    -- Times(a, 0) -> 0
+    Rule(Fun(Times, :(Var(0), :(Fun(0, Nil), Nil))), Fun(0, Nil)), :(
+    -- Times(S(a), b) -> Plus(Times(a, b), b)
+    Rule(Fun(Times, :(Fun(S, :(Var(0), Nil)), :(Var(1), Nil))), Fun(Plus, :(Fun(Times, :(Var(0), :(Var(1), Nil))), :(Var(1), Nil)))), :(
+    -- Times(a, S(b)) -> Plus(Times(a, b), a)
+    Rule(Fun(Times, :(Var(0), :(Fun(S, :(Var(1), Nil)), Nil))), Fun(Plus, :(Fun(Times, :(Var(0), :(Var(1), Nil))), :(Var(0), Nil)))),
+Nil))))))))))

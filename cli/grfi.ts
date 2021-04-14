@@ -18,7 +18,7 @@ const createREPL = (externals: ExternalsFactory<string>) => {
     const getSource = () => source;
 
     const normalize = async (query: Term): Promise<Term> => {
-        const res = await normalizeQueryWith('node-worker')(
+        const res = await normalizeQueryWith('decision-trees')(
             query,
             getSource(),
             externals
