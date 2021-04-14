@@ -71,17 +71,17 @@ PeanoTRS -> :(
     -- Not(False) -> True 
     Rule(Fun(Not, :(Fun(False, Nil), Nil)), Fun(True, Nil)), :(
     -- Plus(a, 0) -> a
-    Rule(Fun(Plus, :(Fun(0, Nil), :(Var(0), Nil))), Var(0)), :(
-    -- Plus(0, b) -> b
     Rule(Fun(Plus, :(Var(0), :(Fun(0, Nil), Nil))), Var(0)), :(
+    -- Plus(0, b) -> b
+    Rule(Fun(Plus, :(Fun(0, Nil), :(Var(0), Nil))), Var(0)), :(
     -- Plus(S(a), b) -> S(Plus(a, b))
     Rule(Fun(Plus, :(Fun(S, :(Var(0), Nil)), :(Var(1), Nil))), Fun(S, :(Fun(Plus, :(Var(0), :(Var(1), Nil))), Nil))), :(
     -- Plus(a, S(b)) -> S(Plus(a, b))
     Rule(Fun(Plus, :(Var(0), :(Fun(S, :(Var(1), Nil)), Nil))), Fun(S, :(Fun(Plus, :(Var(0), :(Var(1), Nil))), Nil))), :(
-    -- Times(0, b) -> 0
-    Rule(Fun(Times, :(Fun(0, Nil), :(Var(0), Nil))), Fun(0, Nil)), :(
     -- Times(a, 0) -> 0
     Rule(Fun(Times, :(Var(0), :(Fun(0, Nil), Nil))), Fun(0, Nil)), :(
+    -- Times(0, b) -> 0
+    Rule(Fun(Times, :(Fun(0, Nil), :(Var(0), Nil))), Fun(0, Nil)), :(
     -- Times(S(a), b) -> Plus(Times(a, b), b)
     Rule(Fun(Times, :(Fun(S, :(Var(0), Nil)), :(Var(1), Nil))), Fun(Plus, :(Fun(Times, :(Var(0), :(Var(1), Nil))), :(Var(1), Nil)))), :(
     -- Times(a, S(b)) -> Plus(Times(a, b), a)
