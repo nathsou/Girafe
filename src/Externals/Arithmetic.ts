@@ -53,25 +53,25 @@ const nativeArithmeticExternals: NativeExternals<ArithmeticExternals> = {
 
 const jsarithbinop = (op: string) => {
     return (name: string) => (
-        `function ${name}(a, b) {
+        `grf["${name}"] = (a, b) => {
             if (isNat(a) && isNat(b)) {
                 return ${op === '/' ? 'typeof a === "number" ? Math.floor(a / b) : a / b' : `a ${op} b`};
             }
         
             return { name: "${name}", args: [a, b] };
-        }`
+        };`
     );
 };
 
 const jsboolbinop = (op: string) => {
     return (name: string) => (
-        `function ${name}(a, b) {
+        `grf["${name}"] = (a, b) => {
             if (isNat(a) && isNat(b)) {
                 return (a ${op} b) ? ${nullaryVarName('True')} : ${nullaryVarName('False')};
             }
         
             return { name: "${name}", args: [a, b] };
-        }`
+        };`
     );
 };
 

@@ -1,3 +1,4 @@
+import { Fun, Term } from "../Parser/Types";
 import { format } from "../Parser/Utils";
 import { Ast, ImperativeLangTranslator } from "./ImperativeLangTranslator";
 import { SourceCode, isNat } from "./Translator";
@@ -23,8 +24,25 @@ export class JSTranslator<Exts extends string> extends ImperativeLangTranslator<
                 'const t = typeof term;',
                 'return t === "number" || t === "bigint";',
                 '}'
-            )
+            ),
+            format('const grf = {};')
         );
+    }
+
+    renameVar(v: string): string {
+        return v;
+    }
+
+    renameFun(f: Fun): Fun {
+        return f;
+    }
+
+    withPrefix(name: string): string {
+        return name;
+    }
+
+    withoutSpecialChars(name: string): string {
+        return name;
     }
 
     protected translateAst(ast: Ast): SourceCode {
@@ -47,11 +65,11 @@ export class JSTranslator<Exts extends string> extends ImperativeLangTranslator<
                 if (isNat(ast.name)) return this.natOf(ast.name);
                 return `{ name: "${ast.name}", args: [${ast.args.map(a => tr(a)).join(', ')}] }`;
             case 'function_call':
-                return `${ast.funName}(${ast.args.map(a => tr(a)).join(', ')})`;
+                return `grf["${ast.funName}"](${ast.args.map(a => tr(a)).join(', ')})`;
             case 'function_decl':
-                return `function ${ast.name}(${ast.argNames.join(', ')}) {
+                return `grf["${ast.name}"] = (${ast.argNames.join(', ')}) => {
                     ${tr(ast.body)}
-                }`;
+                };`;
             case 'infinite_loop':
                 return `while (true) {
                     ${tr(ast.body)}
@@ -84,6 +102,16 @@ export class JSTranslator<Exts extends string> extends ImperativeLangTranslator<
                 const t = tr(ast.term);
                 return `${t}.name || ${t}`;
         }
+    }
+
+    translate(): SourceCode {
+        return `
+const grf = (() => {
+    ${super.translate()}
+
+    return grf;
+})();
+        `;
     }
 
 }

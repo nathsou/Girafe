@@ -46,7 +46,7 @@ export abstract class DecisionTreeTranslator<Target extends Targets, Exts extend
         });
     }
 
-    // Rules are compiled to decitions trees and then translated to source code
+    // Rules are compiled to decision trees and then translated to source code
     public translateRules(name: string, rules: Rule[]): SourceCode {
         const newVars: Var[] = genVars(arity(rules));
         const rules_: Rule[] = rules.map(([lhs, rhs]) => {

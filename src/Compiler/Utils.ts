@@ -21,8 +21,8 @@ export function defined<T>(mb: Maybe<T>): T {
   return mb as T;
 }
 
-export const logTRS: CompilerPass = (trs: TRS) => {
-  console.log(showTRS(trs));
+export const logTRS = (logFn: (trs: string) => void = console.log): CompilerPass => (trs: TRS) => {
+  logFn(showTRS(trs));
   return Ok(trs);
 };
 
@@ -43,7 +43,7 @@ export const defaultPasses: (exts: NativeExternals) => CompilerPass[] = exts => 
   simulateIfs(),
   lazify,
   normalizeLhsArgs(exts),
-  // logTRS,
+  // logTRS(),
 ];
 
 export function isFun(term: Term, name?: Symb): term is Fun {

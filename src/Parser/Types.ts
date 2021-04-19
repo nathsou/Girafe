@@ -1,5 +1,3 @@
-import { StepNormalizer } from "../Normalizer/Normalizer";
-
 export type Var = string;
 export type Symb = string;
 export type Fun = { name: Symb, args: Term[] };

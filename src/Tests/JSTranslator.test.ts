@@ -51,14 +51,12 @@ const tests = [
         output: ":(2', :(5', Nil))",
         externals
     },
-].map(({ rules, query, output, externals }) =>
-    ({
-        rules: defined(parseRules(rules)),
-        query: defined(parseTerm(query)),
-        output,
-        externals: externals as Externals<'js', string>
-    })
-);
+].map(({ rules, query, output, externals }) => ({
+    rules: defined(parseRules(rules)),
+    query: defined(parseTerm(query)),
+    output,
+    externals: externals as Externals<'js', string>
+}));
 
 it('should produce expected output when evaluated', async () => {
     for (const { rules, query, output, externals } of tests) {

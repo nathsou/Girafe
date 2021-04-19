@@ -24,7 +24,7 @@ export type Ast =
     SubtermAccess |
     RawSourceCode |
     TermName |
-    InfiniteLoop;
+    InfiniteLoop
 
 type RawSourceCode = {
     type: 'raw',
@@ -324,7 +324,6 @@ export abstract class ImperativeLangTranslator<Target extends Targets, Exts exte
                     const cases: SwitchCase[] = [];
 
                     for (const [ctor, A] of tree.tests) {
-
                         if (ctor === _) {
                             cases.push({
                                 type: 'default',

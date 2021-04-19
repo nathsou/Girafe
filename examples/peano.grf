@@ -139,4 +139,4 @@ N''(DivRes(q, r), acc) -> :(N(r), N'(q, acc))
 N(Nil) -> Nil
 N(:(h, tl)) -> :(N(h), N(tl))
 
-Query -> Reverse(N(Primes(**(10, 2))))
+Main -> Reverse(N(Primes(**(10, 2))))

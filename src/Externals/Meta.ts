@@ -36,12 +36,12 @@ const nativeMetaExternals = (log: (str: string) => void): NativeExternals<MetaEx
 const traceNotAvailableMsg = '@trace is not available with this normalizer';
 
 const jsMetaExternals: Externals<'js', MetaExternals> = {
-    trace: name => `function ${name}() { throw new Error("${traceNotAvailableMsg}"); }`,
+    trace: name => `grf["${name}"] = () => { throw new Error("${traceNotAvailableMsg}"); };`,
     equ: name => `
-        function ${name}(a, b) {
+        grf["${name}"] = (a, b) => {
             if (isFun(a) && isFun(b) && a.name === b.name && a.args.length === b.args.length) {
               for (let i = 0; i < a.args.length; i++) {
-                  if (${name}(a.args[i], b.args[i]).name === "False") {
+                  if (grf["${name}"](a.args[i], b.args[i]).name === "False") {
                       return ${nullaryVarName('False')};
                   }
               }
@@ -49,9 +49,9 @@ const jsMetaExternals: Externals<'js', MetaExternals> = {
             }
           
             return a === b ? ${nullaryVarName('True')} : ${nullaryVarName('False')};
-        }`,
+        };`,
     show: name => `
-        function ${name}(term) {
+        grf["${name}"] = term => {
             if (isVar(term)) return term;
             if (isNat(term)) return term.toString();
             if (term.args.length === 0) return term.name;
@@ -100,7 +100,7 @@ const jsMetaExternals: Externals<'js', MetaExternals> = {
             }
             
             return argsStack[0];
-        }`
+        };`
 };
 
 const haskellMetaExternals: Externals<'haskell', MetaExternals> = {

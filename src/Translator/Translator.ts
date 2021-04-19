@@ -41,9 +41,9 @@ export const symbolMap: { [key in SpecialCharacters]: string } = {
 	'!': '_exclamation_mark_'
 };
 
+const natRegex = /^[0-9]+$/;
 export const isNat = (str: string): boolean => natRegex.test(str);
 export const nullarySymbolsPrefix = 'symb_';
-const natRegex = /^[0-9]+$/;
 
 export const nullaryVarName = (f: string): string => {
 	return `${nullarySymbolsPrefix}${mapString(f, c => symbolMap[c] ?? c)}`;
@@ -108,15 +108,15 @@ export abstract class Translator<Target extends Targets, Exts extends string> {
 		return replaceSubstrings(str, symbolMap);
 	}
 
-	private withPrefix(name: Symb): Symb {
+	protected withPrefix(name: Symb): Symb {
 		return `grf_${name}`;
 	}
 
-	private withoutPrefix(str: string): string {
+	protected withoutPrefix(str: string): string {
 		return str.replace(new RegExp('grf_', 'g'), '');
 	}
 
-	private withoutSpecialChars(name: string): string {
+	protected withoutSpecialChars(name: string): string {
 		const noSymbols = mapString(name, c => symbolMap[c] ?? c);
 		return this.withPrefix(noSymbols);
 	}
@@ -150,18 +150,18 @@ export abstract class Translator<Target extends Targets, Exts extends string> {
 		return this.renameFun(term);
 	}
 
-	private renameFun(term: Fun): Fun {
+	protected renameFun(term: Fun): Fun {
 		return {
 			name: this.withoutSpecialChars(term.name),
 			args: term.args.map(t => this.renameTerm(t)),
 		};
 	}
 
-	private renameRule([lhs, rhs]: Rule): Rule {
+	protected renameRule([lhs, rhs]: Rule): Rule {
 		return [this.renameFun(lhs), this.renameTerm(rhs)];
 	}
 
-	private generateExternals(): SourceCode {
+	protected generateExternals(): SourceCode {
 		const exts: SourceCode[] = [];
 		for (const [name, gen] of Object.entries<(name: string) => SourceCode>(this.externals)) {
 			exts.push(gen(this.withoutSpecialChars("@" + name)));
@@ -170,7 +170,7 @@ export abstract class Translator<Target extends Targets, Exts extends string> {
 		return exts.join("\n");
 	}
 
-	private generateRules(): SourceCode {
+	protected generateRules(): SourceCode {
 		const res = [];
 		for (const [name, rules] of this.trs) {
 			res.push(this.translateRules(
