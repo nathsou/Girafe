@@ -23,8 +23,8 @@
     "lib": "tsc",
     "check": "tsc --noEmit",
     "test": "jest",
-    "build:editor": "vite build src/editor --outDir=../../dist/editor --base=/Girafe/",
-    "start:editor": "vite dev src/editor",
+    "build:playground": "vite build src/Playground --outDir=../../dist/playground --base=/Girafe/",
+    "start:playground": "vite dev src/Playground",
     "prepublishOnly": "rm -rf /lib /dist && npm run build"
   },
   "keywords": [

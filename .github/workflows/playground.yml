@@ -9,8 +9,8 @@ on:
     branches: [ master ]
   
 jobs:
-  build-editor:
-    name: build and deploy the editor
+  build-playground:
+    name: build and deploy the playground
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 🛎️
@@ -21,10 +21,10 @@ jobs:
       - name: Install and Build 🔧
         run: |
           npm install
-          npm run build:editor
+          npm run build:playground
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages # The branch the action should deploy to.
-          folder: dist/editor # The folder the action should deploy.
+          folder: dist/playground # The folder the action should deploy.
