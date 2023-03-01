@@ -12,7 +12,7 @@ import { arithmeticExternals } from '../Externals/Arithmetic';
 import { ExternalsFactory, mergeExternals } from '../Externals/Externals';
 import { metaExternals } from '../Externals/Meta';
 import { parseTerm } from '../Parser/Parser';
-import { normalizeQueryWith, Normalizers, normalizersList } from './Normalizers';
+import { normalizeQueryWith, Normalizers, normalizersList } from './normalizers';
 import { girafeMonarch } from './syntax';
 
 document.body.style.margin = "0px";
